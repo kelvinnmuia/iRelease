@@ -1,4 +1,6 @@
 import { X, LayoutDashboard, Briefcase, Users, CheckSquare, Calendar, BarChart3, Settings } from "lucide-react"
+import logo from "../../assets/iRelease-mlogo.png"
+// import favicon from "../../assets/iRelease-fav.png"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
 
@@ -31,10 +33,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between border-b border-gray-200 px-4 sticky top-0 bg-white">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-yellow-300 to-green-400 rounded flex items-center justify-center text-white font-bold text-sm">
+            {/*<div className="w-8 h-8 bg-gradient-to-br from-yellow-300 to-green-400 rounded flex items-center justify-center text-white font-bold text-sm">
               H
             </div>
-            <span className="font-bold text-lg">iRelease</span>
+            <span className="font-bold text-lg">iRelease</span>*/}
+            <img src={logo} alt="iRelease logo" className="flex items-center justify-center h-50 w-50" />
+            {/*<span><img src={logo} alt="iRelease Logo" className="h-35 w-35" /></span>*/}
           </div>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={onToggle}>
             <X className="w-5 h-5" />
