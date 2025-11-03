@@ -1,5 +1,5 @@
 import { X, LayoutDashboard, Briefcase, Users, CheckSquare, Calendar, BarChart3, Settings } from "lucide-react"
-import logo from "../../assets/iRelease-mlogo.png"
+import logo from "@/assets/iRelease-mlogo.png"
 // import favicon from "../../assets/iRelease-fav.png"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
