@@ -1,4 +1,4 @@
-import { X, LayoutDashboard, Briefcase, Users, CheckSquare, Calendar, BarChart3, Settings } from "lucide-react"
+import { X, Calendar, BarChart3, Settings, GitBranch, Bug, ChartPie, PanelsTopLeft } from "lucide-react"
 import logo from "@/assets/iRelease-mlogo.png"
 // import favicon from "../../assets/iRelease-fav.png"
 import { Button } from "../ui/button"
@@ -10,10 +10,10 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", active: true },
-  { icon: Briefcase, label: "Releases", active: false },
-  { icon: Users, label: "SIRs Per Release", active: false },
-  { icon: CheckSquare, label: "Monthly Overview", active: false },
+  { icon: PanelsTopLeft, label: "Dashboard", active: true },
+  { icon: GitBranch, label: "Releases", active: false },
+  { icon: Bug, label: "SIRs Per Release", active: false },
+  { icon: ChartPie, label: "Monthly Overview", active: false },
   { icon: Calendar, label: "Release Calendar", active: false },
   { icon: BarChart3, label: "Reports", active: false },
   { icon: Settings, label: "Settings", active: false },

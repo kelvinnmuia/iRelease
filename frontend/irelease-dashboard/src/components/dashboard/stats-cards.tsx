@@ -2,10 +2,10 @@ import { Card, CardContent } from "../ui/card"
 import { TrendingUp, TrendingDown } from "lucide-react"
 
 const stats = [
-  { label: "Applications", value: "1,534", trend: "+12%", positive: true, bgColor: "bg-lime-100 dark:bg-lime-900" },
-  { label: "Shortlisted", value: "869", trend: "-3.8%", positive: false, bgColor: "bg-orange-100 dark:bg-orange-900" },
-  { label: "Hired", value: "236", trend: "+8.3%", positive: true, bgColor: "bg-green-100 dark:bg-green-900" },
-  { label: "Rejected", value: "429", trend: "-2.8%", positive: false, bgColor: "bg-red-100 dark:bg-red-900" },
+  { label: "All Releases", value: "1,534", trend: "+12%", positive: true, bgColor: "bg-lime-100 dark:bg-lime-900" },
+  { label: "In Testing", value: "869", trend: "-3.8%", positive: false, bgColor: "bg-orange-100 dark:bg-orange-900" },
+  { label: "Passed", value: "236", trend: "+8.3%", positive: true, bgColor: "bg-green-100 dark:bg-green-900" },
+  { label: "Failed", value: "429", trend: "-2.8%", positive: false, bgColor: "bg-red-100 dark:bg-red-900" },
 ]
 
 export function StatsCards() {
