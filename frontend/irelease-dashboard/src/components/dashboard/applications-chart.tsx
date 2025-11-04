@@ -14,7 +14,7 @@ export function ApplicationsChart() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base md:text-lg">Applications</CardTitle>
+        <CardTitle className="text-base md:text-lg">Releases by Month</CardTitle>
         <div className="flex items-center gap-2 mt-2">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-blue-500 rounded-full" />
