@@ -34,13 +34,13 @@ export function ApplicationsChart() {
   return (
     <Card>
       <CardHeader className="pb-3 flex items-center justify-center">
-        <CardTitle className="text-lg lg:text-2xl text-center verti">Release Type by Month</CardTitle>
+        <CardTitle className="text-lg lg:text-2xl text-center">Release Type by Month</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 12 }} />
+            <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 13 }} />
             <YAxis tick={{ fill: "#6b7280", fontSize: 16 }} />
             <Tooltip />
             <Legend
@@ -48,6 +48,7 @@ export function ApplicationsChart() {
               verticalAlign="top"
               align="center"
               iconType="circle"
+              fontSize={8}
               wrapperStyle={{
                 marginTop: isLargeScreen ? -30 : -10,
                 paddingBottom: 16,
