@@ -2,15 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
 
 const data = [
-  { name: "Engineering", value: 300 },
-  { name: "Marketing", value: 200 },
-  { name: "Sales", value: 250 },
-  { name: "Customer Support", value: 260 },
-  { name: "Finance", value: 264 },
-  { name: "Human Resources", value: 260 },
+  { name: "iCMS", value: 300 },
+  { name: "TLIP", value: 200 },
+  { name: "eCustoms", value: 250 },
+  { name: "WIMS", value: 260 },
+  { name: "iBID", value: 264 },
+  { name: "iSCAN", value: 260 },
 ]
 
-const COLORS = ["#3b82f6", "#84cc16", "#22c55e", "#d1d5db", "#c4b5fd", "#ddd6fe"]
+const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314", "#bababa", "#b6484f"]
 
 export function ApplicationByDepartment() {
   const totalApplications = data.reduce((sum, item) => sum + item.value, 0)
