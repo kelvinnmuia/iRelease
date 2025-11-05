@@ -17,7 +17,7 @@ const data = [
   { month: "Dec", Major: 400, Medium: 350, Minor: 50 },
 ]
 
-export function ApplicationsChart() {
+export function ReleaseTypeChart() {
 
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024)
 
