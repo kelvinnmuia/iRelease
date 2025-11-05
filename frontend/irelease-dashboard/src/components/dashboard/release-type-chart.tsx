@@ -34,7 +34,7 @@ export function ReleaseTypeChart() {
   return (
     <Card>
       <CardHeader className="pb-3 flex items-center justify-center">
-        <CardTitle className="text-lg lg:text-2xl text-center">Release Type by Month</CardTitle>
+        <CardTitle className="text-lg lg:text-xl text-center">Release Type by Month</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -48,10 +48,10 @@ export function ReleaseTypeChart() {
               verticalAlign="top"
               align="center"
               iconType="circle"
-              fontSize={8}
               wrapperStyle={{
                 marginTop: isLargeScreen ? -30 : -10,
                 paddingBottom: 16,
+                fontSize: isLargeScreen ? 14 : 13,
                 }}
             />
             <Bar dataKey="Major" fill="#0c0c0c" />
