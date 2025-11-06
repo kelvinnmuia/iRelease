@@ -3,7 +3,7 @@ import { Sidebar } from "./sidebar"
 import { Header } from "./header"
 import { StatsCards } from "./stats-cards"
 import { ReleaseTypeChart } from "./release-type-chart"
-import { ApplicationByDepartment } from "./application-by-department"
+import { ReleasesBySystemName } from "./application-by-department"
 import { CurrentVacancies } from "./current-vacancies"
 import { ApplicantsList } from "./applicants-list"
 import { Tasks } from "./tasks"
@@ -31,7 +31,7 @@ export function Dashboard() {
               {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                 <ReleaseTypeChart />
-                <ApplicationByDepartment />
+                <ReleasesBySystemName />
               </div>
 
               {/* Current Vacancies */}
