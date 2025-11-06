@@ -54,9 +54,9 @@ export function ReleaseTypeChart() {
                 fontSize: isLargeScreen ? 14 : 13,
                 }}
             />
-            <Bar dataKey="Major" fill="#0c0c0c" />
-            <Bar dataKey="Medium" fill="#767276" />
-            <Bar dataKey="Minor" fill="#d11314" />
+            <Bar stackId="a" dataKey="Major" fill="#d11314" />
+            <Bar stackId="a" dataKey="Medium" fill="#767276" />
+            <Bar stackId="a" dataKey="Minor" fill="#0c0c0c" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
