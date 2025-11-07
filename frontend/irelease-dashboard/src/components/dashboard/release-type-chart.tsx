@@ -40,7 +40,14 @@ export function ReleaseTypeChart() {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 13 }} />
+            <XAxis
+              dataKey="month"
+              interval={0} // Shows all 12 months
+              tick={{ fill: "#6b7280", fontSize: isLargeScreen ? 13 : 11 }}
+              angle={isLargeScreen ? 0 : -25} // Tilts labels slightly on small screens
+              textAnchor={isLargeScreen ? "middle" : "end"}
+              height={isLargeScreen ? 30 : 50} // Adds space for rotated labels
+            />
             <YAxis tick={{ fill: "#6b7280", fontSize: 16 }} />
             <Tooltip />
             <Legend
@@ -52,7 +59,7 @@ export function ReleaseTypeChart() {
                 marginTop: isLargeScreen ? -30 : -10,
                 paddingBottom: 16,
                 fontSize: isLargeScreen ? 14 : 13,
-                }}
+              }}
             />
             <Bar stackId="a" dataKey="Major" fill="#d11314" />
             <Bar stackId="a" dataKey="Medium" fill="#767276" />

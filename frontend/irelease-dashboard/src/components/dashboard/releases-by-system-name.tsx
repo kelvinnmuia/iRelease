@@ -98,7 +98,7 @@ export function ReleasesBySystemName() {
           <div className="hidden md:block w-px bg-gray-200" />
 
           {/* Legend section */}
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-3 self-center-safe">
             {data.map((item, index) => (
               <div key={item.name} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 flex-1">
