@@ -1,15 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell } from "recharts"
 
-const jobLevelDetails = [
-  { name: "QA Environment", Total: 300, color: "#ae1f26" },
-  { name: "Pre-Production", Total: 424, color: "#767276" },
-  { name: "Production", Total: 380, color: "#0c0c0c" },
-  { name: "Post-Production", Total: 430, color: "#d11314" }, 
+const releasesDetails = [
+  { Deployment_Status: "QA Environment", Total: 300, color: "#ae1f26" },
+  { Deployment_Status: "Pre-Production", Total: 424, color: "#767276" },
+  { Deployment_Status: "Production", Total: 380, color: "#0c0c0c" },
+  { Deployment_Status: "Post-Production", Total: 430, color: "#d11314" },
 ]
 
 export function DeploymentStatus() {
-  const totalPeople = jobLevelDetails.reduce((sum, i) => sum + i.Total, 0)
+  const totalReleases = releasesDetails.reduce((sum, i) => sum + i.Total, 0)
 
   return (
     <Card className="w-full">
@@ -24,14 +24,14 @@ export function DeploymentStatus() {
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={jobLevelDetails}
+              data={releasesDetails}
               layout="vertical"
               margin={{ top: 10, right: 30, left: 20, bottom: 10 }} // moved chart slightly left
               barCategoryGap="3%" // reduces space between bars
             >
               <XAxis type="number" />
               <YAxis
-                dataKey="name"
+                dataKey="Deployment_Status"
                 type="category"
                 tick={{ fontSize: 12 }}
                 width={140} // slightly narrower axis label area
@@ -41,10 +41,10 @@ export function DeploymentStatus() {
                 <LabelList
                   dataKey="Total"
                   position="right"
-                  formatter={(value: number | string) => `${value} people`}
+                  formatter={(value: number | string) => `${value} releases`}
                   style={{ fill: "#1e293b", fontWeight: "500" }}
                 />
-                {jobLevelDetails.map((entry, index) => (
+                {releasesDetails.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
@@ -54,7 +54,7 @@ export function DeploymentStatus() {
 
         {/* Total Count */}
         <div className="flex items-baseline justify-center mt-4">
-          <span className="text-3xl font-bold text-gray-900">{totalPeople.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-gray-900">{totalReleases.toLocaleString()}</span>
           <span className="text-sm text-gray-600 ml-2">Total Releases</span>
         </div>
       </CardContent>
