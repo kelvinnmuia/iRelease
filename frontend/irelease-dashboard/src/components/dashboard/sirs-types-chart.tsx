@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 
 const data = [
@@ -24,6 +24,7 @@ export function SirsTypeChart() {
         <CardTitle className="text-lg lg:text-xl text-center">
           SIRs by Severity
         </CardTitle>
+        <CardDescription className="text-center mt-2">SIRs Breakdown by Severity</CardDescription>
       </CardHeader>
 
       <CardContent>
