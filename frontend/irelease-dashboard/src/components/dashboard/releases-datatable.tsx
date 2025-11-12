@@ -76,7 +76,7 @@ const getStatusColor = (status: string) => {
   }
 }
 
-export function JobsDatatable() {
+export function ReleasesDatatable() {
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
