@@ -1,225 +1,325 @@
-"use client"
-
-import type React from "react"
-
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Badge } from "../ui/badge"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { MoreVertical, Download, Filter } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 
-const jobsData = [
-  {
-    id: 1,
-    date: "15 May 2024",
-    title: "Senior Developer",
-    department: "Engineering",
-    applicants: 45,
-    status: "Active",
-    salary: "$80K - $120K",
-    type: "Full-time",
-  },
-  {
-    id: 2,
-    date: "12 May 2024",
-    title: "Product Manager",
-    department: "Product",
-    applicants: 28,
-    status: "Active",
-    salary: "$90K - $130K",
-    type: "Full-time",
-  },
-  {
-    id: 3,
-    date: "10 May 2024",
-    title: "UX Designer",
-    department: "Design",
-    applicants: 32,
-    status: "Closed",
-    salary: "$70K - $100K",
-    type: "Full-time",
-  },
-  {
-    id: 4,
-    date: "08 May 2024",
-    title: "Marketing Specialist",
-    department: "Marketing",
-    applicants: 15,
-    status: "Active",
-    salary: "$50K - $75K",
-    type: "Contract",
-  },
-  {
-    id: 5,
-    date: "05 May 2024",
-    title: "HR Coordinator",
-    department: "Human Resources",
-    applicants: 22,
-    status: "Pending",
-    salary: "$45K - $65K",
-    type: "Full-time",
-  },
+const columns = [
+  "Date",
+  "Doc Type",
+  "Number",
+  "Reference",
+  "Final Amount",
+  "Tax",
+  "Status",
+  "Currency",
+  "Amount",
+  "Description",
+  "Category",
+  "Vendor",
+  "Department",
+  "Project",
+  "GL Code",
+  "Cost Center",
+  "Invoice Date",
+  "Due Date",
+  "Approved By",
+  "Created Date",
+  "Modified Date",
+  "Notes",
+  "Payment Terms",
+  "PO Number",
+  "Quantity",
+  "Unit Price",
 ]
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "bg-green-100 text-green-800"
-    case "Closed":
-      return "bg-red-100 text-red-800"
-    case "Pending":
-      return "bg-yellow-100 text-yellow-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
+const generateMockData = (count: number) => {
+  const docTypes = ["Credit invoice", "Debit invoice", "Expense report"]
+  const statuses = ["Pending", "Active", "Closed", "Deleted"]
+  const currencies = ["EUR", "USD", "GBP"]
+  const categories = ["Travel", "Office", "Software", "Hardware", "Utilities"]
+  const vendors = ["Vendor A", "Vendor B", "Vendor C", "Vendor D"]
+  const departments = ["Finance", "IT", "HR", "Sales", "Marketing"]
+
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    date: new Date(2019, 10 - Math.floor(i / 3), 25 - (i % 25)).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+    docType: docTypes[i % docTypes.length],
+    number: `#${450 - i}`,
+    reference: Math.random().toString(36).substring(7),
+    finalAmount: (Math.random() * 10000).toFixed(2),
+    tax: (Math.random() * 500).toFixed(2),
+    status: statuses[i % statuses.length],
+    currency: currencies[i % currencies.length],
+    amount: (Math.random() * 5000).toFixed(2),
+    description: `Transaction ${i + 1}`,
+    category: categories[i % categories.length],
+    vendor: vendors[i % vendors.length],
+    department: departments[i % departments.length],
+    project: `Project ${String.fromCharCode(65 + (i % 26))}`,
+    glCode: `GL-${String(i + 1000).slice(-4)}`,
+    costCenter: `CC-${String(i + 100).slice(-3)}`,
+    invoiceDate: new Date(2019, 10, 1 + (i % 30)).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+    dueDate: new Date(2019, 11, 1 + (i % 30)).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+    approvedBy: `User ${i % 5}`,
+    createdDate: new Date(2019, 9, 1 + (i % 30)).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+    modifiedDate: new Date(2019, 10, 15 + (i % 15)).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+    notes: `Note for transaction ${i + 1}`,
+    paymentTerms: `Net ${30 + (i % 30)}`,
+    poNumber: `PO-${String(1000 + i).slice(-4)}`,
+    quantity: Math.floor(Math.random() * 100) + 1,
+    unitPrice: (Math.random() * 500).toFixed(2),
+  }))
 }
 
-export function ReleasesDatatable() {
-  const [selectedRows, setSelectedRows] = useState<number[]>([])
+const statusConfig: Record<string, { color: string; dot: string }> = {
+  Pending: { color: "bg-yellow-100 text-yellow-800", dot: "bg-yellow-400" },
+  Active: { color: "bg-green-100 text-green-800", dot: "bg-green-500" },
+  Closed: { color: "bg-slate-100 text-slate-800", dot: "bg-slate-500" },
+  Deleted: { color: "bg-red-100 text-red-800", dot: "bg-red-500" },
+}
+
+export function DataTable() {
+  const [data] = useState(generateMockData(26))
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const totalPages = Math.ceil(data.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage)
 
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedRows(jobsData.map((job) => job.id))
+  const toggleRowSelection = (id: number) => {
+    const newSelected = new Set(selectedRows)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
     } else {
-      setSelectedRows([])
+      newSelected.add(id)
+    }
+    setSelectedRows(newSelected)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedRows.size === paginatedData.length) {
+      setSelectedRows(new Set())
+    } else {
+      setSelectedRows(new Set(paginatedData.map((item) => item.id)))
     }
   }
 
-  const handleSelectRow = (id: number) => {
-    setSelectedRows((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
-  }
-
-  const totalPages = Math.ceil(jobsData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const displayedJobs = jobsData.slice(startIndex, startIndex + itemsPerPage)
-
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <CardTitle className="text-lg md:text-xl">Jobs</CardTitle>
-            <p className="text-xs md:text-sm text-gray-500 mt-1">Manage job postings</p>
-          </div>
-          <Button className="w-full md:w-auto bg-green-500 hover:bg-green-600">Add New Job</Button>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="border-b border-gray-200 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
+          <Button className="bg-yellow-400 text-black hover:bg-yellow-500 rounded-full">+ Add New</Button>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-2 md:gap-4 md:items-center">
-          <div className="flex-1">
-            <Input placeholder="Search jobs..." className="text-xs md:text-sm" />
-          </div>
+        {/* Controls */}
+        <div className="flex gap-4 items-center mb-4">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="text-xs md:text-sm gap-2 bg-transparent">
-              <Filter className="w-4 h-4" />
-              <span className="hidden sm:inline">Filter</span>
+            <Button variant="outline" size="sm" className="gap-2 border-yellow-400 text-yellow-600 bg-transparent">
+              <Download className="w-4 h-4" /> Export PDF
             </Button>
-            <Button variant="outline" size="sm" className="text-xs md:text-sm gap-2 bg-transparent">
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Export</span>
+            <Button variant="outline" size="sm" className="gap-2 border-yellow-400 text-yellow-600 bg-transparent">
+              <Download className="w-4 h-4" /> Export XLS
             </Button>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="w-full text-xs md:text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="p-2 md:p-4 text-left">
+          <div className="flex-1 flex gap-2">
+            {/* Doc Type Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="bg-yellow-400 text-black hover:bg-yellow-500">
+                  Doc type <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Sales Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Credit invoice</DropdownMenuItem>
+                <DropdownMenuItem>Debit invoice</DropdownMenuItem>
+                <DropdownMenuItem>Commercial invoice</DropdownMenuItem>
+                <DropdownMenuItem>Expense report</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Status Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  Status <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Pending</DropdownMenuItem>
+                <DropdownMenuItem>Active</DropdownMenuItem>
+                <DropdownMenuItem>Closed</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Ordering */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  Ordering by <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Date (Newest)</DropdownMenuItem>
+                <DropdownMenuItem>Date (Oldest)</DropdownMenuItem>
+                <DropdownMenuItem>Amount (High to Low)</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Date Range */}
+            <Input type="text" placeholder="08/08/2016 - 9/21/2017" className="w-48 h-9" />
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="flex-1 overflow-auto">
+        <Table className="text-sm">
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="w-10">
+                <input
+                  type="checkbox"
+                  checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
+                  onChange={toggleSelectAll}
+                  className="rounded"
+                />
+              </TableHead>
+              {columns.map((col) => (
+                <TableHead key={col} className="whitespace-nowrap px-4 py-3 text-xs font-medium">
+                  {col}
+                </TableHead>
+              ))}
+              <TableHead className="w-12">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedData.map((row) => (
+              <TableRow key={row.id} className="hover:bg-gray-50 border-b">
+                <TableCell>
                   <input
                     type="checkbox"
-                    checked={selectedRows.length === jobsData.length && jobsData.length > 0}
-                    onChange={handleSelectAll}
+                    checked={selectedRows.has(row.id)}
+                    onChange={() => toggleRowSelection(row.id)}
                     className="rounded"
                   />
-                </th>
-                <th className="p-2 md:p-4 text-left font-medium">Date</th>
-                <th className="p-2 md:p-4 text-left font-medium hidden sm:table-cell">Title</th>
-                <th className="p-2 md:p-4 text-left font-medium hidden md:table-cell">Department</th>
-                <th className="p-2 md:p-4 text-left font-medium hidden lg:table-cell">Applicants</th>
-                <th className="p-2 md:p-4 text-left font-medium">Status</th>
-                <th className="p-2 md:p-4 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayedJobs.map((job) => (
-                <tr key={job.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="p-2 md:p-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.includes(job.id)}
-                      onChange={() => handleSelectRow(job.id)}
-                      className="rounded"
-                    />
-                  </td>
-                  <td className="p-2 md:p-4 text-gray-600">{job.date}</td>
-                  <td className="p-2 md:p-4">
-                    <div>
-                      <p className="font-medium">{job.title}</p>
-                      <p className="text-gray-500 text-xs md:hidden">{job.department}</p>
-                    </div>
-                  </td>
-                  <td className="p-2 md:p-4 text-gray-600 hidden md:table-cell">{job.department}</td>
-                  <td className="p-2 md:p-4 text-gray-600 hidden lg:table-cell">{job.applicants}</td>
-                  <td className="p-2 md:p-4">
-                    <Badge className={`text-xs ${getStatusColor(job.status)}`}>{job.status}</Badge>
-                  </td>
-                  <td className="p-2 md:p-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="text-xs md:text-sm">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Applicants</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Close Job</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                </TableCell>
+                <TableCell className="text-gray-700">{row.date}</TableCell>
+                <TableCell className="font-medium">{row.docType}</TableCell>
+                <TableCell className="text-gray-600">{row.number}</TableCell>
+                <TableCell className="text-gray-600 font-mono">{row.reference}</TableCell>
+                <TableCell className="font-medium">
+                  {row.finalAmount} {row.currency}
+                </TableCell>
+                <TableCell className="text-gray-600">{row.tax}</TableCell>
+                <TableCell>
+                  <Badge className={`${statusConfig[row.status]?.color} rounded-full`}>
+                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusConfig[row.status]?.dot}`}></span>
+                    {row.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>{row.currency}</TableCell>
+                <TableCell className="text-gray-600">{row.amount}</TableCell>
+                <TableCell className="text-gray-600">{row.description}</TableCell>
+                <TableCell className="text-gray-600">{row.category}</TableCell>
+                <TableCell className="text-gray-600">{row.vendor}</TableCell>
+                <TableCell className="text-gray-600">{row.department}</TableCell>
+                <TableCell className="text-gray-600">{row.project}</TableCell>
+                <TableCell className="text-gray-600 font-mono">{row.glCode}</TableCell>
+                <TableCell className="text-gray-600 font-mono">{row.costCenter}</TableCell>
+                <TableCell className="text-gray-600">{row.invoiceDate}</TableCell>
+                <TableCell className="text-gray-600">{row.dueDate}</TableCell>
+                <TableCell className="text-gray-600">{row.approvedBy}</TableCell>
+                <TableCell className="text-gray-600">{row.createdDate}</TableCell>
+                <TableCell className="text-gray-600">{row.modifiedDate}</TableCell>
+                <TableCell className="text-gray-600">{row.notes}</TableCell>
+                <TableCell className="text-gray-600">{row.paymentTerms}</TableCell>
+                <TableCell className="text-gray-600 font-mono">{row.poNumber}</TableCell>
+                <TableCell className="text-gray-600">{row.quantity}</TableCell>
+                <TableCell className="text-gray-600 font-mono text-right">${row.unitPrice}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuItem>Export</DropdownMenuItem>
+                      <DropdownMenuItem>View</DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4">
-          <p className="text-xs md:text-sm text-gray-600">
-            Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, jobsData.length)} of {jobsData.length}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <span className="flex items-center gap-1 text-xs md:text-sm">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+      {/* Footer */}
+      <div className="border-t border-gray-200 px-6 py-4 bg-white flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, data.length)} of {data.length}
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              size="sm"
+              variant={currentPage === page ? "default" : "outline"}
+              onClick={() => setCurrentPage(page)}
+              className={currentPage === page ? "bg-yellow-400 text-black" : ""}
+            >
+              {page}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
