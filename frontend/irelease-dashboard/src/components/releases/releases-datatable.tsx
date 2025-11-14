@@ -101,7 +101,7 @@ const statusConfig: Record<string, { color: string; dot: string }> = {
   Deleted: { color: "bg-red-100 text-red-800", dot: "bg-red-500" },
 }
 
-export function DataTable() {
+export function ReleasesDataTable() {
   const [data] = useState(generateMockData(26))
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
