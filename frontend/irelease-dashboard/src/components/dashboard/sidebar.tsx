@@ -5,22 +5,25 @@ import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
 import { useNavigate, useLocation } from "react-router-dom"
 
+
 interface SidebarProps {
   isOpen: boolean
   onToggle: () => void
 }
 
 const menuItems = [
-  { icon: PanelsTopLeft, label: "Dashboard", active: true },
-  { icon: GitBranch, label: "Releases", active: false },
-  { icon: Bug, label: "SIRs Per Release", active: false },
-  { icon: ChartPie, label: "Monthly Overview", active: false },
-  { icon: Calendar, label: "Release Calendar", active: false },
-  { icon: BarChart3, label: "Reports", active: false },
-  { icon: Settings, label: "Settings", active: false },
+  { icon: PanelsTopLeft, label: "Dashboard", path: "/dashboard" },
+  { icon: GitBranch, label: "Releases", path: "/releases" },
+  { icon: Bug, label: "SIRs Per Release", path: "/sirs-per-release" },
+  { icon: ChartPie, label: "Monthly Overview", path: "/monthly-overview" },
+  { icon: Calendar, label: "Release Calendar", path: "/release-calendar" },
+  { icon: BarChart3, label: "Reports", path: "/reports" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ]
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   return (
     <>
       {/* Sidebar */}
@@ -50,12 +53,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon
+            const isActive = location.pathname === item.path
+
             return (
               <button
                 key={item.label}
+                onClick={() => navigate(item.path)}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm",
-                  item.active ? "bg-gray-200 text-gray-600 font-medium" : "text-gray-700 hover:bg-gray-100",
+                  isActive ? "bg-gray-200 text-gray-600 font-medium" : "text-gray-700 hover:bg-gray-100",
                 )}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
