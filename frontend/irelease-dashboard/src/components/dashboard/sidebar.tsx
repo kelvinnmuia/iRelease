@@ -3,7 +3,7 @@ import logo from "@/assets/iRelease-mlogo.png"
 // import favicon from "../../assets/iRelease-fav.png"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
-import { useNavigate, useLocation } from "react-router-dom"
+import { NavLink } from "react-router-dom"
 
 
 interface SidebarProps {
@@ -22,8 +22,6 @@ const menuItems = [
 ]
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
   return (
     <>
       {/* Sidebar */}
@@ -53,20 +51,20 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname === item.path
-
             return (
-              <button
+              <NavLink
                 key={item.label}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm",
-                  isActive ? "bg-gray-200 text-gray-600 font-medium" : "text-gray-700 hover:bg-gray-100",
-                )}
+                to={item.path}
+                className={({ isActive }) =>
+                  cn(
+                    "w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm",
+                    isActive ? "bg-gray-200 text-gray-600 font-medium" : "text-gray-700 hover:bg-gray-100"
+                  )
+                }
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>
-              </button>
+              </NavLink>
             )
           })}
         </nav>
