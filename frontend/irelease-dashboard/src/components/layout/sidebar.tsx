@@ -74,7 +74,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     isActive ? "bg-gray-200 text-gray-600 font-medium" : "text-gray-700 hover:bg-gray-100"
                   )
                 }
-                 end={item.path === "/dashboard"} // Use exact matching for dashboard
+                 end={item.path === "/dashboard"} // Make Dashboard active only on exact "/dashboard" 
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>

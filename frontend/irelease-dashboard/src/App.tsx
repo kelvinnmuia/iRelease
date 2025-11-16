@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/dashboard-layout"
 import DashboardPage from "@/pages/dashboard-page"
 import ReleasesPage from "@/pages/releases-page"
 import SirsPerReleasePage from "@/pages/sirs-per-release"
+import MonthlyOverviewPage from "@/pages/monthly-overview"
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/releases" element={<ReleasesPage />} />
           <Route path="/sirs-per-release" element={<SirsPerReleasePage />} />
+          <Route path="/monthly-overview" element={<MonthlyOverviewPage />} />
         </Route>
 
       </Routes>
