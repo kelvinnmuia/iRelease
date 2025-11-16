@@ -3,7 +3,7 @@ import logo from "@/assets/iRelease-mlogo.png"
 // import favicon from "../../assets/iRelease-fav.png"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 
 
 interface SidebarProps {
@@ -22,6 +22,16 @@ const menuItems = [
 ]
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+  const navigate = useNavigate()
+
+  const handleNavigation = (path: string) => {
+    navigate(path)
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      onToggle()
+    }
+  }
+
   return (
     <>
       {/* Sidebar */}
@@ -33,7 +43,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         )}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between border-b border-gray-200 px-4 sticky top-0 bg-white">
+        <div className="h-16 flex items-center justify-between border-b border-gray-200 px-4 sticky top-0 bg-white cursor-pointer"
+        onClick={() => handleNavigation("/dashboard")}
+        >
           <div className="flex items-center gap-2">
             {/*<div className="w-8 h-8 bg-gradient-to-br from-yellow-300 to-green-400 rounded flex items-center justify-center text-white font-bold text-sm">
               H
@@ -55,12 +67,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <NavLink
                 key={item.label}
                 to={item.path}
+                onClick={() => handleNavigation(item.path)}
                 className={({ isActive }) =>
                   cn(
                     "w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm",
                     isActive ? "bg-gray-200 text-gray-600 font-medium" : "text-gray-700 hover:bg-gray-100"
                   )
                 }
+                 end={item.path === "/dashboard"} // Use exact matching for dashboard
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>

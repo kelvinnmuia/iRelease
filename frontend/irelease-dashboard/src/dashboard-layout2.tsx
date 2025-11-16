@@ -27,6 +27,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   )
 }
 
+/*
 const menuItems = [
   { icon: PanelsTopLeft, label: "Dashboard", active: true,  path: "/dashboard" },
   { icon: GitBranch, label: "Releases", active: false, path: "/releases" },
@@ -36,3 +37,4 @@ const menuItems = [
   { icon: BarChart3, label: "Reports", active: false, path: "/reports" },
   { icon: Settings, label: "Settings", active: false, path: "/settings" },
 ]
+*/
