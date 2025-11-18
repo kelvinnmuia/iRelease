@@ -1,11 +1,13 @@
 import { useState } from "react"
-import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 
 const columns = [
   { key: "releaseId", label: "Release ID", width: "w-32" },
@@ -214,10 +216,19 @@ export function ReleasesDataTable() {
   const [data] = useState(staticData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
+  const [globalFilter, setGlobalFilter] = useState("")
   const itemsPerPage = 10
-  const totalPages = Math.ceil(data.length / itemsPerPage)
+
+  // Filter data based on global search
+  const filteredData = data.filter(item =>
+    Object.values(item).some(value =>
+      String(value).toLowerCase().includes(globalFilter.toLowerCase())
+    )
+  )
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage)
 
   const toggleRowSelection = (id: number) => {
     const newSelected = new Set(selectedRows)
@@ -237,6 +248,63 @@ export function ReleasesDataTable() {
     }
   }
 
+  // Export functions
+  const exportToCSV = () => {
+    const dataToExport = selectedRows.size > 0
+      ? data.filter(item => selectedRows.has(item.id))
+      : filteredData
+
+    const csv = Papa.unparse(dataToExport, {
+      header: true
+    })
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `releases-export-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const exportToExcel = () => {
+    const dataToExport = selectedRows.size > 0
+      ? data.filter(item => selectedRows.has(item.id))
+      : filteredData
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+    const workbook = XLSX.utils.book_new()
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Releases')
+
+    // Set column widths
+    const cols = columns.map((col, index) => ({ wch: Math.max(col.label.length, 15) }))
+    worksheet['!cols'] = cols
+
+    XLSX.writeFile(workbook, `releases-export-${new Date().toISOString().split('T')[0]}.xlsx`)
+  }
+
+  const exportToJSON = () => {
+    const dataToExport = selectedRows.size > 0
+      ? data.filter(item => selectedRows.has(item.id))
+      : filteredData
+
+    const json = JSON.stringify(dataToExport, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `releases-export-${new Date().toISOString().split('T')[0]}.json`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header - Light Gray Background */}
@@ -249,15 +317,43 @@ export function ReleasesDataTable() {
         {/* Controls - Light Gray Background */}
         <div className="flex gap-4 items-center">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-2 border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-50">
-              <Download className="w-4 h-4" /> Export PDF
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2 border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-50">
-              <Download className="w-4 h-4" /> Export XLS
-            </Button>
+            {/* Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-50">
+                  <Download className="w-4 h-4" /> Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={exportToCSV}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportToJSON}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="flex-1 flex gap-2 justify-end">
+            {/* Global Search */}
+            <Input
+              placeholder="Search all columns..."
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value)
+                setCurrentPage(1) // Reset to first page when searching
+              }}
+              className="w-48 h-9 border-gray-300 bg-white focus:border-yellow-400 focus:ring-yellow-400"
+            />
+
             {/* Doc Type Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -299,6 +395,13 @@ export function ReleasesDataTable() {
             />
           </div>
         </div>
+
+        {/* Selected rows info */}
+        {selectedRows.size > 0 && (
+          <div className="mt-4 text-sm text-gray-600">
+            {selectedRows.size} of {filteredData.length} row(s) selected
+          </div>
+        )}
       </div>
 
       {/* Table - White Background */}
@@ -326,101 +429,109 @@ export function ReleasesDataTable() {
             </TableRow>
           </TableHeader>
           <TableBody className="bg-white">
-            {paginatedData.map((row) => (
-              <TableRow 
-                key={row.id} 
-                className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 h-12"
-              >
-                <TableCell className="px-4 h-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.has(row.id)}
-                    onChange={() => toggleRowSelection(row.id)}
-                    className="rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
-                  />
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.releaseId}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.systemName}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.systemId}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.releaseVersion}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.iteration}
-                </TableCell>
-                <TableCell className="px-4 h-12">
-                  <TruncatedText text={row.releaseDescription} maxLength={25} />
-                </TableCell>
-                <TableCell className="px-4 h-12">
-                  <TruncatedText text={row.functionalityDelivered} maxLength={25} />
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.deliveredDate}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.tdNoticeDate}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.testDeployDate}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.testStartDate}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.testEndDate}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.prodDeployDate}
-                </TableCell>
-                <TableCell className="px-4 h-12">
-                  <Badge className={`${statusConfig[row.testStatus]?.color} rounded-full px-3 py-1 text-xs`}>
-                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusConfig[row.testStatus]?.dot}`}></span>
-                    {row.testStatus}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-4 h-12">
-                  <Badge className={`${deploymentStatusConfig[row.deploymentStatus]?.color} rounded-full px-3 py-1 text-xs`}>
-                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${deploymentStatusConfig[row.deploymentStatus]?.dot}`}></span>
-                    {row.deploymentStatus}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 text-center h-12">
-                  {row.outstandingIssues}
-                </TableCell>
-                <TableCell className="px-4 h-12">
-                  <TruncatedText text={row.comments} maxLength={20} />
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.releaseType}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.month}
-                </TableCell>
-                <TableCell className="px-4 text-gray-600 h-12">
-                  {row.financialYear}
-                </TableCell>
-                <TableCell className="px-4 h-12">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="w-8 h-8 p-0 hover:bg-gray-100">
-                        <MoreVertical className="w-4 h-4 text-gray-400" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">Export</DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer text-red-600">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {paginatedData.length > 0 ? (
+              paginatedData.map((row) => (
+                <TableRow 
+                  key={row.id} 
+                  className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 h-12"
+                >
+                  <TableCell className="px-4 h-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(row.id)}
+                      onChange={() => toggleRowSelection(row.id)}
+                      className="rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+                    />
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.releaseId}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.systemName}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.systemId}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.releaseVersion}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.iteration}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <TruncatedText text={row.releaseDescription} maxLength={25} />
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <TruncatedText text={row.functionalityDelivered} maxLength={25} />
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.deliveredDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.tdNoticeDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.testDeployDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.testStartDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.testEndDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.prodDeployDate}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <Badge className={`${statusConfig[row.testStatus]?.color} rounded-full px-3 py-1 text-xs`}>
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusConfig[row.testStatus]?.dot}`}></span>
+                      {row.testStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <Badge className={`${deploymentStatusConfig[row.deploymentStatus]?.color} rounded-full px-3 py-1 text-xs`}>
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${deploymentStatusConfig[row.deploymentStatus]?.dot}`}></span>
+                      {row.deploymentStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 text-center h-12">
+                    {row.outstandingIssues}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <TruncatedText text={row.comments} maxLength={20} />
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.releaseType}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.month}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.financialYear}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-8 h-8 p-0 hover:bg-gray-100">
+                          <MoreVertical className="w-4 h-4 text-gray-400" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">Export</DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer text-red-600">Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length + 2} className="h-24 text-center">
+                  No results found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
@@ -428,7 +539,10 @@ export function ReleasesDataTable() {
       {/* Footer - White Background */}
       <div className="border-t border-gray-200 px-6 py-4 bg-white flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, data.length)} of {data.length}
+          Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length}
+          {globalFilter && (
+            <span className="ml-2">(filtered from {data.length} total records)</span>
+          )}
         </div>
         <div className="flex gap-2">
           <Button
