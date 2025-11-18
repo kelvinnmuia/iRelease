@@ -311,7 +311,7 @@ export function ReleasesDataTable() {
       <div className="bg-gray-50 border-b border-gray-200 p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
-          <Button className="bg-yellow-400 text-black hover:bg-yellow-500 rounded-full px-6">+ Add New</Button>
+          <Button className="bg-red-500 text-white hover:bg-red-600 rounded-full px-6">+ Add New</Button>
         </div>
 
         {/* Controls - Light Gray Background */}
@@ -320,7 +320,7 @@ export function ReleasesDataTable() {
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-50">
+                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50">
                   <Download className="w-4 h-4" /> Export
                 </Button>
               </DropdownMenuTrigger>
@@ -351,7 +351,7 @@ export function ReleasesDataTable() {
                 setGlobalFilter(e.target.value)
                 setCurrentPage(1) // Reset to first page when searching
               }}
-              className="w-48 h-9 border-gray-300 bg-white focus:border-yellow-400 focus:ring-yellow-400"
+              className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
 
             {/* Doc Type Filter */}
@@ -391,7 +391,7 @@ export function ReleasesDataTable() {
             <Input 
               type="text" 
               placeholder="08/08/2016 - 9/21/2017" 
-              className="w-48 h-9 border-gray-300 bg-white focus:border-yellow-400 focus:ring-yellow-400"
+              className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
           </div>
         </div>
@@ -414,7 +414,7 @@ export function ReleasesDataTable() {
                   type="checkbox"
                   checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
                   onChange={toggleSelectAll}
-                  className="rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+                  className="rounded border-gray-300 text-red-400 focus:ring-red-400"
                 />
               </TableHead>
               {columns.map((col) => (
@@ -560,7 +560,7 @@ export function ReleasesDataTable() {
               size="sm"
               variant={currentPage === page ? "default" : "outline"}
               onClick={() => setCurrentPage(page)}
-              className={currentPage === page ? "bg-yellow-400 text-black hover:bg-yellow-500 border-yellow-400" : "border-gray-300 hover:bg-gray-50"}
+              className={currentPage === page ? "bg-red-500 text-white hover:bg-red-600 border-red-500" : "border-gray-300 hover:bg-gray-50"}
             >
               {page}
             </Button>
