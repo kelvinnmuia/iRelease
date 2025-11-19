@@ -174,7 +174,7 @@ const staticData = [
 ]
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
-  "Pending": { color: "bg-white text-gray-500", dot: "bg-yellow-400" },
+  "Pending": { color: "bg-yellow-100 text-yellow-800", dot: "bg-yellow-400" },
   "Active": { color: "bg-green-100 text-green-800", dot: "bg-green-500" },
   "Closed": { color: "bg-slate-100 text-slate-800", dot: "bg-slate-500" },
   "Deleted": { color: "bg-red-100 text-red-800", dot: "bg-red-500" },
@@ -355,8 +355,9 @@ export function ReleasesDataTable() {
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header - Light Gray Background */}
       <div className="bg-gray-50 border-b border-gray-200 p-6">
-        <div className="items-start mb-7">
+        <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
+          <Button className="bg-red-500 text-white hover:bg-red-600 rounded-full px-6">+ Add New</Button>
         </div>
 
         {/* Controls - Light Gray Background */}
@@ -365,11 +366,11 @@ export function ReleasesDataTable() {
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 min-w-[100px] -ml-6">
+                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50">
                   <Download className="w-4 h-4" /> Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[140px]">
+              <DropdownMenuContent align="start">
                 <DropdownMenuItem onClick={exportToCSV}>
                   <FileText className="mr-2 h-4 w-4" />
                   Export as CSV
@@ -386,64 +387,41 @@ export function ReleasesDataTable() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Show/Hide Dropdown */}
+            {/* Column Visibility Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 min-w-[120px]">
-                  <Columns3 className="w-4 h-4" /> Show / Hide Columns
+                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+                  <Columns3 className="w-4 h-4" /> Columns
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="w-60 max-h-[350px] overflow-hidden flex flex-col"
-              >
-                <div className="relative p-2 border-b">
+              <DropdownMenuContent align="start" className="w-48">
+                <div className="relative p-2">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     placeholder="Search columns..."
                     value={columnSearchQuery}
                     onChange={(e) => setColumnSearchQuery(e.target.value)}
-                    className="pl-8 pr-4 w-full"
+                    className="pl-8 pr-4"
                   />
                 </div>
-                
-                {/* Scrollable column list */}
-                <div className="overflow-y-auto flex-1 max-h-[300px]">
-                  <div className="p-1">
-                    {allColumns
-                      .filter(col => 
-                        !columnSearchQuery || 
-                        col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
-                      )
-                      .map((col) => (
-                        <DropdownMenuCheckboxItem
-                          key={col.key}
-                          checked={columnVisibility[col.key]}
-                          onCheckedChange={() => toggleColumnVisibility(col.key)}
-                          onSelect={(e) => e.preventDefault()}
-                          className="px-7 py-2.5 text-sm flex items-center gap-3 min-h-6"
-                        >
-                          <div className="flex-1 ml-1">{col.label}</div>
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    
-                    {/* Show message when no columns match search */}
-                    {allColumns.filter(col => 
-                      !columnSearchQuery || 
-                      col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
-                    ).length === 0 && (
-                      <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                        No columns found
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={resetColumnVisibility}
-                  className="px-3 py-2.5 text-sm"
-                >
+                {allColumns
+                  .filter(col => 
+                    !columnSearchQuery || 
+                    col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
+                  )
+                  .map((col) => (
+                    <DropdownMenuCheckboxItem
+                      key={col.key}
+                      checked={columnVisibility[col.key]}
+                      onCheckedChange={() => toggleColumnVisibility(col.key)}
+                      onSelect={(e) => e.preventDefault()}
+                    >
+                      {col.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={resetColumnVisibility}>
                   <RefreshCcw className="mr-2 h-4 w-4" />
                   Reset Columns
                 </DropdownMenuItem>
@@ -463,16 +441,36 @@ export function ReleasesDataTable() {
               className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
 
+            {/* Doc Type Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50">
+                  Doc type <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Sales Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Credit Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Debit Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Commercial Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Expense Report</DropdownMenuItem>
+                <DropdownMenuItem>Recurring Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Free Expense Invoice</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Ordering Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50 min-w-[120px]">
+                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50">
                   Ordering by <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-[140px]">
+              <DropdownMenuContent>
                 <DropdownMenuItem>Date (Newest)</DropdownMenuItem>
                 <DropdownMenuItem>Date (Oldest)</DropdownMenuItem>
+                <DropdownMenuItem>Release Version</DropdownMenuItem>
+                <DropdownMenuItem>System Name</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -482,9 +480,6 @@ export function ReleasesDataTable() {
               placeholder="08/08/2016 - 9/21/2017" 
               className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
-
-            <Button variant="outline" size = "sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 min-w-[100px] rounded-lg px-6">+ Add New</Button>
-             <Button size = "sm" className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-6 -mr-6">- Delete</Button>
           </div>
         </div>
 
@@ -654,3 +649,21 @@ export function ReleasesDataTable() {
     </div>
   )
 }
+
+{/* Doc Type Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50 min-w-[120px]">
+                  Doc type <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[140px]">
+                <DropdownMenuItem>Sales Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Credit Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Debit Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Commercial Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Expense Report</DropdownMenuItem>
+                <DropdownMenuItem>Recurring Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Free Expense Invoice</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>

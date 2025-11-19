@@ -1,15 +1,15 @@
 import { useState } from "react"
-import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Columns3, RefreshCcw, Search } from "lucide-react"
+import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 
-const allColumns = [
+const columns = [
   { key: "releaseId", label: "Release ID", width: "w-32" },
   { key: "systemName", label: "System Name", width: "w-40" },
   { key: "systemId", label: "System ID", width: "w-28" },
@@ -174,7 +174,7 @@ const staticData = [
 ]
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
-  "Pending": { color: "bg-white text-gray-500", dot: "bg-yellow-400" },
+  "Pending": { color: "bg-yellow-100 text-yellow-800", dot: "bg-yellow-400" },
   "Active": { color: "bg-green-100 text-green-800", dot: "bg-green-500" },
   "Closed": { color: "bg-slate-100 text-slate-800", dot: "bg-slate-500" },
   "Deleted": { color: "bg-red-100 text-red-800", dot: "bg-red-500" },
@@ -217,14 +217,7 @@ export function ReleasesDataTable() {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
-    allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {})
-  )
-  const [columnSearchQuery, setColumnSearchQuery] = useState("")
   const itemsPerPage = 10
-
-  // Get visible columns
-  const visibleColumns = allColumns.filter(col => columnVisibility[col.key])
 
   // Filter data based on global search
   const filteredData = data.filter(item =>
@@ -255,34 +248,13 @@ export function ReleasesDataTable() {
     }
   }
 
-  const toggleColumnVisibility = (columnKey: string) => {
-    setColumnVisibility(prev => ({
-      ...prev,
-      [columnKey]: !prev[columnKey]
-    }))
-  }
-
-  const resetColumnVisibility = () => {
-    setColumnVisibility(allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {}))
-    setColumnSearchQuery("")
-  }
-
   // Export functions
   const exportToCSV = () => {
     const dataToExport = selectedRows.size > 0
       ? data.filter(item => selectedRows.has(item.id))
       : filteredData
 
-    // Filter data to only include visible columns
-    const filteredDataForExport = dataToExport.map(item => {
-      const filteredItem: any = {}
-      visibleColumns.forEach(col => {
-        filteredItem[col.label] = item[col.key as keyof typeof item]
-      })
-      return filteredItem
-    })
-
-    const csv = Papa.unparse(filteredDataForExport, {
+    const csv = Papa.unparse(dataToExport, {
       header: true
     })
 
@@ -303,22 +275,13 @@ export function ReleasesDataTable() {
       ? data.filter(item => selectedRows.has(item.id))
       : filteredData
 
-    // Filter data to only include visible columns
-    const filteredDataForExport = dataToExport.map(item => {
-      const filteredItem: any = {}
-      visibleColumns.forEach(col => {
-        filteredItem[col.label] = item[col.key as keyof typeof item]
-      })
-      return filteredItem
-    })
-
-    const worksheet = XLSX.utils.json_to_sheet(filteredDataForExport)
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
     const workbook = XLSX.utils.book_new()
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Releases')
 
     // Set column widths
-    const cols = visibleColumns.map((col) => ({ wch: Math.max(col.label.length, 15) }))
+    const cols = columns.map((col, index) => ({ wch: Math.max(col.label.length, 15) }))
     worksheet['!cols'] = cols
 
     XLSX.writeFile(workbook, `releases-export-${new Date().toISOString().split('T')[0]}.xlsx`)
@@ -329,16 +292,7 @@ export function ReleasesDataTable() {
       ? data.filter(item => selectedRows.has(item.id))
       : filteredData
 
-    // Filter data to only include visible columns
-    const filteredDataForExport = dataToExport.map(item => {
-      const filteredItem: any = {}
-      visibleColumns.forEach(col => {
-        filteredItem[col.label] = item[col.key as keyof typeof item]
-      })
-      return filteredItem
-    })
-
-    const json = JSON.stringify(filteredDataForExport, null, 2)
+    const json = JSON.stringify(dataToExport, null, 2)
     const blob = new Blob([json], { type: 'application/json' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
@@ -355,8 +309,9 @@ export function ReleasesDataTable() {
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header - Light Gray Background */}
       <div className="bg-gray-50 border-b border-gray-200 p-6">
-        <div className="items-start mb-7">
+        <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
+          <Button className="bg-red-500 text-white hover:bg-red-600 rounded-full px-6">+ Add New</Button>
         </div>
 
         {/* Controls - Light Gray Background */}
@@ -365,11 +320,11 @@ export function ReleasesDataTable() {
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 min-w-[100px] -ml-6">
+                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50">
                   <Download className="w-4 h-4" /> Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[140px]">
+              <DropdownMenuContent align="start">
                 <DropdownMenuItem onClick={exportToCSV}>
                   <FileText className="mr-2 h-4 w-4" />
                   Export as CSV
@@ -382,70 +337,6 @@ export function ReleasesDataTable() {
                 <DropdownMenuItem onClick={exportToJSON}>
                   <FileText className="mr-2 h-4 w-4" />
                   Export as JSON
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Show/Hide Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 min-w-[120px]">
-                  <Columns3 className="w-4 h-4" /> Show / Hide Columns
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="w-60 max-h-[350px] overflow-hidden flex flex-col"
-              >
-                <div className="relative p-2 border-b">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    placeholder="Search columns..."
-                    value={columnSearchQuery}
-                    onChange={(e) => setColumnSearchQuery(e.target.value)}
-                    className="pl-8 pr-4 w-full"
-                  />
-                </div>
-                
-                {/* Scrollable column list */}
-                <div className="overflow-y-auto flex-1 max-h-[300px]">
-                  <div className="p-1">
-                    {allColumns
-                      .filter(col => 
-                        !columnSearchQuery || 
-                        col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
-                      )
-                      .map((col) => (
-                        <DropdownMenuCheckboxItem
-                          key={col.key}
-                          checked={columnVisibility[col.key]}
-                          onCheckedChange={() => toggleColumnVisibility(col.key)}
-                          onSelect={(e) => e.preventDefault()}
-                          className="px-7 py-2.5 text-sm flex items-center gap-3 min-h-6"
-                        >
-                          <div className="flex-1 ml-1">{col.label}</div>
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    
-                    {/* Show message when no columns match search */}
-                    {allColumns.filter(col => 
-                      !columnSearchQuery || 
-                      col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
-                    ).length === 0 && (
-                      <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                        No columns found
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={resetColumnVisibility}
-                  className="px-3 py-2.5 text-sm"
-                >
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  Reset Columns
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -463,16 +354,36 @@ export function ReleasesDataTable() {
               className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
 
+            {/* Doc Type Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50">
+                  Doc type <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Sales Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Credit Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Debit Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Commercial Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Expense Report</DropdownMenuItem>
+                <DropdownMenuItem>Recurring Invoice</DropdownMenuItem>
+                <DropdownMenuItem>Free Expense Invoice</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Ordering Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50 min-w-[120px]">
+                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50">
                   Ordering by <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-[140px]">
+              <DropdownMenuContent>
                 <DropdownMenuItem>Date (Newest)</DropdownMenuItem>
                 <DropdownMenuItem>Date (Oldest)</DropdownMenuItem>
+                <DropdownMenuItem>Release Version</DropdownMenuItem>
+                <DropdownMenuItem>System Name</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -482,9 +393,6 @@ export function ReleasesDataTable() {
               placeholder="08/08/2016 - 9/21/2017" 
               className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
-
-            <Button variant="outline" size = "sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 min-w-[100px] rounded-lg px-6">+ Add New</Button>
-             <Button size = "sm" className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-6 -mr-6">- Delete</Button>
           </div>
         </div>
 
@@ -509,7 +417,7 @@ export function ReleasesDataTable() {
                   className="rounded border-gray-300 text-red-400 focus:ring-red-400"
                 />
               </TableHead>
-              {visibleColumns.map((col) => (
+              {columns.map((col) => (
                 <TableHead 
                   key={col.key} 
                   className={`px-4 text-sm font-semibold text-gray-900 h-12 ${col.width}`}
@@ -532,57 +440,75 @@ export function ReleasesDataTable() {
                       type="checkbox"
                       checked={selectedRows.has(row.id)}
                       onChange={() => toggleRowSelection(row.id)}
-                      className="rounded border-gray-300 text-red-400 focus:ring-red-400"
+                      className="rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
                     />
                   </TableCell>
-                  {visibleColumns.map((col) => {
-                    const value = row[col.key as keyof typeof row]
-                    
-                    // Special rendering for certain columns
-                    if (col.key === 'testStatus') {
-                      return (
-                        <TableCell key={col.key} className="px-4 h-12">
-                          <Badge className={`${statusConfig[String(value)]?.color} rounded-full px-3 py-1 text-xs`}>
-                            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusConfig[String(value)]?.dot}`}></span>
-                            {String(value)}
-                          </Badge>
-                        </TableCell>
-                      )
-                    }
-                    
-                    if (col.key === 'deploymentStatus') {
-                      return (
-                        <TableCell key={col.key} className="px-4 h-12">
-                          <Badge className={`${deploymentStatusConfig[String(value)]?.color} rounded-full px-3 py-1 text-xs`}>
-                            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${deploymentStatusConfig[String(value)]?.dot}`}></span>
-                            {String(value)}
-                          </Badge>
-                        </TableCell>
-                      )
-                    }
-                    
-                    if (col.key === 'releaseDescription' || col.key === 'functionalityDelivered' || col.key === 'comments') {
-                      return (
-                        <TableCell key={col.key} className="px-4 h-12">
-                          <TruncatedText text={String(value)} maxLength={col.key === 'comments' ? 20 : 25} />
-                        </TableCell>
-                      )
-                    }
-                    
-                    if (col.key === 'outstandingIssues') {
-                      return (
-                        <TableCell key={col.key} className="px-4 text-gray-600 text-center h-12">
-                          {String(value)}
-                        </TableCell>
-                      )
-                    }
-                    
-                    return (
-                      <TableCell key={col.key} className="px-4 text-gray-600 h-12">
-                        {String(value)}
-                      </TableCell>
-                    )
-                  })}
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.releaseId}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.systemName}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.systemId}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.releaseVersion}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.iteration}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <TruncatedText text={row.releaseDescription} maxLength={25} />
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <TruncatedText text={row.functionalityDelivered} maxLength={25} />
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.deliveredDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.tdNoticeDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.testDeployDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.testStartDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.testEndDate}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.prodDeployDate}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <Badge className={`${statusConfig[row.testStatus]?.color} rounded-full px-3 py-1 text-xs`}>
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusConfig[row.testStatus]?.dot}`}></span>
+                      {row.testStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <Badge className={`${deploymentStatusConfig[row.deploymentStatus]?.color} rounded-full px-3 py-1 text-xs`}>
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${deploymentStatusConfig[row.deploymentStatus]?.dot}`}></span>
+                      {row.deploymentStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 text-center h-12">
+                    {row.outstandingIssues}
+                  </TableCell>
+                  <TableCell className="px-4 h-12">
+                    <TruncatedText text={row.comments} maxLength={20} />
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.releaseType}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.month}
+                  </TableCell>
+                  <TableCell className="px-4 text-gray-600 h-12">
+                    {row.financialYear}
+                  </TableCell>
                   <TableCell className="px-4 h-12">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -601,7 +527,7 @@ export function ReleasesDataTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={visibleColumns.length + 2} className="h-24 text-center">
+                <TableCell colSpan={columns.length + 2} className="h-24 text-center">
                   No results found.
                 </TableCell>
               </TableRow>
@@ -617,7 +543,6 @@ export function ReleasesDataTable() {
           {globalFilter && (
             <span className="ml-2">(filtered from {data.length} total records)</span>
           )}
-          <span className="ml-2">• {visibleColumns.length} columns visible</span>
         </div>
         <div className="flex gap-2">
           <Button
