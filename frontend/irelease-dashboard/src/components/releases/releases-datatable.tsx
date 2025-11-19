@@ -594,15 +594,15 @@ export function ReleasesDataTable() {
                       <Button 
                         onClick={applyDateRange}
                         disabled={!startDate || !endDate}
-                        className="flex-1 bg-red-500 text-white hover:bg-red-600"
+                        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 min-w-[100px]"
+                        variant="outline"
                         size="sm"
                       >
                         Apply
                       </Button>
                       <Button 
                         onClick={clearDateRange}
-                        variant="outline"
-                        className="flex-1"
+                        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
                         size="sm"
                       >
                         Clear
