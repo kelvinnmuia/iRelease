@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Columns3, RefreshCcw, Search } from "lucide-react"
+import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Columns3, RefreshCcw, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -212,11 +212,50 @@ const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: num
   )
 }
 
+// Helper function to parse date strings
+const parseDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null
+  
+  // Handle "DD MMM YYYY" format (e.g., "12 Dec 2024")
+  const months: { [key: string]: number } = {
+    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+  }
+  
+  const parts = dateStr.split(' ')
+  if (parts.length === 3) {
+    const day = parseInt(parts[0])
+    const month = months[parts[1]]
+    const year = parseInt(parts[2])
+    
+    if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+      return new Date(year, month, day)
+    }
+  }
+  
+  // Fallback to Date constructor
+  const date = new Date(dateStr)
+  return isNaN(date.getTime()) ? null : date
+}
+
+// Helper function to format date as "DD MMM YYYY"
+const formatDate = (date: Date): string => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const day = date.getDate()
+  const month = months[date.getMonth()]
+  const year = date.getFullYear()
+  return `${day} ${month} ${year}`
+}
+
 export function ReleasesDataTable() {
   const [data] = useState(staticData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
+  const [dateRange, setDateRange] = useState("")
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
     allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {})
   )
@@ -226,12 +265,63 @@ export function ReleasesDataTable() {
   // Get visible columns
   const visibleColumns = allColumns.filter(col => columnVisibility[col.key])
 
-  // Filter data based on global search
-  const filteredData = data.filter(item =>
-    Object.values(item).some(value =>
-      String(value).toLowerCase().includes(globalFilter.toLowerCase())
-    )
-  )
+  // Apply date range when both dates are selected
+  const applyDateRange = () => {
+    if (startDate && endDate) {
+      const start = parseDate(startDate)
+      const end = parseDate(endDate)
+      
+      if (start && end) {
+        const formattedStart = formatDate(start)
+        const formattedEnd = formatDate(end)
+        setDateRange(`${formattedStart} - ${formattedEnd}`)
+      }
+    }
+    setShowDatePicker(false)
+  }
+
+  // Clear date range
+  const clearDateRange = () => {
+    setDateRange("")
+    setStartDate("")
+    setEndDate("")
+    setShowDatePicker(false)
+    setCurrentPage(1)
+  }
+
+  // Filter data based on global search and date range
+  const filteredData = data.filter(item => {
+    // Global text search
+    const matchesGlobalSearch = !globalFilter || 
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(globalFilter.toLowerCase())
+      )
+
+    // Date range filter
+    const matchesDateRange = !dateRange || (() => {
+      const rangeParts = dateRange.split(' - ')
+      if (rangeParts.length !== 2) return true
+      
+      const [startStr, endStr] = rangeParts
+      const startDate = parseDate(startStr.trim())
+      const endDate = parseDate(endStr.trim())
+      
+      if (!startDate || !endDate) return true
+      
+      // Check if any of the date fields fall within the range
+      const dateFields = [
+        'deliveredDate', 'tdNoticeDate', 'testDeployDate', 
+        'testStartDate', 'testEndDate', 'prodDeployDate'
+      ]
+      
+      return dateFields.some(field => {
+        const itemDate = parseDate(item[field as keyof typeof item] as string)
+        return itemDate && itemDate >= startDate && itemDate <= endDate
+      })
+    })()
+
+    return matchesGlobalSearch && matchesDateRange
+  })
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -463,6 +553,66 @@ export function ReleasesDataTable() {
               className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
             />
 
+            {/* Date Range with Calendar Icon and Dropdown */}
+            <div className="relative">
+              <div 
+                className="flex items-center cursor-pointer"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+              >
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                <Input
+                  placeholder="Select date range"
+                  value={dateRange}
+                  readOnly
+                  className="w-48 h-9 pl-10 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer"
+                />
+              </div>
+              
+              {/* Date Picker Dropdown */}
+              {showDatePicker && (
+                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 w-64">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <Input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                      <Input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        onClick={applyDateRange}
+                        disabled={!startDate || !endDate}
+                        className="flex-1 bg-red-500 text-white hover:bg-red-600"
+                        size="sm"
+                      >
+                        Apply
+                      </Button>
+                      <Button 
+                        onClick={clearDateRange}
+                        variant="outline"
+                        className="flex-1"
+                        size="sm"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Ordering Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -476,15 +626,8 @@ export function ReleasesDataTable() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Date Range */}
-            <Input 
-              type="text" 
-              placeholder="08/08/2016 - 9/21/2017" 
-              className="w-48 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
-            />
-
-            <Button variant="outline" size = "sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 min-w-[100px] rounded-lg px-6">+ Add New</Button>
-             <Button size = "sm" className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-6 -mr-6">- Delete</Button>
+            <Button variant="outline" size="sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 min-w-[100px] rounded-lg px-6">+ Add New</Button>
+            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 rounded-lg px-6 -mr-6">- Delete</Button>
           </div>
         </div>
 
@@ -492,6 +635,15 @@ export function ReleasesDataTable() {
         {selectedRows.size > 0 && (
           <div className="mt-4 text-sm text-gray-600">
             {selectedRows.size} of {filteredData.length} row(s) selected
+          </div>
+        )}
+
+        {/* Filter status */}
+        {(globalFilter || dateRange) && (
+          <div className="mt-2 text-sm text-gray-500">
+            Showing {filteredData.length} releases
+            {globalFilter && ` matching "${globalFilter}"`}
+            {dateRange && ` within date range: ${dateRange}`}
           </div>
         )}
       </div>
