@@ -511,15 +511,13 @@ export function ReleasesDataTable() {
         </div>
 
         {/* Controls - Light Gray Background */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 lg:gap-2">
-          {/* First Row: Export, Show/Hide, Search - 3 elements */}
-          <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-start">
+        <div className="flex gap-4 items-center">
+          <div className="flex gap-2">
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="-ml-5 gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px]">
-                  <Download className="w-4 h-4" />
-                  <span className="lg:inline">Export</span>
+                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 min-w-[100px] -ml-6">
+                  <Download className="w-4 h-4" /> Export
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="min-w-[140px]">
@@ -542,10 +540,8 @@ export function ReleasesDataTable() {
             {/* Show/Hide Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[140px]">
-                  <Columns3 className="w-4 h-4" />
-                  <span className="hidden sm:inline lg:inline">Show / Hide Columns</span>
-                  <span className="sm:hidden">Columns</span>
+                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 min-w-[120px]">
+                  <Columns3 className="w-4 h-4" /> Show / Hide Columns
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -604,26 +600,22 @@ export function ReleasesDataTable() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Search Input */}
-            <div className="relative flex-1 lg:flex-none lg:w-62">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
-              <Input
-                placeholder="Search releases..."
-                value={globalFilter}
-                onChange={(e) => {
-                  setGlobalFilter(e.target.value)
-                  setCurrentPage(1) // Reset to first page when searching
-                }}
-                className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
-              />
-            </div>
           </div>
 
-          {/* Second Row: Date Range and Ordering - 2 elements */}
-          <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-center">
-            {/* Date Range */}
-            <div className="relative flex-1 lg:flex-none lg:w-64">
+          <div className="flex-1 flex gap-2 justify-end">
+            {/* Global Search */}
+            <Input
+              placeholder="Search releases..."
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value)
+                setCurrentPage(1) // Reset to first page when searching
+              }}
+              className="w-36 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
+            />
+
+            {/* Date Range with Calendar Icon and Dropdown */}
+            <div className="relative">
               <div
                 className="flex items-center cursor-pointer"
                 onClick={() => setShowDatePicker(!showDatePicker)}
@@ -633,7 +625,7 @@ export function ReleasesDataTable() {
                   placeholder="Select date range"
                   value={dateRange}
                   readOnly
-                  className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer"
+                  className="w-60 h-9 pl-10 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer"
                 />
               </div>
 
@@ -663,7 +655,7 @@ export function ReleasesDataTable() {
                       <Button
                         onClick={applyDateRange}
                         disabled={!startDate || !endDate}
-                        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
+                        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 min-w-[100px]"
                         variant="outline"
                         size="sm"
                       >
@@ -685,10 +677,8 @@ export function ReleasesDataTable() {
             {/* Ordering Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[130px] justify-center">
-                  <span className="hidden sm:inline lg:inline">Ordering by</span>
-                  <span className="sm:hidden">Order by</span>
-                  <ChevronDown className="w-4 h-4" />
+                <Button size="sm" variant="outline" className="flex items-center gap-1 bg-white border-gray-300 hover:bg-gray-50 min-w-[120px]">
+                  Ordering by <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[130px]">
@@ -700,18 +690,11 @@ export function ReleasesDataTable() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
 
-          {/* Third Row: Add New and Delete - 2 elements */}
-          <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-end">
-            <Button variant="outline" size="sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg">
-              <span className="hidden sm:inline lg:inline">+ Add New</span>
-              <span className="sm:hidden">+ Add</span>
-            </Button>
-            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg -mr-5">
-              <span className="hidden sm:inline lg:inline">- Delete</span>
-              <span className="sm:hidden">- Del</span>
-            </Button>
+            <Button variant="outline" size="sm" className="border-red-400 bg-white text-red-600 
+            hover:bg-red-50 min-w-[100px] rounded-lg px-6">+ Add New</Button>
+            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 rounded-lg 
+            px-6 -mr-6 min-w-[100px]">- Delete</Button>
           </div>
         </div>
 
@@ -847,8 +830,8 @@ export function ReleasesDataTable() {
       </div>
 
       {/* Footer - White Background */}
-      <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="text-sm text-gray-600 text-center sm:text-left">
+      <div className="border-t border-gray-200 px-6 py-4 bg-white flex justify-between items-center">
+        <div className="text-sm text-gray-600">
           Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
           {globalFilter && (
             <span className="ml-2">(filtered from {data.length} total records)</span>
