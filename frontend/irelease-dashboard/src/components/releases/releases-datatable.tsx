@@ -705,12 +705,10 @@ export function ReleasesDataTable() {
           {/* Third Row: Add New and Delete - 2 elements */}
           <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-end">
             <Button variant="outline" size="sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg">
-              <span className="hidden sm:inline lg:inline">+ Add New</span>
-              <span className="sm:hidden">+ Add</span>
+              + Add New
             </Button>
             <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5">
-              <span className="hidden sm:inline lg:inline">- Delete</span>
-              <span className="sm:hidden">- Del</span>
+              - Delete
             </Button>
           </div>
         </div>
