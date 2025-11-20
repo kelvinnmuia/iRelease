@@ -615,7 +615,7 @@ export function ReleasesDataTable() {
                   setGlobalFilter(e.target.value)
                   setCurrentPage(1) // Reset to first page when searching
                 }}
-                className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
+                className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 sm:pr-4"
               />
             </div>
           </div>
@@ -633,7 +633,7 @@ export function ReleasesDataTable() {
                   placeholder="Select date range"
                   value={dateRange}
                   readOnly
-                  className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer"
+                  className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4"
                 />
               </div>
 
