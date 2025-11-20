@@ -542,7 +542,7 @@ export function ReleasesDataTable() {
             {/* Show/Hide Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[140px]">
+                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[200px]">
                   <Columns3 className="w-4 h-4" />
                   <span className="hidden sm:inline lg:inline">Show / Hide Columns</span>
                   <span className="sm:hidden">Columns</span>
@@ -606,7 +606,7 @@ export function ReleasesDataTable() {
             </DropdownMenu>
 
             {/* Search Input */}
-            <div className="relative flex-1 lg:flex-none lg:w-64">
+            <div className="relative flex-1 lg:flex-none lg:w-70">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
               <Input
                 placeholder="Search releases..."
