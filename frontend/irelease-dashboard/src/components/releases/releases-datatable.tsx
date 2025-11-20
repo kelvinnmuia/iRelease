@@ -174,18 +174,18 @@ const staticData = [
 ]
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
-  "Pending": { color: "bg-white text-gray-500", dot: "bg-yellow-400" },
-  "Active": { color: "bg-green-100 text-green-800", dot: "bg-green-500" },
-  "Closed": { color: "bg-slate-100 text-slate-800", dot: "bg-slate-500" },
-  "Deleted": { color: "bg-red-100 text-red-800", dot: "bg-red-500" },
-  "Passed": { color: "bg-green-100 text-green-800", dot: "bg-green-500" },
+  "Pending": { color: "text-gray-600", dot: "bg-yellow-400" },
+  "Active": { color: "text-gray-600", dot: "bg-green-500" },
+  "Closed": { color: "text-gray-600", dot: "bg-slate-500" },
+  "Deleted": { color: "text-gray-600", dot: "bg-red-500" },
+  "Passed": { color: "text-gray-600", dot: "bg-green-500" },
 }
 
 const deploymentStatusConfig: Record<string, { color: string; dot: string }> = {
-  "Completed": { color: "bg-green-100 text-green-800", dot: "bg-green-500" },
-  "Scheduled": { color: "bg-yellow-100 text-yellow-800", dot: "bg-yellow-400" },
-  "On Hold": { color: "bg-red-100 text-red-800", dot: "bg-red-500" },
-  "Cancelled": { color: "bg-slate-100 text-slate-800", dot: "bg-slate-500" },
+  "Completed": { color: "text-gray-600", dot: "bg-green-500" },
+  "Scheduled": { color: "text-gray-600", dot: "bg-yellow-400" },
+  "On Hold": { color: "text-gray-600", dot: "bg-red-500" },
+  "Cancelled": { color: "text-gray-600", dot: "bg-slate-500" },
 }
 
 const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: number }) => {
@@ -776,10 +776,10 @@ export function ReleasesDataTable() {
                     if (col.key === 'testStatus') {
                       return (
                         <TableCell key={col.key} className="px-4 h-12">
-                          <Badge className={`${statusConfig[String(value)]?.color} rounded-full px-3 py-1 text-xs`}>
-                            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusConfig[String(value)]?.dot}`}></span>
+                          <div className={`flex items-center gap-2 ${statusConfig[String(value)]?.color}`}>
+                            <span className={`inline-block w-2 h-2 rounded-full ${statusConfig[String(value)]?.dot}`}></span>
                             {String(value)}
-                          </Badge>
+                          </div>
                         </TableCell>
                       )
                     }
@@ -787,10 +787,10 @@ export function ReleasesDataTable() {
                     if (col.key === 'deploymentStatus') {
                       return (
                         <TableCell key={col.key} className="px-4 h-12">
-                          <Badge className={`${deploymentStatusConfig[String(value)]?.color} rounded-full px-3 py-1 text-xs`}>
-                            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${deploymentStatusConfig[String(value)]?.dot}`}></span>
+                          <div className={`flex items-center gap-2 ${deploymentStatusConfig[String(value)]?.color}`}>
+                            <span className={`inline-block w-2 h-2 rounded-full ${deploymentStatusConfig[String(value)]?.dot}`}></span>
                             {String(value)}
-                          </Badge>
+                          </div>
                         </TableCell>
                       )
                     }
