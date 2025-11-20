@@ -517,7 +517,7 @@ export function ReleasesDataTable() {
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="-ml-5 gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px]">
+                <Button variant="outline" size="sm" className="lg:-ml-5 gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px]">
                   <Download className="w-4 h-4" />
                   <span className="lg:inline">Export</span>
                 </Button>
@@ -708,7 +708,7 @@ export function ReleasesDataTable() {
               <span className="hidden sm:inline lg:inline">+ Add New</span>
               <span className="sm:hidden">+ Add</span>
             </Button>
-            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg -mr-5">
+            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5">
               <span className="hidden sm:inline lg:inline">- Delete</span>
               <span className="sm:hidden">- Del</span>
             </Button>
