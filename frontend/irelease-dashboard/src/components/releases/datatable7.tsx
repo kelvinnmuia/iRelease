@@ -247,38 +247,6 @@ const formatDate = (date: Date): string => {
   return `${day} ${month} ${year}`
 }
 
-// Helper function to get the latest date from all date fields
-const getLatestDate = (item: any): Date | null => {
-  const dateFields = [
-    'deliveredDate', 'tdNoticeDate', 'testDeployDate', 
-    'testStartDate', 'testEndDate', 'prodDeployDate'
-  ]
-  
-  const dates = dateFields
-    .map(field => parseDate(item[field]))
-    .filter(date => date !== null) as Date[]
-  
-  if (dates.length === 0) return null
-  
-  return new Date(Math.max(...dates.map(d => d.getTime())))
-}
-
-// Helper function to get the earliest date from all date fields
-const getEarliestDate = (item: any): Date | null => {
-  const dateFields = [
-    'deliveredDate', 'tdNoticeDate', 'testDeployDate', 
-    'testStartDate', 'testEndDate', 'prodDeployDate'
-  ]
-  
-  const dates = dateFields
-    .map(field => parseDate(item[field]))
-    .filter(date => date !== null) as Date[]
-  
-  if (dates.length === 0) return null
-  
-  return new Date(Math.min(...dates.map(d => d.getTime())))
-}
-
 export function ReleasesDataTable() {
   const [data] = useState(staticData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
@@ -292,7 +260,6 @@ export function ReleasesDataTable() {
     allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {})
   )
   const [columnSearchQuery, setColumnSearchQuery] = useState("")
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | null>(null)
   const itemsPerPage = 10
 
   // Get visible columns
@@ -356,37 +323,9 @@ export function ReleasesDataTable() {
     return matchesGlobalSearch && matchesDateRange
   })
 
-  // Apply sorting to filteredData - search across all dates
-  const sortedAndFilteredData = [...filteredData].sort((a, b) => {
-    if (!sortOrder) return 0
-    
-    let dateA: Date | null = null
-    let dateB: Date | null = null
-    
-    if (sortOrder === "newest") {
-      // For newest first, use the latest date from each item
-      dateA = getLatestDate(a)
-      dateB = getLatestDate(b)
-    } else {
-      // For oldest first, use the earliest date from each item
-      dateA = getEarliestDate(a)
-      dateB = getEarliestDate(b)
-    }
-    
-    if (!dateA && !dateB) return 0
-    if (!dateA) return 1
-    if (!dateB) return -1
-    
-    if (sortOrder === "newest") {
-      return dateB.getTime() - dateA.getTime()
-    } else {
-      return dateA.getTime() - dateB.getTime()
-    }
-  })
-
-  const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedData = sortedAndFilteredData.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage)
 
   const toggleRowSelection = (id: number) => {
     const newSelected = new Set(selectedRows)
@@ -421,8 +360,8 @@ export function ReleasesDataTable() {
   // Export functions
   const exportToCSV = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.id))
-      : sortedAndFilteredData
+      ? data.filter(item => selectedRows.has(item.id))
+      : filteredData
 
     // Filter data to only include visible columns
     const filteredDataForExport = dataToExport.map(item => {
@@ -451,8 +390,8 @@ export function ReleasesDataTable() {
 
   const exportToExcel = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.id))
-      : sortedAndFilteredData
+      ? data.filter(item => selectedRows.has(item.id))
+      : filteredData
 
     // Filter data to only include visible columns
     const filteredDataForExport = dataToExport.map(item => {
@@ -477,8 +416,8 @@ export function ReleasesDataTable() {
 
   const exportToJSON = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.id))
-      : sortedAndFilteredData
+      ? data.filter(item => selectedRows.has(item.id))
+      : filteredData
 
     // Filter data to only include visible columns
     const filteredDataForExport = dataToExport.map(item => {
@@ -682,12 +621,8 @@ export function ReleasesDataTable() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[140px]">
-                <DropdownMenuItem onClick={() => setSortOrder("newest")}>
-                  Date (Newest)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
-                  Date (Oldest)
-                </DropdownMenuItem>
+                <DropdownMenuItem>Date (Newest)</DropdownMenuItem>
+                <DropdownMenuItem>Date (Oldest)</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -699,14 +634,14 @@ export function ReleasesDataTable() {
         {/* Selected rows info */}
         {selectedRows.size > 0 && (
           <div className="mt-4 text-sm text-gray-600">
-            {selectedRows.size} of {sortedAndFilteredData.length} row(s) selected
+            {selectedRows.size} of {filteredData.length} row(s) selected
           </div>
         )}
 
         {/* Filter status */}
         {(globalFilter || dateRange) && (
           <div className="mt-2 text-sm text-gray-500">
-            Showing {sortedAndFilteredData.length} releases
+            Showing {filteredData.length} releases
             {globalFilter && ` matching "${globalFilter}"`}
             {dateRange && ` within date range: ${dateRange}`}
           </div>
@@ -830,7 +765,7 @@ export function ReleasesDataTable() {
       {/* Footer - White Background */}
       <div className="border-t border-gray-200 px-6 py-4 bg-white flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
+          Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length}
           {globalFilter && (
             <span className="ml-2">(filtered from {data.length} total records)</span>
           )}
