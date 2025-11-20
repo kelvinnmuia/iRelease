@@ -208,7 +208,10 @@ const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: num
             {displayText}
           </span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-md">
+        <TooltipContent 
+          side="top" 
+          className="bg-white text-gray-600 border border-gray-200 shadow-lg max-w-md"
+        >
           <p className="text-sm">{text}</p>
         </TooltipContent>
       </Tooltip>
