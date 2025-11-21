@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { toast } from "sonner"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 
@@ -289,7 +291,7 @@ const getEarliestDate = (item: any): Date | null => {
 }
 
 export function ReleasesDataTable() {
-  const [data] = useState(staticData)
+  const [data, setData] = useState(staticData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
@@ -302,6 +304,8 @@ export function ReleasesDataTable() {
   )
   const [columnSearchQuery, setColumnSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [releaseToDelete, setReleaseToDelete] = useState<any>(null)
   const itemsPerPage = 10
 
   // Ref for date picker to handle outside clicks
@@ -478,6 +482,8 @@ export function ReleasesDataTable() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    
+    toast.success("CSV exported successfully!")
   }
 
   const exportToExcel = () => {
@@ -504,6 +510,8 @@ export function ReleasesDataTable() {
     worksheet['!cols'] = cols
 
     XLSX.writeFile(workbook, `releases-export-${new Date().toISOString().split('T')[0]}.xlsx`)
+    
+    toast.success("Excel file exported successfully!")
   }
 
   const exportToJSON = () => {
@@ -531,6 +539,95 @@ export function ReleasesDataTable() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    
+    toast.success("JSON exported successfully!")
+  }
+
+  // Export single release to Excel
+  const exportSingleRelease = (release: any) => {
+    // Filter data to only include visible columns
+    const filteredRelease = {
+      'Release ID': release.releaseId,
+      'System Name': release.systemName,
+      'System ID': release.systemId,
+      'Release Version': release.releaseVersion,
+      'Iteration': release.iteration,
+      'Release Description': release.releaseDescription,
+      'Functionality Delivered': release.functionalityDelivered,
+      'Date Delivered': release.deliveredDate,
+      'TD Notice Date': release.tdNoticeDate,
+      'Test Deploy Date': release.testDeployDate,
+      'Test Start Date': release.testStartDate,
+      'Test End Date': release.testEndDate,
+      'Prod Deploy Date': release.prodDeployDate,
+      'Test Status': release.testStatus,
+      'Deployment Status': release.deploymentStatus,
+      'Outstanding Issues': release.outstandingIssues,
+      'Comments': release.comments,
+      'Release Type': release.releaseType,
+      'Month': release.month,
+      'Financial Year': release.financialYear,
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet([filteredRelease])
+    const workbook = XLSX.utils.book_new()
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Release Details')
+
+    // Set column widths
+    const cols = [
+      { wch: 15 }, // Release ID
+      { wch: 20 }, // System Name
+      { wch: 12 }, // System ID
+      { wch: 15 }, // Release Version
+      { wch: 12 }, // Iteration
+      { wch: 30 }, // Release Description
+      { wch: 30 }, // Functionality Delivered
+      { wch: 15 }, // Date Delivered
+      { wch: 15 }, // TD Notice Date
+      { wch: 15 }, // Test Deploy Date
+      { wch: 15 }, // Test Start Date
+      { wch: 15 }, // Test End Date
+      { wch: 15 }, // Prod Deploy Date
+      { wch: 15 }, // Test Status
+      { wch: 20 }, // Deployment Status
+      { wch: 18 }, // Outstanding Issues
+      { wch: 25 }, // Comments
+      { wch: 12 }, // Release Type
+      { wch: 12 }, // Month
+      { wch: 15 }, // Financial Year
+    ]
+    worksheet['!cols'] = cols
+
+    XLSX.writeFile(workbook, `release-${release.releaseId}-${new Date().toISOString().split('T')[0]}.xlsx`)
+    
+    toast.success(`Release ${release.releaseId} exported successfully!`)
+  }
+
+  // Delete release functions
+  const openDeleteDialog = (release: any) => {
+    setReleaseToDelete(release)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (releaseToDelete) {
+      // Remove the release from data
+      const updatedData = data.filter(item => item.id !== releaseToDelete.id)
+      setData(updatedData)
+      
+      // Show success toast
+      toast.success(`Successfully deleted release ${releaseToDelete.releaseVersion}`)
+      
+      // Close dialog
+      setDeleteDialogOpen(false)
+      setReleaseToDelete(null)
+    }
+  }
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false)
+    setReleaseToDelete(null)
   }
 
   return (
@@ -861,8 +958,18 @@ export function ReleasesDataTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">Export</DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer text-red-600">Delete</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="cursor-pointer"
+                          onClick={() => exportSingleRelease(row)}
+                        >
+                          Export
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="cursor-pointer text-red-600"
+                          onClick={() => openDeleteDialog(row)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -920,6 +1027,34 @@ export function ReleasesDataTable() {
           </Button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete release {releaseToDelete?.releaseVersion}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+              className="flex-1"
+            >
+              No, Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              className="flex-1"
+            >
+              Yes, Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
