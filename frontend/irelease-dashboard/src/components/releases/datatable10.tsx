@@ -1105,9 +1105,9 @@ export function ReleasesDataTable() {
         </div>
       </div>
 
-      {/* Edit Release Dialog - New Design */}
+      {/* Edit Release Dialog - Properly Responsive */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Edit Release
@@ -1120,7 +1120,7 @@ export function ReleasesDataTable() {
           <div className="space-y-6 py-4">
             {/* Release Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
                     Release Version *
@@ -1148,7 +1148,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
                     System ID
@@ -1179,7 +1179,7 @@ export function ReleasesDataTable() {
 
             {/* Status Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
                     Test Status
@@ -1223,7 +1223,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
                     Release Type
@@ -1263,7 +1263,7 @@ export function ReleasesDataTable() {
 
             {/* Date Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="deliveredDate" className="text-sm font-medium text-gray-700">
                     Date Delivered
@@ -1291,7 +1291,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="testDeployDate" className="text-sm font-medium text-gray-700">
                     Test Deploy Date
@@ -1319,7 +1319,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="testEndDate" className="text-sm font-medium text-gray-700">
                     Test End Date
@@ -1350,7 +1350,7 @@ export function ReleasesDataTable() {
 
             {/* Additional Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="month" className="text-sm font-medium text-gray-700">
                     Month
@@ -1443,18 +1443,18 @@ export function ReleasesDataTable() {
 
           <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
             <Button
-              variant="outline"
-              onClick={cancelEdit}
-              className="flex-1 border-gray-300 hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={saveEdit}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600"
-            >
-              Save Changes
-            </Button>
+        variant="outline"
+        onClick={cancelEdit}
+        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={saveEdit}
+        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
+      >
+        Save Changes
+      </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

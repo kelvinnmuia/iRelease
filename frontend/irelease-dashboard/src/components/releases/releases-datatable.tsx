@@ -200,7 +200,7 @@ const deploymentStatusConfig: Record<string, { color: string; dot: string }> = {
 const testStatusOptions = ["Pending", "Active", "Closed", "Deleted", "Passed"]
 const deploymentStatusOptions = [
   "Deployed to QA",
-  "Deployed to Pre-Prod", 
+  "Deployed to Pre-Prod",
   "Deployed to Production",
   "Deployed to Post-Prod",
   "Rolled Back",
@@ -509,7 +509,7 @@ export function ReleasesDataTable() {
 
   const saveEdit = () => {
     if (releaseToEdit) {
-      const updatedData = data.map(item => 
+      const updatedData = data.map(item =>
         item.id === releaseToEdit.id ? { ...editFormData } : item
       )
       setData(updatedData)
@@ -554,7 +554,7 @@ export function ReleasesDataTable() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     toast.success("CSV exported successfully!")
   }
 
@@ -582,7 +582,7 @@ export function ReleasesDataTable() {
     worksheet['!cols'] = cols
 
     XLSX.writeFile(workbook, `releases-export-${new Date().toISOString().split('T')[0]}.xlsx`)
-    
+
     toast.success("Excel file exported successfully!")
   }
 
@@ -611,7 +611,7 @@ export function ReleasesDataTable() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     toast.success("JSON exported successfully!")
   }
 
@@ -672,7 +672,7 @@ export function ReleasesDataTable() {
     worksheet['!cols'] = cols
 
     XLSX.writeFile(workbook, `release-${release.releaseId}-${new Date().toISOString().split('T')[0]}.xlsx`)
-    
+
     toast.success(`Release ${release.releaseId} exported successfully!`)
   }
 
@@ -687,10 +687,10 @@ export function ReleasesDataTable() {
       // Remove the release from data
       const updatedData = data.filter(item => item.id !== releaseToDelete.id)
       setData(updatedData)
-      
+
       // Show success toast
       toast.success(`Successfully deleted release ${releaseToDelete.releaseVersion}`)
-      
+
       // Close dialog
       setDeleteDialogOpen(false)
       setReleaseToDelete(null)
@@ -1029,19 +1029,19 @@ export function ReleasesDataTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={() => openEditDialog(row)}
                         >
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={() => exportSingleRelease(row)}
                         >
                           Export
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="cursor-pointer text-red-600"
                           onClick={() => openDeleteDialog(row)}
                         >
@@ -1105,9 +1105,9 @@ export function ReleasesDataTable() {
         </div>
       </div>
 
-      {/* Edit Release Dialog - New Design */}
+      {/* Edit Release Dialog - Properly Responsive */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Edit Release
@@ -1116,11 +1116,11 @@ export function ReleasesDataTable() {
               Update release information for {releaseToEdit?.releaseVersion}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
             {/* Release Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
                     Release Version *
@@ -1148,7 +1148,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
                     System ID
@@ -1179,7 +1179,7 @@ export function ReleasesDataTable() {
 
             {/* Status Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
                     Test Status
@@ -1223,7 +1223,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
                     Release Type
@@ -1263,7 +1263,7 @@ export function ReleasesDataTable() {
 
             {/* Date Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="deliveredDate" className="text-sm font-medium text-gray-700">
                     Date Delivered
@@ -1291,7 +1291,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="testDeployDate" className="text-sm font-medium text-gray-700">
                     Test Deploy Date
@@ -1319,7 +1319,7 @@ export function ReleasesDataTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="testEndDate" className="text-sm font-medium text-gray-700">
                     Test End Date
@@ -1350,7 +1350,7 @@ export function ReleasesDataTable() {
 
             {/* Additional Information */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="month" className="text-sm font-medium text-gray-700">
                     Month
@@ -1444,16 +1444,16 @@ export function ReleasesDataTable() {
           <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
             <Button
               variant="outline"
-              onClick={cancelEdit}
-              className="flex-1 border-gray-300 hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
-            <Button
               onClick={saveEdit}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600"
+              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
             >
               Save Changes
+            </Button>
+            <Button
+              onClick={cancelEdit}
+              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 font-bold"
+            >
+              Discard
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1472,14 +1472,13 @@ export function ReleasesDataTable() {
             <Button
               variant="outline"
               onClick={cancelDelete}
-              className="flex-1"
+              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
             >
               No, Cancel
             </Button>
             <Button
-              variant="destructive"
               onClick={confirmDelete}
-              className="flex-1"
+              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
             >
               Yes, Delete
             </Button>
