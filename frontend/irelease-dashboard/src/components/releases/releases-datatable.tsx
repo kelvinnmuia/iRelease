@@ -208,8 +208,8 @@ const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: num
             {displayText}
           </span>
         </TooltipTrigger>
-        <TooltipContent 
-          side="top" 
+        <TooltipContent
+          side="top"
           className="bg-white text-gray-600 border border-gray-200 shadow-lg max-w-md p-3"
         >
           <p className="text-sm break-words whitespace-normal overflow-wrap-anywhere">
@@ -829,7 +829,11 @@ export function ReleasesDataTable() {
                   <TableCell className="px-4 h-12">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-8 h-8 p-0 hover:bg-gray-100">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-4 h-8 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
+                        >
                           <MoreVertical className="w-4 h-4 text-gray-400" />
                         </Button>
                       </DropdownMenuTrigger>
