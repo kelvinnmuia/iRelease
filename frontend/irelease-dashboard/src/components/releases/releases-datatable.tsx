@@ -204,15 +204,18 @@ const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: num
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="text-gray-600 cursor-default">
+          <span className="text-gray-600 cursor-default underline decoration-dotted decoration-gray-400">
             {displayText}
           </span>
         </TooltipTrigger>
         <TooltipContent 
           side="top" 
-          className="bg-white text-gray-600 border border-gray-200 shadow-lg max-w-md"
+          align="center"
+          className="bg-white text-gray-700 border border-gray-200 shadow-lg max-w-sm p-3 break-words"
         >
-          <p className="text-sm">{text}</p>
+          <div className="text-sm font-normal whitespace-normal break-words">
+            {text}
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
