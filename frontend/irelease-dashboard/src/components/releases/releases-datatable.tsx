@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Columns3, RefreshCcw, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -303,6 +303,28 @@ export function ReleasesDataTable() {
   const [columnSearchQuery, setColumnSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | null>(null)
   const itemsPerPage = 10
+
+  // Ref for date picker to handle outside clicks
+  const datePickerRef = useRef<HTMLDivElement>(null)
+
+  // Effect to handle clicks outside the date picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false)
+      }
+    }
+
+    if (showDatePicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showDatePicker])
 
   // Get visible columns
   const visibleColumns = allColumns.filter(col => columnVisibility[col.key])
@@ -632,7 +654,7 @@ export function ReleasesDataTable() {
           {/* Second Row: Date Range and Ordering - 2 elements */}
           <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-center">
             {/* Date Range */}
-            <div className="relative flex-1 lg:flex-none lg:w-64">
+            <div className="relative flex-1 lg:flex-none lg:w-64" ref={datePickerRef}>
               <div
                 className="flex items-center cursor-pointer"
                 onClick={() => setShowDatePicker(!showDatePicker)}
