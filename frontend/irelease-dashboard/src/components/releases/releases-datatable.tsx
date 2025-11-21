@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, ChangeEvent } from "react"
 import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Columns3, RefreshCcw, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,6 +7,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
@@ -194,6 +197,24 @@ const deploymentStatusConfig: Record<string, { color: string; dot: string }> = {
   "Scheduled for Deployment": { color: "text-gray-600", dot: "bg-yellow-400" },
 }
 
+const testStatusOptions = ["Pending", "Active", "Closed", "Deleted", "Passed"]
+const deploymentStatusOptions = [
+  "Deployed to QA",
+  "Deployed to Pre-Prod", 
+  "Deployed to Production",
+  "Deployed to Post-Prod",
+  "Rolled Back",
+  "Not Deployed",
+  "Deployment Failed",
+  "Scheduled for Deployment"
+]
+const releaseTypeOptions = ["Major", "Minor", "Patch", "Hotfix"]
+const monthOptions = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+]
+const financialYearOptions = ["FY2023", "FY2024", "FY2025", "FY2026"]
+
 const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: number }) => {
   const shouldTruncate = text.length > maxLength
   const displayText = shouldTruncate ? `${text.substring(0, maxLength)}...` : text
@@ -306,6 +327,9 @@ export function ReleasesDataTable() {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [releaseToDelete, setReleaseToDelete] = useState<any>(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [releaseToEdit, setReleaseToEdit] = useState<any>(null)
+  const [editFormData, setEditFormData] = useState<any>({})
   const itemsPerPage = 10
 
   // Ref for date picker to handle outside clicks
@@ -329,6 +353,13 @@ export function ReleasesDataTable() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showDatePicker])
+
+  // Initialize edit form when releaseToEdit changes
+  useEffect(() => {
+    if (releaseToEdit) {
+      setEditFormData({ ...releaseToEdit })
+    }
+  }, [releaseToEdit])
 
   // Get visible columns
   const visibleColumns = allColumns.filter(col => columnVisibility[col.key])
@@ -451,6 +482,47 @@ export function ReleasesDataTable() {
   const resetColumnVisibility = () => {
     setColumnVisibility(allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {}))
     setColumnSearchQuery("")
+  }
+
+  // Edit release functions
+  const openEditDialog = (release: any) => {
+    setReleaseToEdit(release)
+    setEditDialogOpen(true)
+  }
+
+  const handleEditFormChange = (field: string, value: any) => {
+    setEditFormData((prev: any) => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    handleEditFormChange(id, value)
+  }
+
+  const handleNumberInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    handleEditFormChange(id, value === '' ? 0 : parseInt(value) || 0)
+  }
+
+  const saveEdit = () => {
+    if (releaseToEdit) {
+      const updatedData = data.map(item => 
+        item.id === releaseToEdit.id ? { ...editFormData } : item
+      )
+      setData(updatedData)
+      setEditDialogOpen(false)
+      setReleaseToEdit(null)
+      toast.success(`Successfully updated release ${editFormData.releaseVersion}`)
+    }
+  }
+
+  const cancelEdit = () => {
+    setEditDialogOpen(false)
+    setReleaseToEdit(null)
+    setEditFormData({})
   }
 
   // Export functions
@@ -685,7 +757,7 @@ export function ReleasesDataTable() {
                   <Input
                     placeholder="Search columns..."
                     value={columnSearchQuery}
-                    onChange={(e) => setColumnSearchQuery(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setColumnSearchQuery(e.target.value)}
                     className="pl-8 pr-4 w-full"
                   />
                 </div>
@@ -703,7 +775,7 @@ export function ReleasesDataTable() {
                           key={col.key}
                           checked={columnVisibility[col.key]}
                           onCheckedChange={() => toggleColumnVisibility(col.key)}
-                          onSelect={(e) => e.preventDefault()}
+                          onSelect={(e: Event) => e.preventDefault()}
                           className="px-7 py-2.5 text-sm flex items-center gap-3 min-h-6"
                         >
                           <div className="flex-1 ml-1">{col.label}</div>
@@ -739,7 +811,7 @@ export function ReleasesDataTable() {
               <Input
                 placeholder="Search releases..."
                 value={globalFilter}
-                onChange={(e) => {
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   setGlobalFilter(e.target.value)
                   setCurrentPage(1) // Reset to first page when searching
                 }}
@@ -774,7 +846,7 @@ export function ReleasesDataTable() {
                       <Input
                         type="date"
                         value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
                         className="w-full"
                       />
                     </div>
@@ -783,7 +855,7 @@ export function ReleasesDataTable() {
                       <Input
                         type="date"
                         value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
                         className="w-full"
                       />
                     </div>
@@ -957,7 +1029,12 @@ export function ReleasesDataTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem className="cursor-pointer">Edit</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="cursor-pointer"
+                          onClick={() => openEditDialog(row)}
+                        >
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="cursor-pointer"
                           onClick={() => exportSingleRelease(row)}
@@ -1027,6 +1104,360 @@ export function ReleasesDataTable() {
           </Button>
         </div>
       </div>
+
+      {/* Edit Release Dialog - New Design */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Edit Release
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Update release information for {releaseToEdit?.releaseVersion}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Release Information */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
+                    Release Version *
+                  </Label>
+                  <Input
+                    id="releaseVersion"
+                    value={editFormData.releaseVersion || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="What's the release version"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
+                    System Name *
+                  </Label>
+                  <Input
+                    id="systemName"
+                    value={editFormData.systemName || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter system name"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
+                    System ID
+                  </Label>
+                  <Input
+                    id="systemId"
+                    value={editFormData.systemId || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter system ID"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
+                    Iteration
+                  </Label>
+                  <Input
+                    id="iteration"
+                    value={editFormData.iteration || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter iteration"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Status Information */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
+                    Test Status
+                  </Label>
+                  <Select
+                    value={editFormData.testStatus || ''}
+                    onValueChange={(value) => handleEditFormChange('testStatus', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select test status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {testStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
+                    Deployment Status
+                  </Label>
+                  <Select
+                    value={editFormData.deploymentStatus || ''}
+                    onValueChange={(value) => handleEditFormChange('deploymentStatus', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select deployment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {deploymentStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
+                    Release Type
+                  </Label>
+                  <Select
+                    value={editFormData.releaseType || ''}
+                    onValueChange={(value) => handleEditFormChange('releaseType', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select release type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {releaseTypeOptions.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="outstandingIssues" className="text-sm font-medium text-gray-700">
+                    Outstanding Issues
+                  </Label>
+                  <Input
+                    id="outstandingIssues"
+                    type="number"
+                    value={editFormData.outstandingIssues || 0}
+                    onChange={handleNumberInputChange}
+                    className="w-full"
+                    placeholder="Enter outstanding issues count"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Date Information */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="deliveredDate" className="text-sm font-medium text-gray-700">
+                    Date Delivered
+                  </Label>
+                  <Input
+                    id="deliveredDate"
+                    value={editFormData.deliveredDate || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter delivery date"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tdNoticeDate" className="text-sm font-medium text-gray-700">
+                    TD Notice Date
+                  </Label>
+                  <Input
+                    id="tdNoticeDate"
+                    value={editFormData.tdNoticeDate || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter TD notice date"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="testDeployDate" className="text-sm font-medium text-gray-700">
+                    Test Deploy Date
+                  </Label>
+                  <Input
+                    id="testDeployDate"
+                    value={editFormData.testDeployDate || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter test deploy date"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="testStartDate" className="text-sm font-medium text-gray-700">
+                    Test Start Date
+                  </Label>
+                  <Input
+                    id="testStartDate"
+                    value={editFormData.testStartDate || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter test start date"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="testEndDate" className="text-sm font-medium text-gray-700">
+                    Test End Date
+                  </Label>
+                  <Input
+                    id="testEndDate"
+                    value={editFormData.testEndDate || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter test end date"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prodDeployDate" className="text-sm font-medium text-gray-700">
+                    Prod Deploy Date
+                  </Label>
+                  <Input
+                    id="prodDeployDate"
+                    value={editFormData.prodDeployDate || ''}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    placeholder="Enter production deploy date"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="month" className="text-sm font-medium text-gray-700">
+                    Month
+                  </Label>
+                  <Select
+                    value={editFormData.month || ''}
+                    onValueChange={(value) => handleEditFormChange('month', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthOptions.map((month) => (
+                        <SelectItem key={month} value={month}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
+                    Financial Year
+                  </Label>
+                  <Select
+                    value={editFormData.financialYear || ''}
+                    onValueChange={(value) => handleEditFormChange('financialYear', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select financial year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {financialYearOptions.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Full Width Text Areas */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
+                    Release Description
+                  </Label>
+                  <Textarea
+                    id="releaseDescription"
+                    value={editFormData.releaseDescription || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full"
+                    placeholder="Enter release description"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="functionalityDelivered" className="text-sm font-medium text-gray-700">
+                    Functionality Delivered
+                  </Label>
+                  <Textarea
+                    id="functionalityDelivered"
+                    value={editFormData.functionalityDelivered || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full"
+                    placeholder="Enter functionality delivered"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="comments" className="text-sm font-medium text-gray-700">
+                    Comments
+                  </Label>
+                  <Textarea
+                    id="comments"
+                    value={editFormData.comments || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full"
+                    placeholder="Enter comments"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={cancelEdit}
+              className="flex-1 border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={saveEdit}
+              className="flex-1 bg-red-500 text-white hover:bg-red-600"
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
