@@ -483,7 +483,6 @@ export function ReleasesDataTable() {
     comments: ""
   })
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
-  const [bulkDeleteConfirmDialogOpen, setBulkDeleteConfirmDialogOpen] = useState(false)
   const itemsPerPage = 10
 
   // Ref for date picker to handle outside clicks
@@ -775,11 +774,6 @@ export function ReleasesDataTable() {
     setBulkDeleteDialogOpen(true)
   }
 
-  const openBulkDeleteConfirmDialog = () => {
-    setBulkDeleteDialogOpen(false)
-    setBulkDeleteConfirmDialogOpen(true)
-  }
-
   const cancelBulkDelete = () => {
     setBulkDeleteDialogOpen(false)
   }
@@ -796,14 +790,10 @@ export function ReleasesDataTable() {
     toast.success(`Successfully deleted ${selectedRows.size} release(s)`)
     
     // Close dialog
-    setBulkDeleteConfirmDialogOpen(false)
+    setBulkDeleteDialogOpen(false)
     
     // Reset to first page
     setCurrentPage(1)
-  }
-
-  const cancelBulkDeleteConfirm = () => {
-    setBulkDeleteConfirmDialogOpen(false)
   }
 
   // Export functions
@@ -2065,13 +2055,13 @@ export function ReleasesDataTable() {
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Delete Confirmation Dialog - First Step */}
+      {/* Bulk Delete Confirmation Dialog */}
       <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Bulk Deletion</DialogTitle>
             <DialogDescription>
-              You have selected {selectedRows.size} release(s) for deletion. Are you sure you want to proceed?
+              Are you sure you want to delete {selectedRows.size} selected release(s)? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:gap-0">
@@ -2083,37 +2073,10 @@ export function ReleasesDataTable() {
               No, Cancel
             </Button>
             <Button
-              onClick={openBulkDeleteConfirmDialog}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
-            >
-              Yes, Delete {selectedRows.size} Release(s)
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Delete Confirmation Dialog - Final Step */}
-      <Dialog open={bulkDeleteConfirmDialogOpen} onOpenChange={setBulkDeleteConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Final Confirmation</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Are you absolutely sure you want to delete {selectedRows.size} release(s)?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={cancelBulkDeleteConfirm}
-              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
-            >
-              No, Cancel
-            </Button>
-            <Button
               onClick={confirmBulkDelete}
               className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
             >
-              Yes, Delete Permanently
+              Yes, Delete {selectedRows.size} Release(s)
             </Button>
           </DialogFooter>
         </DialogContent>

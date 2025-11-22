@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Sidebar } from "./components/layout/sidebar"
 import { Header } from "./components/layout/header"
 import { Outlet } from "react-router-dom"
+import { Toaster } from "sonner" // Add this import
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -23,6 +24,14 @@ export function DashboardLayout() {
           <Outlet />
         </div>
       </div>
+
+      {/* Add the Toaster component here */}
+      <Toaster 
+        position="top-center"
+        duration={4000}
+        closeButton
+        richColors
+      />
     </div>
   )
 }
