@@ -311,121 +311,6 @@ const getEarliestDate = (item: any): Date | null => {
   return new Date(Math.min(...dates.map(d => d.getTime())))
 }
 
-// Add this component before the ReleasesDataTable component
-const DatePickerInput = ({ 
-  value, 
-  onChange, 
-  placeholder = "Select date" 
-}: { 
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-}) => {
-  const [showPicker, setShowPicker] = useState(false)
-  const [tempDate, setTempDate] = useState("") // Always start blank
-  const pickerRef = useRef<HTMLDivElement>(null)
-
-  // Handle clicks outside the date picker
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        setShowPicker(false)
-        setTempDate("") // Reset temp date when closing
-      }
-    }
-
-    if (showPicker) {
-      document.addEventListener('mousedown', handleClickOutside)
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showPicker])
-
-  const handleApply = () => {
-    if (tempDate) {
-      // Convert from "YYYY-MM-DD" to "DD MMM YYYY" format
-      const parsedDate = parseDate(tempDate)
-      if (parsedDate) {
-        const formattedDate = formatDate(parsedDate)
-        onChange(formattedDate)
-      }
-    }
-    setShowPicker(false)
-    setTempDate("") // Reset temp date after applying
-  }
-
-  const handleClear = () => {
-    onChange('') // Clear the actual form value
-    setShowPicker(false)
-    setTempDate("") // Reset temp date
-  }
-
-  const handleDateInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTempDate(e.target.value)
-  }
-
-  return (
-    <div className="relative w-full" ref={pickerRef}>
-      <div
-        className="flex items-center cursor-pointer"
-        onClick={() => {
-          setShowPicker(!showPicker)
-          setTempDate("") // Always reset to blank when opening
-        }}
-      >
-        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
-        <Input
-          placeholder={placeholder}
-          value={value}
-          readOnly
-          className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4"
-        />
-      </div>
-
-      {/* Date Picker Dropdown */}
-      {showPicker && (
-        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 w-64">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Date
-              </label>
-              <Input
-                type="date"
-                value={tempDate}
-                onChange={handleDateInputChange}
-                className="w-full"
-              />
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={handleApply}
-                disabled={!tempDate}
-                className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
-                variant="outline"
-                size="sm"
-              >
-                Apply
-              </Button>
-              <Button
-                onClick={handleClear}
-                className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
-                size="sm"
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 export function ReleasesDataTable() {
   const [data, setData] = useState(staticData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
@@ -1220,7 +1105,7 @@ export function ReleasesDataTable() {
         </div>
       </div>
 
-      {/*Edit Release Dialog - Fixed Horizontal Scrolling*/}
+      {/* Edit Release Dialog - Fixed Horizontal Scrolling */}
 <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
   <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto p-4 sm:p-6">
     <DialogHeader className="border-b pb-4">
@@ -1380,72 +1265,84 @@ export function ReleasesDataTable() {
       <div className="space-y-4 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
           <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label htmlFor="deliveredDate" className="text-sm font-medium text-gray-700">
               Date Delivered
             </Label>
-            <DatePickerInput
+            <Input
+              id="deliveredDate"
               value={editFormData.deliveredDate || ''}
-              onChange={(value) => handleEditFormChange('deliveredDate', value)}
-              placeholder="Select delivery date"
+              onChange={handleInputChange}
+              className="w-full max-w-full"
+              placeholder="Enter delivery date"
             />
           </div>
 
           <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label htmlFor="tdNoticeDate" className="text-sm font-medium text-gray-700">
               TD Notice Date
             </Label>
-            <DatePickerInput
+            <Input
+              id="tdNoticeDate"
               value={editFormData.tdNoticeDate || ''}
-              onChange={(value) => handleEditFormChange('tdNoticeDate', value)}
-              placeholder="Select TD notice date"
+              onChange={handleInputChange}
+              className="w-full max-w-full"
+              placeholder="Enter TD notice date"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
           <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label htmlFor="testDeployDate" className="text-sm font-medium text-gray-700">
               Test Deploy Date
             </Label>
-            <DatePickerInput
+            <Input
+              id="testDeployDate"
               value={editFormData.testDeployDate || ''}
-              onChange={(value) => handleEditFormChange('testDeployDate', value)}
-              placeholder="Select test deploy date"
+              onChange={handleInputChange}
+              className="w-full max-w-full"
+              placeholder="Enter test deploy date"
             />
           </div>
 
           <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label htmlFor="testStartDate" className="text-sm font-medium text-gray-700">
               Test Start Date
             </Label>
-            <DatePickerInput
+            <Input
+              id="testStartDate"
               value={editFormData.testStartDate || ''}
-              onChange={(value) => handleEditFormChange('testStartDate', value)}
-              placeholder="Select test start date"
+              onChange={handleInputChange}
+              className="w-full max-w-full"
+              placeholder="Enter test start date"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
           <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label htmlFor="testEndDate" className="text-sm font-medium text-gray-700">
               Test End Date
             </Label>
-            <DatePickerInput
+            <Input
+              id="testEndDate"
               value={editFormData.testEndDate || ''}
-              onChange={(value) => handleEditFormChange('testEndDate', value)}
-              placeholder="Select test end date"
+              onChange={handleInputChange}
+              className="w-full max-w-full"
+              placeholder="Enter test end date"
             />
           </div>
 
           <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label htmlFor="prodDeployDate" className="text-sm font-medium text-gray-700">
               Prod Deploy Date
             </Label>
-            <DatePickerInput
+            <Input
+              id="prodDeployDate"
               value={editFormData.prodDeployDate || ''}
-              onChange={(value) => handleEditFormChange('prodDeployDate', value)}
-              placeholder="Select production deploy date"
+              onChange={handleInputChange}
+              className="w-full max-w-full"
+              placeholder="Enter production deploy date"
             />
           </div>
         </div>
