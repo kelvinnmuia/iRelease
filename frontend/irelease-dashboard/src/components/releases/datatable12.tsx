@@ -482,8 +482,6 @@ export function ReleasesDataTable() {
     outstandingIssues: "",
     comments: ""
   })
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
-  const [bulkDeleteConfirmDialogOpen, setBulkDeleteConfirmDialogOpen] = useState(false)
   const itemsPerPage = 10
 
   // Ref for date picker to handle outside clicks
@@ -764,46 +762,6 @@ export function ReleasesDataTable() {
       outstandingIssues: "",
       comments: ""
     })
-  }
-
-  // Bulk delete functions
-  const openBulkDeleteDialog = () => {
-    if (selectedRows.size === 0) {
-      toast.error("Please select at least one release to delete")
-      return
-    }
-    setBulkDeleteDialogOpen(true)
-  }
-
-  const openBulkDeleteConfirmDialog = () => {
-    setBulkDeleteDialogOpen(false)
-    setBulkDeleteConfirmDialogOpen(true)
-  }
-
-  const cancelBulkDelete = () => {
-    setBulkDeleteDialogOpen(false)
-  }
-
-  const confirmBulkDelete = () => {
-    // Remove selected releases from data
-    const updatedData = data.filter(item => !selectedRows.has(item.id))
-    setData(updatedData)
-    
-    // Clear selection
-    setSelectedRows(new Set())
-    
-    // Show success toast
-    toast.success(`Successfully deleted ${selectedRows.size} release(s)`)
-    
-    // Close dialog
-    setBulkDeleteConfirmDialogOpen(false)
-    
-    // Reset to first page
-    setCurrentPage(1)
-  }
-
-  const cancelBulkDeleteConfirm = () => {
-    setBulkDeleteConfirmDialogOpen(false)
   }
 
   // Export functions
@@ -1192,11 +1150,7 @@ export function ReleasesDataTable() {
             >
               + Add New
             </Button>
-            <Button 
-              size="sm" 
-              className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5"
-              onClick={openBulkDeleteDialog}
-            >
+            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5">
               - Delete
             </Button>
           </div>
@@ -2065,61 +2019,7 @@ export function ReleasesDataTable() {
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Delete Confirmation Dialog - First Step */}
-      <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Bulk Deletion</DialogTitle>
-            <DialogDescription>
-              You have selected {selectedRows.size} release(s) for deletion. Are you sure you want to proceed?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={cancelBulkDelete}
-              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
-            >
-              No, Cancel
-            </Button>
-            <Button
-              onClick={openBulkDeleteConfirmDialog}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
-            >
-              Yes, Delete {selectedRows.size} Release(s)
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Delete Confirmation Dialog - Final Step */}
-      <Dialog open={bulkDeleteConfirmDialogOpen} onOpenChange={setBulkDeleteConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Final Confirmation</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Are you absolutely sure you want to delete {selectedRows.size} release(s)?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={cancelBulkDeleteConfirm}
-              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
-            >
-              No, Cancel
-            </Button>
-            <Button
-              onClick={confirmBulkDelete}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
-            >
-              Yes, Delete Permanently
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Single Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
