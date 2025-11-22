@@ -30,7 +30,7 @@ const allColumns = [
   { key: "prodDeployDate", label: "Prod Deploy Date", width: "w-32" },
   { key: "testStatus", label: "Test Status", width: "w-28" },
   { key: "deploymentStatus", label: "Deployment Status", width: "w-32" },
-  { key: "outstandingIssues", label: "Outstanding Issues", width: "w-28" },
+  { key: "outstandingIssues", label: "Outstanding Issues", width: "w-48" },
   { key: "comments", label: "Comments", width: "w-48" },
   { key: "releaseType", label: "Release Type", width: "w-28" },
   { key: "month", label: "Month", width: "w-28" },
@@ -55,7 +55,7 @@ const staticData = [
     prodDeployDate: "13 Dec 2024",
     testStatus: "Pending",
     deploymentStatus: "Deployed to Production",
-    outstandingIssues: 2,
+    outstandingIssues: "1. UI alignment issues in dashboard\n2. Performance degradation under high load\n3. Pending security review for new authentication module",
     comments: "Minor UI issues to be fixed in next patch",
     releaseType: "Major",
     month: "December",
@@ -78,7 +78,7 @@ const staticData = [
     prodDeployDate: "11 Dec 2024",
     testStatus: "Active",
     deploymentStatus: "Deployed to QA",
-    outstandingIssues: 0,
+    outstandingIssues: "All test cases passed successfully, no outstanding issues identified during testing phase.",
     comments: "All test cases passed successfully",
     releaseType: "Patch",
     month: "December",
@@ -101,7 +101,7 @@ const staticData = [
     prodDeployDate: "26 Nov 2024",
     testStatus: "Pending",
     deploymentStatus: "Deployed to Pre-Prod",
-    outstandingIssues: 5,
+    outstandingIssues: "1. Biometric authentication failing on older devices\n2. Dark mode causing contrast issues in transaction history\n3. Voice command accuracy below target threshold\n4. Memory leaks detected during extended usage\n5. Compatibility issues with iOS 15 and below",
     comments: "Performance testing ongoing with some compatibility issues",
     releaseType: "Major",
     month: "November",
@@ -124,7 +124,7 @@ const staticData = [
     prodDeployDate: "26 Nov 2024",
     testStatus: "Closed",
     deploymentStatus: "Rolled Back",
-    outstandingIssues: 0,
+    outstandingIssues: "Critical bug in segmentation algorithm causing incorrect customer grouping. Rollback initiated to maintain data integrity.",
     comments: "Critical bug found in production, rolled back to previous version",
     releaseType: "Minor",
     month: "November",
@@ -147,7 +147,7 @@ const staticData = [
     prodDeployDate: "19 Nov 2024",
     testStatus: "Pending",
     deploymentStatus: "Deployed to Post-Prod",
-    outstandingIssues: 8,
+    outstandingIssues: "1. Risk assessment algorithm producing inconsistent results for small business loans\n2. Automated approval system requiring manual override in 15% of cases\n3. Reporting module missing critical financial metrics\n4. Integration issues with legacy credit scoring system\n5. Performance degradation when processing bulk loan applications\n6. Data migration incomplete for historical loan records\n7. Regulatory compliance documentation pending review\n8. User training materials not yet finalized",
     comments: "Awaiting regulatory approval before production deployment",
     releaseType: "Major",
     month: "November",
@@ -170,7 +170,7 @@ const staticData = [
     prodDeployDate: "15 Nov 2024",
     testStatus: "Deleted",
     deploymentStatus: "Not Deployed",
-    outstandingIssues: 0,
+    outstandingIssues: "Project cancelled due to budget constraints. All development work halted and resources reallocated to higher priority initiatives.",
     comments: "Project cancelled due to budget constraints",
     releaseType: "Minor",
     month: "November",
@@ -617,11 +617,6 @@ export function ReleasesDataTable() {
     handleEditFormChange(id, value)
   }
 
-  const handleNumberInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target
-    handleEditFormChange(id, value === '' ? 0 : parseInt(value) || 0)
-  }
-
   const saveEdit = () => {
     if (releaseToEdit) {
       const updatedData = data.map(item =>
@@ -778,7 +773,7 @@ export function ReleasesDataTable() {
       { wch: 15 }, // Prod Deploy Date
       { wch: 15 }, // Test Status
       { wch: 20 }, // Deployment Status
-      { wch: 18 }, // Outstanding Issues
+      { wch: 40 }, // Outstanding Issues (increased width for description)
       { wch: 25 }, // Comments
       { wch: 12 }, // Release Type
       { wch: 12 }, // Month
@@ -1110,18 +1105,10 @@ export function ReleasesDataTable() {
                       )
                     }
 
-                    if (col.key === 'releaseDescription' || col.key === 'functionalityDelivered' || col.key === 'comments') {
+                    if (col.key === 'releaseDescription' || col.key === 'functionalityDelivered' || col.key === 'comments' || col.key === 'outstandingIssues') {
                       return (
                         <TableCell key={col.key} className="px-4 h-12">
-                          <TruncatedText text={String(value)} maxLength={col.key === 'comments' ? 20 : 25} />
-                        </TableCell>
-                      )
-                    }
-
-                    if (col.key === 'outstandingIssues') {
-                      return (
-                        <TableCell key={col.key} className="px-4 text-gray-600 text-center h-12">
-                          {String(value)}
+                          <TruncatedText text={String(value)} maxLength={col.key === 'comments' || col.key === 'outstandingIssues' ? 25 : 30} />
                         </TableCell>
                       )
                     }
@@ -1220,347 +1207,362 @@ export function ReleasesDataTable() {
         </div>
       </div>
 
-      {/*Edit Release Dialog - Fixed Horizontal Scrolling*/}
-<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-  <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto p-4 sm:p-6">
-    <DialogHeader className="border-b pb-4">
-      <DialogTitle className="text-xl font-semibold text-gray-900">
-        Edit Release
-      </DialogTitle>
-      <DialogDescription className="text-gray-600">
-        Update the details for release version {releaseToEdit?.releaseVersion}
-      </DialogDescription>
-    </DialogHeader>
+      {/* Edit Release Dialog - Fixed Horizontal Scrolling */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto p-4 sm:p-6">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Edit Release
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Update the details for release {releaseToEdit?.releaseId}
+            </DialogDescription>
+          </DialogHeader>
 
-    <div className="space-y-6 py-4 w-full max-w-full overflow-x-hidden">
-      {/* Release Information */}
-      <div className="space-y-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
-              Release Version *
-            </Label>
-            <Input
-              id="releaseVersion"
-              value={editFormData.releaseVersion || ''}
-              onChange={handleInputChange}
-              className="w-full max-w-full"
-              placeholder="What's the release version"
-            />
+          <div className="space-y-6 py-4 w-full max-w-full overflow-x-hidden">
+            {/* Release Information */}
+            <div className="space-y-4 w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="releaseId" className="text-sm font-medium text-gray-700">
+                    Release ID
+                  </Label>
+                  <Input
+                    id="releaseId"
+                    value={editFormData.releaseId || ''}
+                    disabled
+                    className="w-full max-w-full bg-gray-100 text-gray-600"
+                    placeholder="Release ID"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
+                    Release Version
+                  </Label>
+                  <Input
+                    id="releaseVersion"
+                    value={editFormData.releaseVersion || ''}
+                    onChange={handleInputChange}
+                    className="w-full max-w-full"
+                    placeholder="Enter release version"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
+                    System Name
+                  </Label>
+                  <Input
+                    id="systemName"
+                    value={editFormData.systemName || ''}
+                    onChange={handleInputChange}
+                    className="w-full max-w-full"
+                    placeholder="Enter system name"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
+                    System ID
+                  </Label>
+                  <Input
+                    id="systemId"
+                    value={editFormData.systemId || ''}
+                    onChange={handleInputChange}
+                    className="w-full max-w-full"
+                    placeholder="Enter system ID"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
+                    Iteration
+                  </Label>
+                  <Input
+                    id="iteration"
+                    value={editFormData.iteration || ''}
+                    onChange={handleInputChange}
+                    className="w-full max-w-full"
+                    placeholder="Enter iteration"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Status Information */}
+            <div className="space-y-4 w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
+                    Test Status
+                  </Label>
+                  <Select
+                    value={editFormData.testStatus || ''}
+                    onValueChange={(value) => handleEditFormChange('testStatus', value)}
+                  >
+                    <SelectTrigger className="w-full max-w-full">
+                      <SelectValue placeholder="Select test status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {testStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
+                    Deployment Status
+                  </Label>
+                  <Select
+                    value={editFormData.deploymentStatus || ''}
+                    onValueChange={(value) => handleEditFormChange('deploymentStatus', value)}
+                  >
+                    <SelectTrigger className="w-full max-w-full">
+                      <SelectValue placeholder="Select deployment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {deploymentStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
+                    Release Type
+                  </Label>
+                  <Select
+                    value={editFormData.releaseType || ''}
+                    onValueChange={(value) => handleEditFormChange('releaseType', value)}
+                  >
+                    <SelectTrigger className="w-full max-w-full">
+                      <SelectValue placeholder="Select release type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {releaseTypeOptions.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Date Information */}
+            <div className="space-y-4 w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Date Delivered
+                  </Label>
+                  <DatePickerInput
+                    value={editFormData.deliveredDate || ''}
+                    onChange={(value) => handleEditFormChange('deliveredDate', value)}
+                    placeholder="Select delivery date"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm font-medium text-gray-700">
+                    TD Notice Date
+                  </Label>
+                  <DatePickerInput
+                    value={editFormData.tdNoticeDate || ''}
+                    onChange={(value) => handleEditFormChange('tdNoticeDate', value)}
+                    placeholder="Select TD notice date"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Test Deploy Date
+                  </Label>
+                  <DatePickerInput
+                    value={editFormData.testDeployDate || ''}
+                    onChange={(value) => handleEditFormChange('testDeployDate', value)}
+                    placeholder="Select test deploy date"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Test Start Date
+                  </Label>
+                  <DatePickerInput
+                    value={editFormData.testStartDate || ''}
+                    onChange={(value) => handleEditFormChange('testStartDate', value)}
+                    placeholder="Select test start date"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Test End Date
+                  </Label>
+                  <DatePickerInput
+                    value={editFormData.testEndDate || ''}
+                    onChange={(value) => handleEditFormChange('testEndDate', value)}
+                    placeholder="Select test end date"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Prod Deploy Date
+                  </Label>
+                  <DatePickerInput
+                    value={editFormData.prodDeployDate || ''}
+                    onChange={(value) => handleEditFormChange('prodDeployDate', value)}
+                    placeholder="Select production deploy date"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="space-y-4 w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="month" className="text-sm font-medium text-gray-700">
+                    Month
+                  </Label>
+                  <Select
+                    value={editFormData.month || ''}
+                    onValueChange={(value) => handleEditFormChange('month', value)}
+                  >
+                    <SelectTrigger className="w-full max-w-full">
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthOptions.map((month) => (
+                        <SelectItem key={month} value={month}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
+                    Financial Year
+                  </Label>
+                  <Select
+                    value={editFormData.financialYear || ''}
+                    onValueChange={(value) => handleEditFormChange('financialYear', value)}
+                  >
+                    <SelectTrigger className="w-full max-w-full">
+                      <SelectValue placeholder="Select financial year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {financialYearOptions.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Full Width Text Areas */}
+              <div className="space-y-4 w-full">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
+                    Release Description
+                  </Label>
+                  <Textarea
+                    id="releaseDescription"
+                    value={editFormData.releaseDescription || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full max-w-full"
+                    placeholder="Enter release description"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="functionalityDelivered" className="text-sm font-medium text-gray-700">
+                    Functionality Delivered
+                  </Label>
+                  <Textarea
+                    id="functionalityDelivered"
+                    value={editFormData.functionalityDelivered || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full max-w-full"
+                    placeholder="Enter functionality delivered"
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="outstandingIssues" className="text-sm font-medium text-gray-700">
+                    Outstanding Issues
+                  </Label>
+                  <Textarea
+                    id="outstandingIssues"
+                    value={editFormData.outstandingIssues || ''}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className="w-full max-w-full"
+                    placeholder="Describe outstanding issues, bugs, or pending tasks..."
+                  />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="comments" className="text-sm font-medium text-gray-700">
+                    Comments
+                  </Label>
+                  <Textarea
+                    id="comments"
+                    value={editFormData.comments || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full max-w-full"
+                    placeholder="Enter comments"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2 w-full">
-            <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
-              System Name *
-            </Label>
-            <Input
-              id="systemName"
-              value={editFormData.systemName || ''}
-              onChange={handleInputChange}
-              className="w-full max-w-full"
-              placeholder="Enter system name"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
-              System ID
-            </Label>
-            <Input
-              id="systemId"
-              value={editFormData.systemId || ''}
-              onChange={handleInputChange}
-              className="w-full max-w-full"
-              placeholder="Enter system ID"
-            />
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
-              Iteration
-            </Label>
-            <Input
-              id="iteration"
-              value={editFormData.iteration || ''}
-              onChange={handleInputChange}
-              className="w-full max-w-full"
-              placeholder="Enter iteration"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Status Information */}
-      <div className="space-y-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
-              Test Status
-            </Label>
-            <Select
-              value={editFormData.testStatus || ''}
-              onValueChange={(value) => handleEditFormChange('testStatus', value)}
+          <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t w-full">
+            <Button
+              variant="outline"
+              onClick={saveEdit}
+              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full"
             >
-              <SelectTrigger className="w-full max-w-full">
-                <SelectValue placeholder="Select test status" />
-              </SelectTrigger>
-              <SelectContent>
-                {testStatusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
-              Deployment Status
-            </Label>
-            <Select
-              value={editFormData.deploymentStatus || ''}
-              onValueChange={(value) => handleEditFormChange('deploymentStatus', value)}
+              Save Changes
+            </Button>
+            <Button
+              onClick={cancelEdit}
+              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full"
             >
-              <SelectTrigger className="w-full max-w-full">
-                <SelectValue placeholder="Select deployment status" />
-              </SelectTrigger>
-              <SelectContent>
-                {deploymentStatusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
-              Release Type
-            </Label>
-            <Select
-              value={editFormData.releaseType || ''}
-              onValueChange={(value) => handleEditFormChange('releaseType', value)}
-            >
-              <SelectTrigger className="w-full max-w-full">
-                <SelectValue placeholder="Select release type" />
-              </SelectTrigger>
-              <SelectContent>
-                {releaseTypeOptions.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label htmlFor="outstandingIssues" className="text-sm font-medium text-gray-700">
-              Outstanding Issues
-            </Label>
-            <Input
-              id="outstandingIssues"
-              type="number"
-              value={editFormData.outstandingIssues || 0}
-              onChange={handleNumberInputChange}
-              className="w-full max-w-full"
-              placeholder="Enter outstanding issues count"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Date Information */}
-      <div className="space-y-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
-              Date Delivered
-            </Label>
-            <DatePickerInput
-              value={editFormData.deliveredDate || ''}
-              onChange={(value) => handleEditFormChange('deliveredDate', value)}
-              placeholder="Select delivery date"
-            />
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
-              TD Notice Date
-            </Label>
-            <DatePickerInput
-              value={editFormData.tdNoticeDate || ''}
-              onChange={(value) => handleEditFormChange('tdNoticeDate', value)}
-              placeholder="Select TD notice date"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
-              Test Deploy Date
-            </Label>
-            <DatePickerInput
-              value={editFormData.testDeployDate || ''}
-              onChange={(value) => handleEditFormChange('testDeployDate', value)}
-              placeholder="Select test deploy date"
-            />
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
-              Test Start Date
-            </Label>
-            <DatePickerInput
-              value={editFormData.testStartDate || ''}
-              onChange={(value) => handleEditFormChange('testStartDate', value)}
-              placeholder="Select test start date"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
-              Test End Date
-            </Label>
-            <DatePickerInput
-              value={editFormData.testEndDate || ''}
-              onChange={(value) => handleEditFormChange('testEndDate', value)}
-              placeholder="Select test end date"
-            />
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label className="text-sm font-medium text-gray-700">
-              Prod Deploy Date
-            </Label>
-            <DatePickerInput
-              value={editFormData.prodDeployDate || ''}
-              onChange={(value) => handleEditFormChange('prodDeployDate', value)}
-              placeholder="Select production deploy date"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Information */}
-      <div className="space-y-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label htmlFor="month" className="text-sm font-medium text-gray-700">
-              Month
-            </Label>
-            <Select
-              value={editFormData.month || ''}
-              onValueChange={(value) => handleEditFormChange('month', value)}
-            >
-              <SelectTrigger className="w-full max-w-full">
-                <SelectValue placeholder="Select month" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((month) => (
-                  <SelectItem key={month} value={month}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
-              Financial Year
-            </Label>
-            <Select
-              value={editFormData.financialYear || ''}
-              onValueChange={(value) => handleEditFormChange('financialYear', value)}
-            >
-              <SelectTrigger className="w-full max-w-full">
-                <SelectValue placeholder="Select financial year" />
-              </SelectTrigger>
-              <SelectContent>
-                {financialYearOptions.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Full Width Text Areas */}
-        <div className="space-y-4 w-full">
-          <div className="space-y-2 w-full">
-            <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
-              Release Description
-            </Label>
-            <Textarea
-              id="releaseDescription"
-              value={editFormData.releaseDescription || ''}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full max-w-full"
-              placeholder="Enter release description"
-            />
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label htmlFor="functionalityDelivered" className="text-sm font-medium text-gray-700">
-              Functionality Delivered
-            </Label>
-            <Textarea
-              id="functionalityDelivered"
-              value={editFormData.functionalityDelivered || ''}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full max-w-full"
-              placeholder="Enter functionality delivered"
-            />
-          </div>
-
-          <div className="space-y-2 w-full">
-            <Label htmlFor="comments" className="text-sm font-medium text-gray-700">
-              Comments
-            </Label>
-            <Textarea
-              id="comments"
-              value={editFormData.comments || ''}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full max-w-full"
-              placeholder="Enter comments"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t w-full">
-      <Button
-        variant="outline"
-        onClick={saveEdit}
-        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full"
-      >
-        Save Changes
-      </Button>
-      <Button
-        onClick={cancelEdit}
-        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full"
-      >
-        Discard
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+              Discard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
