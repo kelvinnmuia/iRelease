@@ -311,7 +311,7 @@ const getEarliestDate = (item: any): Date | null => {
   return new Date(Math.min(...dates.map(d => d.getTime())))
 }
 
-// Add this component before the ReleasesDataTable component
+// DatePickerInput component with consistent height
 const DatePickerInput = ({ 
   value, 
   onChange, 
@@ -382,7 +382,7 @@ const DatePickerInput = ({
           placeholder={placeholder}
           value={value}
           readOnly
-          className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4"
+          className="w-full pl-10 h-[42px] border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer"
         />
       </div>
 
@@ -398,14 +398,14 @@ const DatePickerInput = ({
                 type="date"
                 value={tempDate}
                 onChange={handleDateInputChange}
-                className="w-full"
+                className="w-full h-[42px]"
               />
             </div>
             <div className="flex gap-2 pt-2">
               <Button
                 onClick={handleApply}
                 disabled={!tempDate}
-                className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
+                className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 h-9"
                 variant="outline"
                 size="sm"
               >
@@ -413,7 +413,7 @@ const DatePickerInput = ({
               </Button>
               <Button
                 onClick={handleClear}
-                className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
+                className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 h-9"
                 size="sm"
               >
                 Clear
@@ -725,7 +725,7 @@ export function ReleasesDataTable() {
     toast.success("JSON exported successfully!")
   }
 
-  // Export single release to Excel
+  // Export single release to Excel - removed column widths
   const exportSingleRelease = (release: any) => {
     // Filter data to only include visible columns
     const filteredRelease = {
@@ -756,30 +756,7 @@ export function ReleasesDataTable() {
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Release Details')
 
-    // Set column widths
-    const cols = [
-      { wch: 15 }, // Release ID
-      { wch: 20 }, // System Name
-      { wch: 12 }, // System ID
-      { wch: 15 }, // Release Version
-      { wch: 12 }, // Iteration
-      { wch: 30 }, // Release Description
-      { wch: 30 }, // Functionality Delivered
-      { wch: 15 }, // Date Delivered
-      { wch: 15 }, // TD Notice Date
-      { wch: 15 }, // Test Deploy Date
-      { wch: 15 }, // Test Start Date
-      { wch: 15 }, // Test End Date
-      { wch: 15 }, // Prod Deploy Date
-      { wch: 15 }, // Test Status
-      { wch: 20 }, // Deployment Status
-      { wch: 40 }, // Outstanding Issues (increased width for description)
-      { wch: 25 }, // Comments
-      { wch: 12 }, // Release Type
-      { wch: 12 }, // Month
-      { wch: 15 }, // Financial Year
-    ]
-    worksheet['!cols'] = cols
+    // Removed column widths - let Excel auto-size columns
 
     XLSX.writeFile(workbook, `release-${release.releaseId}-${new Date().toISOString().split('T')[0]}.xlsx`)
 
@@ -827,7 +804,7 @@ export function ReleasesDataTable() {
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:-ml-5 gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px]">
+                <Button variant="outline" size="sm" className="lg:-ml-5 gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] h-[42px]">
                   <Download className="w-4 h-4" />
                   <span className="lg:inline">Export</span>
                 </Button>
@@ -852,7 +829,7 @@ export function ReleasesDataTable() {
             {/* Show/Hide Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[200px]">
+                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[200px] h-[42px]">
                   <Columns3 className="w-4 h-4" />
                   <span className="hidden sm:inline lg:inline">Show / Hide Columns</span>
                   <span className="sm:hidden">Columns</span>
@@ -868,7 +845,7 @@ export function ReleasesDataTable() {
                     placeholder="Search columns..."
                     value={columnSearchQuery}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setColumnSearchQuery(e.target.value)}
-                    className="pl-8 pr-4 w-full"
+                    className="pl-8 pr-4 w-full h-[42px]"
                   />
                 </div>
 
@@ -925,7 +902,7 @@ export function ReleasesDataTable() {
                   setGlobalFilter(e.target.value)
                   setCurrentPage(1) // Reset to first page when searching
                 }}
-                className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 sm:pr-4"
+                className="w-full pl-9 h-[42px] border-gray-300 bg-white focus:border-red-400 focus:ring-red-400"
               />
             </div>
           </div>
@@ -943,7 +920,7 @@ export function ReleasesDataTable() {
                   placeholder="Select date range"
                   value={dateRange}
                   readOnly
-                  className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4"
+                  className="w-full pl-10 h-[42px] border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer"
                 />
               </div>
 
@@ -957,7 +934,7 @@ export function ReleasesDataTable() {
                         type="date"
                         value={startDate}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
-                        className="w-full"
+                        className="w-full h-[42px]"
                       />
                     </div>
                     <div>
@@ -966,14 +943,14 @@ export function ReleasesDataTable() {
                         type="date"
                         value={endDate}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
-                        className="w-full"
+                        className="w-full h-[42px]"
                       />
                     </div>
                     <div className="flex gap-2 pt-2">
                       <Button
                         onClick={applyDateRange}
                         disabled={!startDate || !endDate}
-                        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
+                        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 h-9"
                         variant="outline"
                         size="sm"
                       >
@@ -981,7 +958,7 @@ export function ReleasesDataTable() {
                       </Button>
                       <Button
                         onClick={clearDateRange}
-                        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
+                        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 h-9"
                         size="sm"
                       >
                         Clear
@@ -995,7 +972,7 @@ export function ReleasesDataTable() {
             {/* Ordering Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[130px] justify-center">
+                <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[130px] justify-center h-[42px]">
                   <span className="hidden sm:inline lg:inline">Ordering by</span>
                   <span className="sm:hidden">Order by</span>
                   <ChevronDown className="w-4 h-4" />
@@ -1014,10 +991,10 @@ export function ReleasesDataTable() {
 
           {/* Third Row: Add New and Delete - 2 elements */}
           <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-end">
-            <Button variant="outline" size="sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg">
+            <Button variant="outline" size="sm" className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg h-[42px]">
               + Add New
             </Button>
-            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5">
+            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5 h-[42px]">
               - Delete
             </Button>
           </div>
@@ -1180,7 +1157,7 @@ export function ReleasesDataTable() {
             size="sm"
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="border-gray-300 hover:bg-gray-50"
+            className="border-gray-300 hover:bg-gray-50 h-9"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -1190,7 +1167,7 @@ export function ReleasesDataTable() {
               size="sm"
               variant={currentPage === page ? "default" : "outline"}
               onClick={() => setCurrentPage(page)}
-              className={currentPage === page ? "bg-red-500 text-white hover:bg-red-600 border-red-500" : "border-gray-300 hover:bg-gray-50"}
+              className={currentPage === page ? "bg-red-500 text-white hover:bg-red-600 border-red-500 h-9" : "border-gray-300 hover:bg-gray-50 h-9"}
             >
               {page}
             </Button>
@@ -1200,7 +1177,7 @@ export function ReleasesDataTable() {
             size="sm"
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="border-gray-300 hover:bg-gray-50"
+            className="border-gray-300 hover:bg-gray-50 h-9"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -1215,7 +1192,7 @@ export function ReleasesDataTable() {
               Edit Release
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Update the details for release {releaseToEdit?.releaseId}
+              Update the details for release version {releaseToEdit?.releaseVersion}
             </DialogDescription>
           </DialogHeader>
 
@@ -1231,7 +1208,7 @@ export function ReleasesDataTable() {
                     id="releaseId"
                     value={editFormData.releaseId || ''}
                     disabled
-                    className="w-full max-w-full bg-gray-100 text-gray-600"
+                    className="w-full max-w-full bg-gray-100 text-gray-600 h-[42px]"
                     placeholder="Release ID"
                   />
                 </div>
@@ -1244,7 +1221,7 @@ export function ReleasesDataTable() {
                     id="releaseVersion"
                     value={editFormData.releaseVersion || ''}
                     onChange={handleInputChange}
-                    className="w-full max-w-full"
+                    className="w-full max-w-full h-[42px]"
                     placeholder="Enter release version"
                   />
                 </div>
@@ -1259,7 +1236,7 @@ export function ReleasesDataTable() {
                     id="systemName"
                     value={editFormData.systemName || ''}
                     onChange={handleInputChange}
-                    className="w-full max-w-full"
+                    className="w-full max-w-full h-[42px]"
                     placeholder="Enter system name"
                   />
                 </div>
@@ -1272,7 +1249,7 @@ export function ReleasesDataTable() {
                     id="systemId"
                     value={editFormData.systemId || ''}
                     onChange={handleInputChange}
-                    className="w-full max-w-full"
+                    className="w-full max-w-full h-[42px]"
                     placeholder="Enter system ID"
                   />
                 </div>
@@ -1287,9 +1264,30 @@ export function ReleasesDataTable() {
                     id="iteration"
                     value={editFormData.iteration || ''}
                     onChange={handleInputChange}
-                    className="w-full max-w-full"
+                    className="w-full max-w-full h-[42px]"
                     placeholder="Enter iteration"
                   />
+                </div>
+
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
+                    Release Type
+                  </Label>
+                  <Select
+                    value={editFormData.releaseType || ''}
+                    onValueChange={(value) => handleEditFormChange('releaseType', value)}
+                  >
+                    <SelectTrigger className="w-full max-w-full h-[42px]">
+                      <SelectValue placeholder="Select release type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {releaseTypeOptions.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -1305,7 +1303,7 @@ export function ReleasesDataTable() {
                     value={editFormData.testStatus || ''}
                     onValueChange={(value) => handleEditFormChange('testStatus', value)}
                   >
-                    <SelectTrigger className="w-full max-w-full">
+                    <SelectTrigger className="w-full max-w-full h-[42px]">
                       <SelectValue placeholder="Select test status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1326,36 +1324,13 @@ export function ReleasesDataTable() {
                     value={editFormData.deploymentStatus || ''}
                     onValueChange={(value) => handleEditFormChange('deploymentStatus', value)}
                   >
-                    <SelectTrigger className="w-full max-w-full">
+                    <SelectTrigger className="w-full max-w-full h-[42px]">
                       <SelectValue placeholder="Select deployment status" />
                     </SelectTrigger>
                     <SelectContent>
                       {deploymentStatusOptions.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
-                    Release Type
-                  </Label>
-                  <Select
-                    value={editFormData.releaseType || ''}
-                    onValueChange={(value) => handleEditFormChange('releaseType', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select release type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {releaseTypeOptions.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1450,7 +1425,7 @@ export function ReleasesDataTable() {
                     value={editFormData.month || ''}
                     onValueChange={(value) => handleEditFormChange('month', value)}
                   >
-                    <SelectTrigger className="w-full max-w-full">
+                    <SelectTrigger className="w-full max-w-full h-[42px]">
                       <SelectValue placeholder="Select month" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1471,7 +1446,7 @@ export function ReleasesDataTable() {
                     value={editFormData.financialYear || ''}
                     onValueChange={(value) => handleEditFormChange('financialYear', value)}
                   >
-                    <SelectTrigger className="w-full max-w-full">
+                    <SelectTrigger className="w-full max-w-full h-[42px]">
                       <SelectValue placeholder="Select financial year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1550,13 +1525,13 @@ export function ReleasesDataTable() {
             <Button
               variant="outline"
               onClick={saveEdit}
-              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full"
+              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full h-[42px]"
             >
               Save Changes
             </Button>
             <Button
               onClick={cancelEdit}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full"
+              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full h-[42px]"
             >
               Discard
             </Button>
@@ -1577,13 +1552,13 @@ export function ReleasesDataTable() {
             <Button
               variant="outline"
               onClick={cancelDelete}
-              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
+              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2 h-9"
             >
               No, Cancel
             </Button>
             <Button
               onClick={confirmDelete}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
+              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2 h-9"
             >
               Yes, Delete
             </Button>
