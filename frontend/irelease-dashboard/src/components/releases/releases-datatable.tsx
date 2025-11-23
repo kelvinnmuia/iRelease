@@ -1683,7 +1683,7 @@ export function ReleasesDataTable() {
                       value={addFormData.releaseDescription || ''}
                       onChange={handleAddInputChange}
                       rows={3}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all"
                       placeholder="Enter release description"
                     />
                   </div>
@@ -2070,7 +2070,7 @@ export function ReleasesDataTable() {
                       value={editFormData.releaseDescription || ''}
                       onChange={handleInputChange}
                       rows={3}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all"
                       placeholder="Enter release description"
                     />
                   </div>
