@@ -312,11 +312,11 @@ const getEarliestDate = (item: any): Date | null => {
 }
 
 // Add this component before the ReleasesDataTable component
-const DatePickerInput = ({ 
-  value, 
-  onChange, 
-  placeholder = "Select date" 
-}: { 
+const DatePickerInput = ({
+  value,
+  onChange,
+  placeholder = "Select date"
+}: {
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -433,7 +433,7 @@ const generateReleaseId = (data: any[]) => {
   const currentYear = new Date().getFullYear()
   const existingIds = data.map(item => item.releaseId)
   let counter = 1
-  
+
   while (true) {
     const newId = `REL-${currentYear}-${counter.toString().padStart(3, '0')}`
     if (!existingIds.includes(newId)) {
@@ -484,6 +484,7 @@ export function ReleasesDataTable() {
     outstandingIssues: "",
     comments: ""
   })
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
   const itemsPerPage = 10
 
@@ -540,6 +541,7 @@ export function ReleasesDataTable() {
         outstandingIssues: "",
         comments: ""
       })
+      setValidationErrors({})
     }
   }, [addDialogOpen])
 
@@ -712,6 +714,13 @@ export function ReleasesDataTable() {
       ...prev,
       [field]: value
     }))
+    // Clear validation error when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: ""
+      }))
+    }
   }
 
   const handleAddInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -719,10 +728,56 @@ export function ReleasesDataTable() {
     handleAddFormChange(id, value)
   }
 
+  // Validation function
+  const validateForm = () => {
+    const errors: Record<string, string> = {}
+
+    // Required fields validation
+    if (!addFormData.releaseVersion?.trim()) {
+      errors.releaseVersion = "Release Version is required"
+    }
+    if (!addFormData.systemName?.trim()) {
+      errors.systemName = "System Name is required"
+    }
+    if (!addFormData.systemId?.trim()) {
+      errors.systemId = "System ID is required"
+    }
+    if (!addFormData.iteration?.trim()) {
+      errors.iteration = "Iteration is required"
+    }
+    if (!addFormData.releaseType?.trim()) {
+      errors.releaseType = "Release Type is required"
+    }
+    if (!addFormData.financialYear?.trim()) {
+      errors.financialYear = "Financial Year is required"
+    }
+    if (!addFormData.testStatus?.trim()) {
+      errors.testStatus = "Test Status is required"
+    }
+    if (!addFormData.deploymentStatus?.trim()) {
+      errors.deploymentStatus = "Deployment Status is required"
+    }
+    if (!addFormData.deliveredDate?.trim()) {
+      errors.deliveredDate = "Date Delivered is required"
+    }
+    if (!addFormData.releaseDescription?.trim()) {
+      errors.releaseDescription = "Release Description is required"
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const saveNewRelease = () => {
+    // Validate form before saving
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields")
+      return
+    }
+
     // Generate new release ID
     const newReleaseId = generateReleaseId(data)
-    
+
     // Create new release object
     const newRelease = {
       id: Math.max(...data.map(item => item.id)) + 1,
@@ -733,11 +788,11 @@ export function ReleasesDataTable() {
     // Add to data
     const updatedData = [...data, newRelease]
     setData(updatedData)
-    
+
     // Close dialog and show success message
     setAddDialogOpen(false)
     toast.success(`Successfully created new release ${newReleaseId}`)
-    
+
     // Reset to first page to show the new release
     setCurrentPage(1)
   }
@@ -765,6 +820,7 @@ export function ReleasesDataTable() {
       outstandingIssues: "",
       comments: ""
     })
+    setValidationErrors({})
   }
 
   // Bulk delete functions
@@ -784,16 +840,16 @@ export function ReleasesDataTable() {
     // Remove selected releases from data
     const updatedData = data.filter(item => !selectedRows.has(item.id))
     setData(updatedData)
-    
+
     // Clear selection
     setSelectedRows(new Set())
-    
+
     // Show success toast
     toast.success(`Successfully deleted ${selectedRows.size} release(s)`)
-    
+
     // Close dialog
     setBulkDeleteDialogOpen(false)
-    
+
     // Reset to first page
     setCurrentPage(1)
   }
@@ -1186,16 +1242,16 @@ export function ReleasesDataTable() {
 
           {/* Third Row: Add New and Delete - 2 elements */}
           <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-end">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg"
               onClick={openAddDialog}
             >
               + Add New
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5"
               onClick={openBulkDeleteDialog}
             >
@@ -1396,7 +1452,7 @@ export function ReleasesDataTable() {
               Add New Release
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Create a new release with the details below
+              Create a new release with the details below. Fields marked with <span className="text-red-500">*</span> are required.
             </DialogDescription>
           </DialogHeader>
 
@@ -1406,31 +1462,41 @@ export function ReleasesDataTable() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
-                    Release Version
+                    Release Version <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Input
                       id="releaseVersion"
                       value={addFormData.releaseVersion || ''}
                       onChange={handleAddInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.releaseVersion ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter release version"
                     />
+                    {validationErrors.releaseVersion && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.releaseVersion}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
-                    System Name
+                    System Name <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Input
                       id="systemName"
                       value={addFormData.systemName || ''}
                       onChange={handleAddInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.systemName ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter system name"
                     />
+                    {validationErrors.systemName && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.systemName}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1438,31 +1504,41 @@ export function ReleasesDataTable() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
-                    System ID
+                    System ID <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Input
                       id="systemId"
                       value={addFormData.systemId || ''}
                       onChange={handleAddInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter system ID"
                     />
+                    {validationErrors.systemId && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
-                    Iteration
+                    Iteration <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Input
                       id="iteration"
                       value={addFormData.iteration || ''}
                       onChange={handleAddInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.iteration ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter iteration"
                     />
+                    {validationErrors.iteration && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.iteration}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1470,14 +1546,16 @@ export function ReleasesDataTable() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
-                    Release Type
+                    Release Type <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Select
                       value={addFormData.releaseType || ''}
                       onValueChange={(value) => handleAddFormChange('releaseType', value)}
                     >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.releaseType ? 'border-red-500' : 'border-gray-300'
+                      }`}>
                         <SelectValue placeholder="Select release type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1488,21 +1566,29 @@ export function ReleasesDataTable() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {validationErrors.releaseType && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.releaseType}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
-                    Financial Year
+                    Financial Year <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Input
                       id="financialYear"
                       value={addFormData.financialYear || ''}
                       onChange={handleAddInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.financialYear ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter financial year (e.g., FY2024)"
                     />
+                    {validationErrors.financialYear && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.financialYear}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1513,14 +1599,16 @@ export function ReleasesDataTable() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
-                    Test Status
+                    Test Status <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Select
                       value={addFormData.testStatus || ''}
                       onValueChange={(value) => handleAddFormChange('testStatus', value)}
                     >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.testStatus ? 'border-red-500' : 'border-gray-300'
+                      }`}>
                         <SelectValue placeholder="Select test status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1531,19 +1619,24 @@ export function ReleasesDataTable() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {validationErrors.testStatus && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.testStatus}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
-                    Deployment Status
+                    Deployment Status <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Select
                       value={addFormData.deploymentStatus || ''}
                       onValueChange={(value) => handleAddFormChange('deploymentStatus', value)}
                     >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.deploymentStatus ? 'border-red-500' : 'border-gray-300'
+                      }`}>
                         <SelectValue placeholder="Select deployment status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1554,6 +1647,9 @@ export function ReleasesDataTable() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {validationErrors.deploymentStatus && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.deploymentStatus}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1564,7 +1660,7 @@ export function ReleasesDataTable() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
-                    Date Delivered
+                    Date Delivered <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <DatePickerInput
@@ -1572,6 +1668,9 @@ export function ReleasesDataTable() {
                       onChange={(value) => handleAddFormChange('deliveredDate', value)}
                       placeholder="Select delivery date"
                     />
+                    {validationErrors.deliveredDate && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.deliveredDate}</p>
+                    )}
                   </div>
                 </div>
 
@@ -1675,7 +1774,7 @@ export function ReleasesDataTable() {
               <div className="space-y-4 w-full">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
-                    Release Description
+                    Release Description <span className="text-red-500">*</span>
                   </Label>
                   <div className="w-full">
                     <Textarea
@@ -1683,9 +1782,14 @@ export function ReleasesDataTable() {
                       value={addFormData.releaseDescription || ''}
                       onChange={handleAddInputChange}
                       rows={3}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all"
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all ${
+                        validationErrors.releaseDescription ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter release description"
                     />
+                    {validationErrors.releaseDescription && (
+                      <p className="text-red-500 text-xs mt-1">{validationErrors.releaseDescription}</p>
+                    )}
                   </div>
                 </div>
 
@@ -2047,13 +2151,21 @@ export function ReleasesDataTable() {
                     Financial Year
                   </Label>
                   <div className="w-full">
-                    <Input
-                      id="financialYear"
+                    <Select
                       value={editFormData.financialYear || ''}
-                      onChange={handleInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      placeholder="Enter financial year"
-                    />
+                      onValueChange={(value) => handleEditFormChange('financialYear', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select financial year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {financialYearOptions.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
