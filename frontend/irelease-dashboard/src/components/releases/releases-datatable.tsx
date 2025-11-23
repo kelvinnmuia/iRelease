@@ -382,7 +382,7 @@ const DatePickerInput = ({
           placeholder={placeholder}
           value={value}
           readOnly
-          className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4"
+          className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none"
         />
       </div>
 
@@ -394,12 +394,14 @@ const DatePickerInput = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Select Date
               </label>
-              <Input
-                type="date"
-                value={tempDate}
-                onChange={handleDateInputChange}
-                className="w-full"
-              />
+              <div className="w-full">
+                <Input
+                  type="date"
+                  value={tempDate}
+                  onChange={handleDateInputChange}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                />
+              </div>
             </div>
             <div className="flex gap-2 pt-2">
               <Button
@@ -1024,12 +1026,14 @@ export function ReleasesDataTable() {
               >
                 <div className="relative p-2 border-b">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    placeholder="Search columns..."
-                    value={columnSearchQuery}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setColumnSearchQuery(e.target.value)}
-                    className="pl-8 pr-4 w-full"
-                  />
+                  <div className="w-full">
+                    <Input
+                      placeholder="Search columns..."
+                      value={columnSearchQuery}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setColumnSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                    />
+                  </div>
                 </div>
 
                 {/* Scrollable column list */}
@@ -1078,15 +1082,17 @@ export function ReleasesDataTable() {
             {/* Search Input */}
             <div className="relative flex-1 lg:flex-none lg:w-66">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
-              <Input
-                placeholder="Search releases..."
-                value={globalFilter}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  setGlobalFilter(e.target.value)
-                  setCurrentPage(1) // Reset to first page when searching
-                }}
-                className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 sm:pr-4"
-              />
+              <div className="w-full">
+                <Input
+                  placeholder="Search releases..."
+                  value={globalFilter}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    setGlobalFilter(e.target.value)
+                    setCurrentPage(1) // Reset to first page when searching
+                  }}
+                  className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 sm:pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 
@@ -1099,12 +1105,14 @@ export function ReleasesDataTable() {
                 onClick={() => setShowDatePicker(!showDatePicker)}
               >
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
-                <Input
-                  placeholder="Select date range"
-                  value={dateRange}
-                  readOnly
-                  className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4"
-                />
+                <div className="w-full">
+                  <Input
+                    placeholder="Select date range"
+                    value={dateRange}
+                    readOnly
+                    className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* Date Picker Dropdown */}
@@ -1113,21 +1121,25 @@ export function ReleasesDataTable() {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                      <Input
-                        type="date"
-                        value={startDate}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
-                        className="w-full"
-                      />
+                      <div className="w-full">
+                        <Input
+                          type="date"
+                          value={startDate}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
+                          className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                      <Input
-                        type="date"
-                        value={endDate}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
-                        className="w-full"
-                      />
+                      <div className="w-full">
+                        <Input
+                          type="date"
+                          value={endDate}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
+                          className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                        />
+                      </div>
                     </div>
                     <div className="flex gap-2 pt-2">
                       <Button
@@ -1378,7 +1390,7 @@ export function ReleasesDataTable() {
 
       {/* Add New Release Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto p-4 sm:p-6">
+        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-clip mx-auto p-4 sm:p-6">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Add New Release
@@ -1388,7 +1400,7 @@ export function ReleasesDataTable() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4 w-full max-w-full overflow-x-hidden">
+          <div className="space-y-6 py-4 w-full">
             {/* Release Information */}
             <div className="space-y-4 w-full">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
@@ -1396,26 +1408,30 @@ export function ReleasesDataTable() {
                   <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
                     Release Version
                   </Label>
-                  <Input
-                    id="releaseVersion"
-                    value={addFormData.releaseVersion || ''}
-                    onChange={handleAddInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter release version"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="releaseVersion"
+                      value={addFormData.releaseVersion || ''}
+                      onChange={handleAddInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter release version"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
                     System Name
                   </Label>
-                  <Input
-                    id="systemName"
-                    value={addFormData.systemName || ''}
-                    onChange={handleAddInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter system name"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="systemName"
+                      value={addFormData.systemName || ''}
+                      onChange={handleAddInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter system name"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1424,26 +1440,30 @@ export function ReleasesDataTable() {
                   <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
                     System ID
                   </Label>
-                  <Input
-                    id="systemId"
-                    value={addFormData.systemId || ''}
-                    onChange={handleAddInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter system ID"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="systemId"
+                      value={addFormData.systemId || ''}
+                      onChange={handleAddInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter system ID"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
                     Iteration
                   </Label>
-                  <Input
-                    id="iteration"
-                    value={addFormData.iteration || ''}
-                    onChange={handleAddInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter iteration"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="iteration"
+                      value={addFormData.iteration || ''}
+                      onChange={handleAddInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter iteration"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1452,34 +1472,38 @@ export function ReleasesDataTable() {
                   <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
                     Release Type
                   </Label>
-                  <Select
-                    value={addFormData.releaseType || ''}
-                    onValueChange={(value) => handleAddFormChange('releaseType', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select release type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {releaseTypeOptions.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={addFormData.releaseType || ''}
+                      onValueChange={(value) => handleAddFormChange('releaseType', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select release type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {releaseTypeOptions.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
                     Financial Year
                   </Label>
-                  <Input
-                    id="financialYear"
-                    value={addFormData.financialYear || ''}
-                    onChange={handleAddInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter financial year (e.g., FY2024)"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="financialYear"
+                      value={addFormData.financialYear || ''}
+                      onChange={handleAddInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter financial year (e.g., FY2024)"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1491,42 +1515,46 @@ export function ReleasesDataTable() {
                   <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
                     Test Status
                   </Label>
-                  <Select
-                    value={addFormData.testStatus || ''}
-                    onValueChange={(value) => handleAddFormChange('testStatus', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select test status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {testStatusOptions.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={addFormData.testStatus || ''}
+                      onValueChange={(value) => handleAddFormChange('testStatus', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select test status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {testStatusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
                     Deployment Status
                   </Label>
-                  <Select
-                    value={addFormData.deploymentStatus || ''}
-                    onValueChange={(value) => handleAddFormChange('deploymentStatus', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select deployment status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {deploymentStatusOptions.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={addFormData.deploymentStatus || ''}
+                      onValueChange={(value) => handleAddFormChange('deploymentStatus', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select deployment status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deploymentStatusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1538,22 +1566,26 @@ export function ReleasesDataTable() {
                   <Label className="text-sm font-medium text-gray-700">
                     Date Delivered
                   </Label>
-                  <DatePickerInput
-                    value={addFormData.deliveredDate || ''}
-                    onChange={(value) => handleAddFormChange('deliveredDate', value)}
-                    placeholder="Select delivery date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={addFormData.deliveredDate || ''}
+                      onChange={(value) => handleAddFormChange('deliveredDate', value)}
+                      placeholder="Select delivery date"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
                     TD Notice Date
                   </Label>
-                  <DatePickerInput
-                    value={addFormData.tdNoticeDate || ''}
-                    onChange={(value) => handleAddFormChange('tdNoticeDate', value)}
-                    placeholder="Select TD notice date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={addFormData.tdNoticeDate || ''}
+                      onChange={(value) => handleAddFormChange('tdNoticeDate', value)}
+                      placeholder="Select TD notice date"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1562,22 +1594,26 @@ export function ReleasesDataTable() {
                   <Label className="text-sm font-medium text-gray-700">
                     Test Deploy Date
                   </Label>
-                  <DatePickerInput
-                    value={addFormData.testDeployDate || ''}
-                    onChange={(value) => handleAddFormChange('testDeployDate', value)}
-                    placeholder="Select test deploy date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={addFormData.testDeployDate || ''}
+                      onChange={(value) => handleAddFormChange('testDeployDate', value)}
+                      placeholder="Select test deploy date"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
                     Test Start Date
                   </Label>
-                  <DatePickerInput
-                    value={addFormData.testStartDate || ''}
-                    onChange={(value) => handleAddFormChange('testStartDate', value)}
-                    placeholder="Select test start date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={addFormData.testStartDate || ''}
+                      onChange={(value) => handleAddFormChange('testStartDate', value)}
+                      placeholder="Select test start date"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1586,22 +1622,26 @@ export function ReleasesDataTable() {
                   <Label className="text-sm font-medium text-gray-700">
                     Test End Date
                   </Label>
-                  <DatePickerInput
-                    value={addFormData.testEndDate || ''}
-                    onChange={(value) => handleAddFormChange('testEndDate', value)}
-                    placeholder="Select test end date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={addFormData.testEndDate || ''}
+                      onChange={(value) => handleAddFormChange('testEndDate', value)}
+                      placeholder="Select test end date"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
                     Prod Deploy Date
                   </Label>
-                  <DatePickerInput
-                    value={addFormData.prodDeployDate || ''}
-                    onChange={(value) => handleAddFormChange('prodDeployDate', value)}
-                    placeholder="Select production deploy date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={addFormData.prodDeployDate || ''}
+                      onChange={(value) => handleAddFormChange('prodDeployDate', value)}
+                      placeholder="Select production deploy date"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1612,21 +1652,23 @@ export function ReleasesDataTable() {
                 <Label htmlFor="month" className="text-sm font-medium text-gray-700">
                   Month
                 </Label>
-                <Select
-                  value={addFormData.month || ''}
-                  onValueChange={(value) => handleAddFormChange('month', value)}
-                >
-                  <SelectTrigger className="w-full max-w-full">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthOptions.map((month) => (
-                      <SelectItem key={month} value={month}>
-                        {month}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="w-full">
+                  <Select
+                    value={addFormData.month || ''}
+                    onValueChange={(value) => handleAddFormChange('month', value)}
+                  >
+                    <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthOptions.map((month) => (
+                        <SelectItem key={month} value={month}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Full Width Text Areas */}
@@ -1635,56 +1677,64 @@ export function ReleasesDataTable() {
                   <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
                     Release Description
                   </Label>
-                  <Textarea
-                    id="releaseDescription"
-                    value={addFormData.releaseDescription || ''}
-                    onChange={handleAddInputChange}
-                    rows={3}
-                    className="w-full max-w-full"
-                    placeholder="Enter release description"
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="releaseDescription"
+                      value={addFormData.releaseDescription || ''}
+                      onChange={handleAddInputChange}
+                      rows={3}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Enter release description"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="functionalityDelivered" className="text-sm font-medium text-gray-700">
                     Functionality Delivered
                   </Label>
-                  <Textarea
-                    id="functionalityDelivered"
-                    value={addFormData.functionalityDelivered || ''}
-                    onChange={handleAddInputChange}
-                    rows={3}
-                    className="w-full max-w-full"
-                    placeholder="Enter functionality delivered"
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="functionalityDelivered"
+                      value={addFormData.functionalityDelivered || ''}
+                      onChange={handleAddInputChange}
+                      rows={3}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Enter functionality delivered"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="outstandingIssues" className="text-sm font-medium text-gray-700">
                     Outstanding Issues
                   </Label>
-                  <Textarea
-                    id="outstandingIssues"
-                    value={addFormData.outstandingIssues || ''}
-                    onChange={handleAddInputChange}
-                    rows={4}
-                    className="w-full max-w-full"
-                    placeholder="Describe outstanding issues, bugs, or pending tasks..."
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="outstandingIssues"
+                      value={addFormData.outstandingIssues || ''}
+                      onChange={handleAddInputChange}
+                      rows={4}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Describe outstanding issues, bugs, or pending tasks..."
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="comments" className="text-sm font-medium text-gray-700">
                     Comments
                   </Label>
-                  <Textarea
-                    id="comments"
-                    value={addFormData.comments || ''}
-                    onChange={handleAddInputChange}
-                    rows={3}
-                    className="w-full max-w-full"
-                    placeholder="Enter comments"
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="comments"
+                      value={addFormData.comments || ''}
+                      onChange={handleAddInputChange}
+                      rows={3}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Enter comments"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1708,19 +1758,19 @@ export function ReleasesDataTable() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Release Dialog - Fixed Horizontal Scrolling */}
+      {/* Edit Release Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto p-4 sm:p-6">
+        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-clip mx-auto p-4 sm:p-6">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Edit Release
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Update the details for release version {releaseToEdit?.releaseVersion}
+              Update release {releaseToEdit?.releaseVersion} details
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4 w-full max-w-full overflow-x-hidden">
+          <div className="space-y-6 py-4 w-full">
             {/* Release Information */}
             <div className="space-y-4 w-full">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
@@ -1728,26 +1778,30 @@ export function ReleasesDataTable() {
                   <Label htmlFor="releaseId" className="text-sm font-medium text-gray-700">
                     Release ID
                   </Label>
-                  <Input
-                    id="releaseId"
-                    value={editFormData.releaseId || ''}
-                    disabled
-                    className="w-full max-w-full bg-gray-100 text-gray-600"
-                    placeholder="Release ID"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="releaseId"
+                      value={editFormData.releaseId || ''}
+                      disabled
+                      className="w-full bg-gray-100 text-gray-600"
+                      placeholder="Release ID"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
                     Release Version
                   </Label>
-                  <Input
-                    id="releaseVersion"
-                    value={editFormData.releaseVersion || ''}
-                    onChange={handleInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter release version"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="releaseVersion"
+                      value={editFormData.releaseVersion || ''}
+                      onChange={handleInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter release version"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1756,26 +1810,30 @@ export function ReleasesDataTable() {
                   <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
                     System Name
                   </Label>
-                  <Input
-                    id="systemName"
-                    value={editFormData.systemName || ''}
-                    onChange={handleInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter system name"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="systemName"
+                      value={editFormData.systemName || ''}
+                      onChange={handleInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter system name"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
                     System ID
                   </Label>
-                  <Input
-                    id="systemId"
-                    value={editFormData.systemId || ''}
-                    onChange={handleInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter system ID"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="systemId"
+                      value={editFormData.systemId || ''}
+                      onChange={handleInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter system ID"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1784,34 +1842,38 @@ export function ReleasesDataTable() {
                   <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
                     Iteration
                   </Label>
-                  <Input
-                    id="iteration"
-                    value={editFormData.iteration || ''}
-                    onChange={handleInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter iteration"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="iteration"
+                      value={editFormData.iteration || ''}
+                      onChange={handleInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter iteration"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
                     Release Type
                   </Label>
-                  <Select
-                    value={editFormData.releaseType || ''}
-                    onValueChange={(value) => handleEditFormChange('releaseType', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select release type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {releaseTypeOptions.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={editFormData.releaseType || ''}
+                      onValueChange={(value) => handleEditFormChange('releaseType', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select release type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {releaseTypeOptions.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1823,42 +1885,46 @@ export function ReleasesDataTable() {
                   <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
                     Test Status
                   </Label>
-                  <Select
-                    value={editFormData.testStatus || ''}
-                    onValueChange={(value) => handleEditFormChange('testStatus', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select test status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {testStatusOptions.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={editFormData.testStatus || ''}
+                      onValueChange={(value) => handleEditFormChange('testStatus', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select test status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {testStatusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
                     Deployment Status
                   </Label>
-                  <Select
-                    value={editFormData.deploymentStatus || ''}
-                    onValueChange={(value) => handleEditFormChange('deploymentStatus', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select deployment status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {deploymentStatusOptions.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={editFormData.deploymentStatus || ''}
+                      onValueChange={(value) => handleEditFormChange('deploymentStatus', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select deployment status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deploymentStatusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1870,22 +1936,26 @@ export function ReleasesDataTable() {
                   <Label className="text-sm font-medium text-gray-700">
                     Date Delivered
                   </Label>
-                  <DatePickerInput
-                    value={editFormData.deliveredDate || ''}
-                    onChange={(value) => handleEditFormChange('deliveredDate', value)}
-                    placeholder="Select delivery date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={editFormData.deliveredDate || ''}
+                      onChange={(value) => handleEditFormChange('deliveredDate', value)}
+                      placeholder="Select delivery date"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
                     TD Notice Date
                   </Label>
-                  <DatePickerInput
-                    value={editFormData.tdNoticeDate || ''}
-                    onChange={(value) => handleEditFormChange('tdNoticeDate', value)}
-                    placeholder="Select TD notice date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={editFormData.tdNoticeDate || ''}
+                      onChange={(value) => handleEditFormChange('tdNoticeDate', value)}
+                      placeholder="Select TD notice date"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1894,22 +1964,26 @@ export function ReleasesDataTable() {
                   <Label className="text-sm font-medium text-gray-700">
                     Test Deploy Date
                   </Label>
-                  <DatePickerInput
-                    value={editFormData.testDeployDate || ''}
-                    onChange={(value) => handleEditFormChange('testDeployDate', value)}
-                    placeholder="Select test deploy date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={editFormData.testDeployDate || ''}
+                      onChange={(value) => handleEditFormChange('testDeployDate', value)}
+                      placeholder="Select test deploy date"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
                     Test Start Date
                   </Label>
-                  <DatePickerInput
-                    value={editFormData.testStartDate || ''}
-                    onChange={(value) => handleEditFormChange('testStartDate', value)}
-                    placeholder="Select test start date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={editFormData.testStartDate || ''}
+                      onChange={(value) => handleEditFormChange('testStartDate', value)}
+                      placeholder="Select test start date"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1918,22 +1992,26 @@ export function ReleasesDataTable() {
                   <Label className="text-sm font-medium text-gray-700">
                     Test End Date
                   </Label>
-                  <DatePickerInput
-                    value={editFormData.testEndDate || ''}
-                    onChange={(value) => handleEditFormChange('testEndDate', value)}
-                    placeholder="Select test end date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={editFormData.testEndDate || ''}
+                      onChange={(value) => handleEditFormChange('testEndDate', value)}
+                      placeholder="Select test end date"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label className="text-sm font-medium text-gray-700">
                     Prod Deploy Date
                   </Label>
-                  <DatePickerInput
-                    value={editFormData.prodDeployDate || ''}
-                    onChange={(value) => handleEditFormChange('prodDeployDate', value)}
-                    placeholder="Select production deploy date"
-                  />
+                  <div className="w-full">
+                    <DatePickerInput
+                      value={editFormData.prodDeployDate || ''}
+                      onChange={(value) => handleEditFormChange('prodDeployDate', value)}
+                      placeholder="Select production deploy date"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1945,34 +2023,38 @@ export function ReleasesDataTable() {
                   <Label htmlFor="month" className="text-sm font-medium text-gray-700">
                     Month
                   </Label>
-                  <Select
-                    value={editFormData.month || ''}
-                    onValueChange={(value) => handleEditFormChange('month', value)}
-                  >
-                    <SelectTrigger className="w-full max-w-full">
-                      <SelectValue placeholder="Select month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map((month) => (
-                        <SelectItem key={month} value={month}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select
+                      value={editFormData.month || ''}
+                      onValueChange={(value) => handleEditFormChange('month', value)}
+                    >
+                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                        <SelectValue placeholder="Select month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthOptions.map((month) => (
+                          <SelectItem key={month} value={month}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
                     Financial Year
                   </Label>
-                  <Input
-                    id="financialYear"
-                    value={editFormData.financialYear || ''}
-                    onChange={handleInputChange}
-                    className="w-full max-w-full"
-                    placeholder="Enter financial year"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="financialYear"
+                      value={editFormData.financialYear || ''}
+                      onChange={handleInputChange}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                      placeholder="Enter financial year"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1982,56 +2064,64 @@ export function ReleasesDataTable() {
                   <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
                     Release Description
                   </Label>
-                  <Textarea
-                    id="releaseDescription"
-                    value={editFormData.releaseDescription || ''}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full max-w-full"
-                    placeholder="Enter release description"
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="releaseDescription"
+                      value={editFormData.releaseDescription || ''}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Enter release description"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="functionalityDelivered" className="text-sm font-medium text-gray-700">
                     Functionality Delivered
                   </Label>
-                  <Textarea
-                    id="functionalityDelivered"
-                    value={editFormData.functionalityDelivered || ''}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full max-w-full"
-                    placeholder="Enter functionality delivered"
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="functionalityDelivered"
+                      value={editFormData.functionalityDelivered || ''}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Enter functionality delivered"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="outstandingIssues" className="text-sm font-medium text-gray-700">
                     Outstanding Issues
                   </Label>
-                  <Textarea
-                    id="outstandingIssues"
-                    value={editFormData.outstandingIssues || ''}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="w-full max-w-full"
-                    placeholder="Describe outstanding issues, bugs, or pending tasks..."
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="outstandingIssues"
+                      value={editFormData.outstandingIssues || ''}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Describe outstanding issues, bugs, or pending tasks..."
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="comments" className="text-sm font-medium text-gray-700">
                     Comments
                   </Label>
-                  <Textarea
-                    id="comments"
-                    value={editFormData.comments || ''}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full max-w-full"
-                    placeholder="Enter comments"
-                  />
+                  <div className="w-full">
+                    <Textarea
+                      id="comments"
+                      value={editFormData.comments || ''}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
+                      placeholder="Enter comments"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
