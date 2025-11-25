@@ -2734,7 +2734,7 @@ const getEarliestDate = (item: any): Date | null => {
   return new Date(Math.min(...dates.map(d => d.getTime())))
 }
 
-// DatePickerInput component
+// Add this component before the ReleasesDataTable component
 const DatePickerInput = ({
   value,
   onChange,
@@ -2749,24 +2749,24 @@ const DatePickerInput = ({
   const pickerRef = useRef<HTMLDivElement>(null)
 
   // Handle clicks outside the date picker
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        setShowPicker(false)
-        setTempDate("") // Reset temp date when closing
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+          setShowPicker(false)
+          setTempDate("") // Reset temp date when closing
+        }
       }
-    }
-
-    if (showPicker) {
-      document.addEventListener('mousedown', handleClickOutside)
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showPicker])
+  
+      if (showPicker) {
+        document.addEventListener('mousedown', handleClickOutside)
+      } else {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+  
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }, [showPicker])
 
   const handleApply = () => {
     if (tempDate) {
@@ -3468,144 +3468,146 @@ export function ReleasesDataTable() {
           <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
         </div>
 
-        {/* Enhanced Responsive Controls */}
-        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-          {/* Left Section - Export, Show/Hide, Search */}
-          <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:max-w-2xl">
-            {/* Export and Show/Hide - Always visible */}
-            <div className="flex gap-2 flex-1 md:flex-none">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 md:flex-none md:w-auto min-w-[100px]">
-                    <Download className="w-4 h-4" />
-                    <span>Export</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[140px]">
-                  <DropdownMenuItem onClick={exportToCSV}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export as CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportToExcel}>
-                    <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    Export as Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={exportToJSON}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export as JSON
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+        {/* Controls - Light Gray Background */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 lg:gap-2">
+          {/* First Row: Export, Show/Hide, Search - 3 elements */}
+          <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-start">
+            {/* Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="lg:-ml-5 gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px]">
+                  <Download className="w-4 h-4" />
+                  <span className="lg:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[140px]">
+                <DropdownMenuItem onClick={exportToCSV}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportToJSON}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 md:flex-none md:w-auto min-w-[140px]">
-                    <Columns3 className="w-4 h-4" />
-                    <span>Columns</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  className="w-60 max-h-[350px] overflow-hidden flex flex-col"
-                >
-                  <div className="relative p-2 border-b">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <div className="w-full">
-                      <Input
-                        placeholder="Search columns..."
-                        value={columnSearchQuery}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setColumnSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      />
-                    </div>
+            {/* Show/Hide Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[200px]">
+                  <Columns3 className="w-4 h-4" />
+                  <span className="hidden sm:inline lg:inline">Show / Hide Columns</span>
+                  <span className="sm:hidden">Columns</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-60 max-h-[350px] overflow-hidden flex flex-col"
+              >
+                <div className="relative p-2 border-b">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <div className="w-full">
+                    <Input
+                      placeholder="Search columns..."
+                      value={columnSearchQuery}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setColumnSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                    />
                   </div>
+                </div>
 
-                  {/* Scrollable column list */}
-                  <div className="overflow-y-auto flex-1 max-h-[300px]">
-                    <div className="p-1">
-                      {allColumns
-                        .filter(col =>
-                          !columnSearchQuery ||
-                          col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
-                        )
-                        .map((col) => (
-                          <DropdownMenuCheckboxItem
-                            key={col.key}
-                            checked={columnVisibility[col.key]}
-                            onCheckedChange={() => toggleColumnVisibility(col.key)}
-                            onSelect={(e: Event) => e.preventDefault()}
-                            className="px-7 py-2.5 text-sm flex items-center gap-3 min-h-6"
-                          >
-                            <div className="flex-1 ml-1">{col.label}</div>
-                          </DropdownMenuCheckboxItem>
-                        ))}
-
-                      {/* Show message when no columns match search */}
-                      {allColumns.filter(col =>
+                {/* Scrollable column list */}
+                <div className="overflow-y-auto flex-1 max-h-[300px]">
+                  <div className="p-1">
+                    {allColumns
+                      .filter(col =>
                         !columnSearchQuery ||
                         col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
-                      ).length === 0 && (
-                          <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                            No columns found
-                          </div>
-                        )}
-                    </div>
-                  </div>
+                      )
+                      .map((col) => (
+                        <DropdownMenuCheckboxItem
+                          key={col.key}
+                          checked={columnVisibility[col.key]}
+                          onCheckedChange={() => toggleColumnVisibility(col.key)}
+                          onSelect={(e: Event) => e.preventDefault()}
+                          className="px-7 py-2.5 text-sm flex items-center gap-3 min-h-6"
+                        >
+                          <div className="flex-1 ml-1">{col.label}</div>
+                        </DropdownMenuCheckboxItem>
+                      ))}
 
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={resetColumnVisibility}
-                    className="px-3 py-2.5 text-sm"
-                  >
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    Reset Columns
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                    {/* Show message when no columns match search */}
+                    {allColumns.filter(col =>
+                      !columnSearchQuery ||
+                      col.label.toLowerCase().includes(columnSearchQuery.toLowerCase())
+                    ).length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-500 text-center">
+                          No columns found
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={resetColumnVisibility}
+                  className="px-3 py-2.5 text-sm"
+                >
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  Reset Columns
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Search Input */}
-            <div className="flex-1 min-w-0">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
+            <div className="relative flex-1 lg:flex-none lg:w-66">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
+              <div className="w-full">
                 <Input
                   placeholder="Search releases..."
                   value={globalFilter}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => {
                     setGlobalFilter(e.target.value)
-                    setCurrentPage(1)
+                    setCurrentPage(1) // Reset to first page when searching
                   }}
-                  className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 focus:ring-2 focus:ring-offset-0 focus:outline-none"
+                  className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 sm:pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
-          {/* Right Section - Date Range, Ordering, Add/Delete */}
-          <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
-            {/* Date Range and Ordering - Always visible */}
-            <div className="flex gap-2 flex-1 md:flex-none">
-              {/* Date Range */}
-              <div className="relative flex-1 md:flex-none md:w-48 lg:w-56" ref={datePickerRef}>
-                <div
-                  className="flex items-center cursor-pointer"
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                >
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+          {/* Second Row: Date Range and Ordering - 2 elements */}
+          <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-center">
+            {/* Date Range */}
+            <div className="relative flex-1 lg:flex-none lg:w-64" ref={datePickerRef}>
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+              >
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                <div className="w-full">
                   <Input
-                    placeholder="Date range"
+                    placeholder="Select date range"
                     value={dateRange}
                     readOnly
-                    className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer focus:ring-2 focus:ring-offset-0 focus:outline-none"
+                    className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none"
                   />
                 </div>
+              </div>
 
-                {showDatePicker && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 w-64">
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              {/* Date Picker Dropdown */}
+              {showDatePicker && (
+                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 w-64">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <div className="w-full">
                         <Input
                           type="date"
                           value={startDate}
@@ -3613,8 +3615,10 @@ export function ReleasesDataTable() {
                           className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                      <div className="w-full">
                         <Input
                           type="date"
                           value={endDate}
@@ -3622,66 +3626,67 @@ export function ReleasesDataTable() {
                           className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
                         />
                       </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          onClick={applyDateRange}
-                          disabled={!startDate || !endDate}
-                          className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
-                          variant="outline"
-                          size="sm"
-                        >
-                          Apply
-                        </Button>
-                        <Button
-                          onClick={clearDateRange}
-                          className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
-                          size="sm"
-                        >
-                          Clear
-                        </Button>
-                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        onClick={applyDateRange}
+                        disabled={!startDate || !endDate}
+                        className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
+                        variant="outline"
+                        size="sm"
+                      >
+                        Apply
+                      </Button>
+                      <Button
+                        onClick={clearDateRange}
+                        className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
+                        size="sm"
+                      >
+                        Clear
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Ordering - Always visible */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 md:flex-none md:w-36 justify-center">
-                    <span>Order by</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="min-w-[130px]">
-                  <DropdownMenuItem onClick={() => setSortOrder("newest")}>
-                    Date (Newest)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
-                    Date (Oldest)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </div>
+              )}
             </div>
 
-            {/* Add and Delete Buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32"
-                onClick={openAddDialog}
-              >
-                + Add New
-              </Button>
-              <Button
-                size="sm"
-                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32"
-                onClick={openBulkDeleteDialog}
-              >
-                - Delete
-              </Button>
-            </div>
+            {/* Ordering Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 lg:flex-none lg:min-w-[130px] justify-center">
+                  <span className="hidden sm:inline lg:inline">Ordering by</span>
+                  <span className="sm:hidden">Order by</span>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[130px]">
+                <DropdownMenuItem onClick={() => setSortOrder("newest")}>
+                  Date (Newest)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
+                  Date (Oldest)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Third Row: Add New and Delete - 2 elements */}
+          <div className="flex flex-row gap-2 w-full lg:w-auto lg:flex-1 lg:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg"
+              onClick={openAddDialog}
+            >
+              + Add New
+            </Button>
+            <Button
+              size="sm"
+              className="bg-red-500 text-white hover:bg-red-600 flex-1 lg:flex-none lg:min-w-[105px] rounded-lg lg:-mr-5"
+              onClick={openBulkDeleteDialog}
+            >
+              - Delete
+            </Button>
           </div>
         </div>
 
@@ -3702,7 +3707,7 @@ export function ReleasesDataTable() {
         )}
       </div>
 
-      {/* Rows Per Page Selector */}
+      {/* Rows Per Page Selector - New Row between controls and table */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Rows per page:</span>
@@ -3735,7 +3740,7 @@ export function ReleasesDataTable() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table - White Background */}
       <div className="flex-1 overflow-auto bg-white">
         <Table className="text-sm">
           <TableHeader className="bg-white hover:bg-gray-50 transition-colors duration-150">
@@ -3860,7 +3865,7 @@ export function ReleasesDataTable() {
         </Table>
       </div>
 
-      {/* Footer */}
+      {/* Footer - White Background */}
       <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="text-sm text-gray-600 text-center sm:text-left">
           Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
