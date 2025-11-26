@@ -3078,11 +3078,13 @@ export function ReleasesDataTable() {
     setSelectedRows(newSelected)
   }
 
+  // Fixed: Use sortedAndFilteredData instead of paginatedData for select all
   const toggleSelectAll = () => {
-    if (selectedRows.size === paginatedData.length) {
+    if (selectedRows.size === sortedAndFilteredData.length) {
       setSelectedRows(new Set())
     } else {
-      setSelectedRows(new Set(paginatedData.map((item) => item.id)))
+      const allIds = new Set(sortedAndFilteredData.map((item) => item.id))
+      setSelectedRows(allIds)
     }
   }
 
@@ -3741,9 +3743,10 @@ export function ReleasesDataTable() {
           <TableHeader className="bg-white hover:bg-gray-50 transition-colors duration-150 sticky top-0">
             <TableRow className="border-b border-gray-200 h-12">
               <TableHead className="w-12 px-4 text-sm font-semibold text-gray-900 h-12">
+                {/* Fixed: Use sortedAndFilteredData instead of paginatedData for select all checkbox */}
                 <input
                   type="checkbox"
-                  checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
+                  checked={selectedRows.size === sortedAndFilteredData.length && sortedAndFilteredData.length > 0}
                   onChange={toggleSelectAll}
                   className="rounded border-gray-300 text-red-400 focus:ring-red-400"
                 />
