@@ -3705,7 +3705,7 @@ export function ReleasesDataTable() {
       {/* Rows Per Page Selector */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Rows per page:</span>
+          <span className="text-sm text-gray-600">Rows:</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 w-24 justify-between">
@@ -3731,14 +3731,14 @@ export function ReleasesDataTable() {
         </div>
         
         <div className="text-sm text-gray-600">
-          {sortedAndFilteredData.length} release(s) found
+          {sortedAndFilteredData.length} record(s) found
         </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto bg-white">
+      <div className="flex-1 overflow-auto bg-whit">
         <Table className="text-sm">
-          <TableHeader className="bg-white hover:bg-gray-50 transition-colors duration-150">
+          <TableHeader className="bg-white hover:bg-gray-50 transition-colors duration-150 sticky top-0">
             <TableRow className="border-b border-gray-200 h-12">
               <TableHead className="w-12 px-4 text-sm font-semibold text-gray-900 h-12">
                 <input
