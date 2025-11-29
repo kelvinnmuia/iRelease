@@ -2866,8 +2866,11 @@ const generateReleaseId = (data: any[]) => {
   }
 }
 
-// localStorage key for column visibility
+// localStorage keys
 const COLUMN_VISIBILITY_KEY = 'releases-dashboard-column-visibility';
+const DATE_RANGE_FILTER_KEY = 'releases-dashboard-date-range-filter';
+const DATE_RANGE_DETAILS_KEY = 'releases-dashboard-date-range-details';
+const ITEMS_PER_PAGE_KEY = 'releases-dashboard-items-per-page';
 
 // Load column visibility from localStorage
 const loadColumnVisibility = (): Record<string, boolean> => {
@@ -2898,15 +2901,86 @@ const saveColumnVisibility = (visibility: Record<string, boolean>) => {
   }
 };
 
+// Load date range filter from localStorage
+const loadDateRangeFilter = (): string => {
+  try {
+    const saved = localStorage.getItem(DATE_RANGE_FILTER_KEY);
+    return saved || "";
+  } catch (error) {
+    console.warn('Failed to load date range filter from localStorage:', error);
+    return "";
+  }
+};
+
+// Save date range filter to localStorage
+const saveDateRangeFilter = (dateRange: string) => {
+  try {
+    localStorage.setItem(DATE_RANGE_FILTER_KEY, dateRange);
+  } catch (error) {
+    console.warn('Failed to save date range filter to localStorage:', error);
+  }
+};
+
+// Load date range details from localStorage
+const loadDateRangeDetails = (): { startDate: string; endDate: string } => {
+  try {
+    const saved = localStorage.getItem(DATE_RANGE_DETAILS_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.warn('Failed to load date range details from localStorage:', error);
+  }
+  return { startDate: "", endDate: "" };
+};
+
+// Save date range details to localStorage
+const saveDateRangeDetails = (startDate: string, endDate: string) => {
+  try {
+    localStorage.setItem(DATE_RANGE_DETAILS_KEY, JSON.stringify({ startDate, endDate }));
+  } catch (error) {
+    console.warn('Failed to save date range details to localStorage:', error);
+  }
+};
+
+// Load items per page from localStorage
+const loadItemsPerPage = (): number => {
+  try {
+    const saved = localStorage.getItem(ITEMS_PER_PAGE_KEY);
+    return saved ? parseInt(saved) : 10;
+  } catch (error) {
+    console.warn('Failed to load items per page from localStorage:', error);
+    return 10;
+  }
+};
+
+// Save items per page to localStorage
+const saveItemsPerPage = (itemsPerPage: number) => {
+  try {
+    localStorage.setItem(ITEMS_PER_PAGE_KEY, itemsPerPage.toString());
+  } catch (error) {
+    console.warn('Failed to save items per page to localStorage:', error);
+  }
+};
+
 export function ReleasesDataTable() {
   const [data, setData] = useState(staticData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
-  const [dateRange, setDateRange] = useState("")
+  const [dateRange, setDateRange] = useState(() => loadDateRangeFilter()) // Initialize from localStorage
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
+  
+  // Initialize startDate and endDate from localStorage
+  const [startDate, setStartDate] = useState(() => {
+    const details = loadDateRangeDetails();
+    return details.startDate;
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const details = loadDateRangeDetails();
+    return details.endDate;
+  });
+  
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
     () => loadColumnVisibility() // Initialize from localStorage
   )
@@ -2942,8 +3016,8 @@ export function ReleasesDataTable() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
   
-  // Add this state for rows per page
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  // Initialize items per page from localStorage
+  const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage())
 
   // Ref for date picker to handle outside clicks
   const datePickerRef = useRef<HTMLDivElement>(null)
@@ -2971,6 +3045,23 @@ export function ReleasesDataTable() {
   useEffect(() => {
     saveColumnVisibility(columnVisibility);
   }, [columnVisibility]);
+
+  // Save date range filter to localStorage whenever it changes
+  useEffect(() => {
+    saveDateRangeFilter(dateRange);
+  }, [dateRange]);
+
+  // Save date range details to localStorage whenever they change
+  useEffect(() => {
+    if (startDate || endDate) {
+      saveDateRangeDetails(startDate, endDate);
+    }
+  }, [startDate, endDate]);
+
+  // Save items per page to localStorage whenever it changes
+  useEffect(() => {
+    saveItemsPerPage(itemsPerPage);
+  }, [itemsPerPage]);
 
   // Initialize edit form when releaseToEdit changes
   useEffect(() => {
@@ -3024,7 +3115,9 @@ export function ReleasesDataTable() {
       if (start && end) {
         const formattedStart = formatDate(start)
         const formattedEnd = formatDate(end)
-        setDateRange(`${formattedStart} - ${formattedEnd}`)
+        const newDateRange = `${formattedStart} - ${formattedEnd}`
+        setDateRange(newDateRange)
+        // This will automatically trigger the useEffect above to save to localStorage
       }
     }
     setShowDatePicker(false)
@@ -3037,6 +3130,7 @@ export function ReleasesDataTable() {
     setEndDate("")
     setShowDatePicker(false)
     setCurrentPage(1)
+    // The useEffect above will handle saving the empty date range to localStorage
   }
 
   // Filter data based on global search and date range
@@ -3645,8 +3739,8 @@ export function ReleasesDataTable() {
           <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
             {/* Date Range and Ordering - Always visible */}
             <div className="flex gap-2 flex-1 md:flex-none">
-              {/* Date Range */}
-              <div className="relative flex-1 md:flex-none md:w-48 lg:w-56" ref={datePickerRef}>
+              {/* Date Range - Increased width for better date display */}
+              <div className="relative flex-1 md:flex-none md:w-56 lg:w-64" ref={datePickerRef}>
                 <div
                   className="flex items-center cursor-pointer"
                   onClick={() => setShowDatePicker(!showDatePicker)}
@@ -3656,12 +3750,13 @@ export function ReleasesDataTable() {
                     placeholder="Date range"
                     value={dateRange}
                     readOnly
-                    className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer focus:ring-2 focus:ring-offset-0 focus:outline-none"
+                    className="w-full pl-10 pr-4 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer focus:ring-2 focus:ring-offset-0 focus:outline-none text-sm min-w-0 truncate"
+                    title={dateRange} // Show full date range on hover
                   />
                 </div>
 
                 {showDatePicker && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 w-64">
+                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4 w-72">
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
