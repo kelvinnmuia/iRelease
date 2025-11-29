@@ -2943,15 +2943,6 @@ const saveDateRangeDetails = (startDate: string, endDate: string) => {
   }
 };
 
-// Clear date range details from localStorage
-const clearDateRangeDetails = () => {
-  try {
-    localStorage.removeItem(DATE_RANGE_DETAILS_KEY);
-  } catch (error) {
-    console.warn('Failed to clear date range details from localStorage:', error);
-  }
-};
-
 // Load items per page from localStorage
 const loadItemsPerPage = (): number => {
   try {
@@ -3132,17 +3123,14 @@ export function ReleasesDataTable() {
     setShowDatePicker(false)
   }
 
-  // Clear date range - FIXED: Properly clear all date-related state and localStorage
+  // Clear date range
   const clearDateRange = () => {
     setDateRange("")
     setStartDate("")
     setEndDate("")
     setShowDatePicker(false)
     setCurrentPage(1)
-    
-    // Clear from localStorage
-    saveDateRangeFilter("")
-    clearDateRangeDetails()
+    // The useEffect above will handle saving the empty date range to localStorage
   }
 
   // Filter data based on global search and date range
