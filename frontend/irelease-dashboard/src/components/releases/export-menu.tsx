@@ -5,12 +5,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 interface ExportMenuProps {
   onExportCSV: () => void;
   onExportExcel: () => void;
+  onExportJSON: () => void;
   selectedRowsCount: number;
 }
 
 export const ExportMenu = ({
   onExportCSV,
   onExportExcel,
+  onExportJSON,
   selectedRowsCount
 }: ExportMenuProps) => {
   return (
@@ -31,7 +33,7 @@ export const ExportMenu = ({
           Export as Excel
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => {/* JSON export */}}>
+        <DropdownMenuItem onClick={onExportJSON}>
           <FileText className="mr-2 h-4 w-4" />
           Export as JSON
         </DropdownMenuItem>

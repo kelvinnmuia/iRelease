@@ -8,6 +8,7 @@ interface ReleasesPaginationProps {
   totalItems: number;
   startIndex: number;
   onPageChange: (page: number) => void;
+  visibleColumnsCount: number;
 }
 
 export const ReleasesPagination = ({
@@ -16,7 +17,8 @@ export const ReleasesPagination = ({
   itemsPerPage,
   totalItems,
   startIndex,
-  onPageChange
+  onPageChange,
+  visibleColumnsCount,
 }: ReleasesPaginationProps) => {
   const renderPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -85,7 +87,7 @@ export const ReleasesPagination = ({
     <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
       <div className="text-sm text-gray-600 text-center sm:text-left">
         Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, totalItems)} of {totalItems}
-        <span className="ml-2">• {visibleColumns.length} columns visible</span>
+        <span className="ml-2">• {visibleColumnsCount} columns visible</span>
       </div>
       
       {/* Enhanced Pagination */}

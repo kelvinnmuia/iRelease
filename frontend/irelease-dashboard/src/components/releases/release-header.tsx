@@ -12,8 +12,8 @@ export const ReleasesHeader = ({
   dateRange
 }: ReleasesHeaderProps) => {
   return (
-    <div className="bg-gray-50 border-b border-gray-200 p-6">
-      <div className="items-start mb-7">
+    <div className="bg-gray-50 p-6">
+      <div className="items-start">
         <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
       </div>
 
