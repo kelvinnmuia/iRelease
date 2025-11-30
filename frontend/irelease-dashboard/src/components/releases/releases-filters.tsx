@@ -3,9 +3,9 @@ import { Search, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ColumnVisibilityMenu } from "./ColumnVisibilityMenu";
-import { ExportMenu } from "./ExportMenu";
-import { DateRangePicker } from "./DateRangePicker";
+import { ColumnVisibilityMenu } from "./column-visibility-menu";
+import { ExportMenu } from "./export-menu";
+import { DateRangePicker } from "./date-range-picker";
 import { SortOrder } from "./types/releases";
 
 interface ReleasesFiltersProps {
