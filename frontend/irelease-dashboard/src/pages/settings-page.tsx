@@ -1,4 +1,4 @@
-import { ReleasesDataTable } from "@/releases/releases-datatable"
+import { ReleasesDataTable } from "@/components/releases/releases-datatable2"
 
 export default function SettingsPage() {
   return (
