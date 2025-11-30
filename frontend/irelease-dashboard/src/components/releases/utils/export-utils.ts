@@ -3,20 +3,6 @@ import * as XLSX from 'xlsx';
 import { Release } from './../types/releases';
 import { ColumnConfig } from './../types/releases';
 
-export const generateReleaseId = (data: Release[]): string => {
-  const currentYear = new Date().getFullYear();
-  const existingIds = data.map(item => item.releaseId);
-  let counter = 1;
-
-  while (true) {
-    const newId = `REL-${currentYear}-${counter.toString().padStart(3, '0')}`;
-    if (!existingIds.includes(newId)) {
-      return newId;
-    }
-    counter++;
-  }
-};
-
 // Helper function to transform Release data for export
 const transformReleaseForExport = (release: Release, visibleColumns: ColumnConfig[]) => {
   const exportData: Record<string, any> = {};

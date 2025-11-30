@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { DatePickerInput } from "./date-picker-input";
 import { Release } from "./types/releases";
-import { generateReleaseId } from "./utils/export-utils";
+import { generateReleaseId } from "./utils/releaseid-utils";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 

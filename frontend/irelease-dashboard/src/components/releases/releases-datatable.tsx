@@ -14,7 +14,7 @@ import {
     saveItemsPerPage
 } from "./utils/storage-utils";
 import { parseDate, getLatestDate, getEarliestDate, formatDate } from "./utils/date-utils";
-import { generateReleaseId, exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "./utils/export-utils";
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "./utils/export-utils";
 import { ReleasesHeader } from "./release-header";
 import { ReleasesFilters } from "./releases-filters";
 import { ReleasesTable } from "./releases-table";
