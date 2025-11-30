@@ -22,11 +22,11 @@ import { ReleasesPagination } from "./releases-pagination";
 import { AddReleaseDialog } from "./add-release-dialog";
 import { EditReleaseDialog } from "./edit-release-dialog";
 import { DeleteDialogs } from "./delete-dialogs";
+import { transformReleasesData } from "./utils/data-transform";
 import releasesData from "./data/releases-data.json";
 
 // Add type assertion for the JSON import
-const typedReleasesData = releasesData as unknown as Release[];
-
+const typedReleasesData = transformReleasesData(releasesData as any[]);
 export function ReleasesDataTable() {
     // State management
     const [data, setData] = useState<Release[]>(typedReleasesData);
