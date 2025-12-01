@@ -11,6 +11,7 @@ interface ReleasesTableProps {
   visibleColumns: ColumnConfig[];
   selectedRows: Set<number>;
   onToggleRowSelection: (id: number) => void;
+  onToggleSelectAll: () => void; // Add this prop
   onEditRelease: (release: Release) => void;
   onDeleteRelease: (release: Release) => void;
   onExportSingleRelease: (release: Release) => void;
@@ -21,6 +22,7 @@ export const ReleasesTable = ({
   visibleColumns,
   selectedRows,
   onToggleRowSelection,
+  onToggleSelectAll,
   onEditRelease,
   onDeleteRelease,
   onExportSingleRelease
@@ -31,7 +33,11 @@ export const ReleasesTable = ({
     data.some(item => selectedRows.has(item.id)) && 
     !allCurrentPageSelected;
 
-  const toggleSelectAll = () => {
+    const handleSelectAll = () => {
+    onToggleSelectAll(); // Call the parent handler
+  };
+
+  /*const toggleSelectAll = () => {
     const newSelected = new Set(selectedRows);
     
     if (allCurrentPageSelected) {
@@ -39,7 +45,7 @@ export const ReleasesTable = ({
     } else {
       currentPageIds.forEach(id => newSelected.add(id));
     }
-  };
+  };*/
 
   const renderCellContent = (column: ColumnConfig, row: Release) => {
     const value = row[column.key];
@@ -86,7 +92,7 @@ export const ReleasesTable = ({
                     input.indeterminate = someCurrentPageSelected;
                   }
                 }}
-                onChange={toggleSelectAll}
+                onChange={handleSelectAll}
                 className="rounded border-gray-300 text-red-400 focus:ring-red-400"
               />
             </TableHead>

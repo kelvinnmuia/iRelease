@@ -122,6 +122,18 @@ export function ReleasesDataTable() {
     const paginatedData = sortedAndFilteredData.slice(startIndex, startIndex + itemsPerPage);
     const visibleColumns = allColumns.filter(col => columnVisibility[col.key]);
 
+    // Get IDs of all items on the current page
+    const currentPageIds = new Set(paginatedData.map(item => item.id));
+
+    // Check if all items on current page are selected
+    const allCurrentPageSelected = paginatedData.length > 0 &&
+        paginatedData.every(item => selectedRows.has(item.id));
+
+    // Check if some items on current page are selected (for indeterminate state)
+    const someCurrentPageSelected = paginatedData.length > 0 &&
+        paginatedData.some(item => selectedRows.has(item.id)) &&
+        !allCurrentPageSelected;
+
     // Row selection handlers
     const toggleRowSelection = useCallback((id: number) => {
         setSelectedRows(prev => {
@@ -134,6 +146,21 @@ export function ReleasesDataTable() {
             return newSelected;
         });
     }, []);
+
+    // Select/deselect all rows on current page
+    const toggleSelectAllOnPage = useCallback(() => {
+        const newSelected = new Set(selectedRows);
+
+        if (allCurrentPageSelected) {
+            // Deselect all items on current page
+            currentPageIds.forEach(id => newSelected.delete(id));
+        } else {
+            // Select all items on current page
+            currentPageIds.forEach(id => newSelected.add(id));
+        }
+
+        setSelectedRows(newSelected);
+    }, [allCurrentPageSelected, currentPageIds, selectedRows]);
 
     // Column visibility handlers
     const toggleColumnVisibility = useCallback((columnKey: string) => {
@@ -148,7 +175,6 @@ export function ReleasesDataTable() {
         setColumnVisibility(defaultVisibility);
         toast.success("Column visibility reset to default");
     }, []);
-
     // Date range handlers
     const applyDateRange = useCallback(() => {
         if (startDate && endDate) {
@@ -294,6 +320,7 @@ export function ReleasesDataTable() {
                 visibleColumns={visibleColumns}
                 selectedRows={selectedRows}
                 onToggleRowSelection={toggleRowSelection}
+                onToggleSelectAll={toggleSelectAllOnPage} // Add this line
                 onEditRelease={openEditDialog}
                 onDeleteRelease={openDeleteDialog}
                 onExportSingleRelease={handleExportSingleRelease}
