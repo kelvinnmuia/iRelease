@@ -27,6 +27,17 @@ export const DateRangePicker = ({
   onClear,
   datePickerRef
 }: DateRangePickerProps) => {
+
+  const handleApply = () => {
+    onApply(); // Call the apply function
+    onShowDatePickerChange(false); // Close the picker
+  };
+
+  const handleClear = () => {
+    onClear(); // Call the clear function
+    onShowDatePickerChange(false); // Close the picker
+  };
+
   return (
     <div className="relative flex-1 md:flex-none md:w-56 lg:w-64" ref={datePickerRef}>
       <div
@@ -66,7 +77,7 @@ export const DateRangePicker = ({
             </div>
             <div className="flex gap-2 pt-2">
               <Button
-                onClick={onApply}
+                onClick={handleApply}
                 disabled={!startDate || !endDate}
                 className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
                 variant="outline"
@@ -75,7 +86,7 @@ export const DateRangePicker = ({
                 Apply
               </Button>
               <Button
-                onClick={onClear}
+                onClick={handleClear}
                 className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500"
                 size="sm"
               >

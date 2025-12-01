@@ -58,9 +58,9 @@ export const ReleasesFilters = ({
     exportToCSV,
     exportToExcel,
     exportToJSON,
-    onApplyDateRange, 
-    onClearDateRange, 
-    totalFilteredCount 
+    onApplyDateRange,
+    onClearDateRange,
+    totalFilteredCount
 }: ReleasesFiltersProps) => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const datePickerRef = useRef<HTMLDivElement>(null);
@@ -83,7 +83,7 @@ export const ReleasesFilters = ({
         };
     }, [showDatePicker]);
 
-    const applyDateRange = () => {
+    /*const applyDateRange = () => {
         if (startDate && endDate) {
             setShowDatePicker(false);
         }
@@ -94,7 +94,7 @@ export const ReleasesFilters = ({
         setStartDate("");
         setEndDate("");
         setShowDatePicker(false);
-    };
+    };*/
 
     return (
         <>
@@ -147,8 +147,14 @@ export const ReleasesFilters = ({
                                 onShowDatePickerChange={setShowDatePicker}
                                 onStartDateChange={setStartDate}
                                 onEndDateChange={setEndDate}
-                                onApply={onApplyDateRange}
-                                onClear={onClearDateRange}
+                                onApply={() => {
+                                    onApplyDateRange();
+                                    setShowDatePicker(false);
+                                }}
+                                onClear={() => {
+                                    onClearDateRange();
+                                    setShowDatePicker(false);
+                                }}
                                 datePickerRef={datePickerRef as RefObject<HTMLDivElement>}
                             />
 
