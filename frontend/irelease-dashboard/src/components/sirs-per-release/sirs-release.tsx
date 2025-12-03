@@ -68,13 +68,13 @@ export function SirsRelease() {
 
       {/* Empty State - Centered with 40px spacing */}
       <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
-        {/* Using a slightly off-white background for better contrast */}
-        <div className="bg-gray-50 rounded-xl shadow-sm w-full min-h-[calc(100vh-200px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
-          {/* Icon */}
+        {/* Slightly transparent white background */}
+        <div className="bg-white/70 rounded-xl shadow-sm w-full min-h-[calc(100vh-200px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
+          {/* Icon - Magnifying glass/search representing analysis/exploration */}
           <div className="flex justify-center mb-8 sm:mb-10">
-            <div className="rounded-full bg-white p-5 sm:p-6 shadow-sm">
+            <div className="rounded-full bg-blue-50 p-5 sm:p-6">
               <svg 
-                className="w-12 h-12 sm:w-14 sm:h-14 text-gray-400" 
+                className="w-12 h-12 sm:w-14 sm:h-14 text-blue-400" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24" 
@@ -84,7 +84,7 @@ export function SirsRelease() {
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
                   strokeWidth={1.5} 
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                 />
               </svg>
             </div>
