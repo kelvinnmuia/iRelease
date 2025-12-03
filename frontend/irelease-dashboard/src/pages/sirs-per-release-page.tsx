@@ -1,7 +1,7 @@
-import { ReleasesDataTable } from "@/components/releases/releases-datatable2"
+import { SirsRelease } from "@/components/sirs-per-release/sirs-release"
 
 export default function SirsPerReleasePage() {
   return (
-      <ReleasesDataTable />
+      <SirsRelease />
   )
 }
