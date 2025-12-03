@@ -92,12 +92,12 @@ export function SirsRelease() {
                     </div>
 
                     {/* Title - Reduced spacing */}
-                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-1 sm:mb-3">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2 sm:mb-2">
                         No SIRs Analysis Data
                     </h2>
 
                     {/* Description - Reduced spacing */}
-                    <div className="mt-1 sm:mt-3 max-w-lg sm:max-w-xl">
+                    <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                         <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
                             Please select a release version and iteration to view its SIRs analysis.
                         </p>
