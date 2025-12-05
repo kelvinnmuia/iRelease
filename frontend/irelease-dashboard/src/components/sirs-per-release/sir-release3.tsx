@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export function SirsRelease() {
     // State for filters
     const [selectedRelease, setSelectedRelease] = useState<string>('')
     const [selectedIteration, setSelectedIteration] = useState<string>('')
-    const [globalFilter, setGlobalFilter] = useState<string>('')
 
     // Mock data for dropdowns (replace with actual API data)
     const releaseVersions = [
@@ -20,55 +19,57 @@ export function SirsRelease() {
         { id: '3', name: '4' }
     ]
 
-    // Placeholder callback functions
-    const handleExportCSV = () => {
-        console.log('Export to CSV clicked');
-        // Implement export logic
-    }
-
-    const handleExportExcel = () => {
-        console.log('Export to Excel clicked');
-        // Implement export logic
-    }
-
-    const handleExportJSON = () => {
-        console.log('Export to JSON clicked');
-        // Implement export logic
-    }
-
-    const handleToggleColumns = () => {
-        console.log('Toggle columns clicked');
-        // Implement column toggle logic
-    }
-
-    const handleResetColumns = () => {
-        console.log('Reset columns clicked');
-        // Implement reset columns logic
-    }
-
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Imported Filters Component */}
-            <SirsReleaseFilters
-                selectedRelease={selectedRelease}
-                selectedIteration={selectedIteration}
-                globalFilter={globalFilter}
-                setSelectedRelease={setSelectedRelease}
-                setSelectedIteration={setSelectedIteration}
-                setGlobalFilter={setGlobalFilter}
-                releaseVersions={releaseVersions}
-                iterations={iterations}
-                onExportCSV={handleExportCSV}
-                onExportExcel={handleExportExcel}
-                onExportJSON={handleExportJSON}
-                onToggleColumns={handleToggleColumns}
-                onResetColumns={handleResetColumns}
-            />
+            {/* Header with Primary Filters on Top Right */}
+            <div className="p-4 sm:p-6 pb-6 sm:pb-8">
+                <div className="flex justify-end">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        {/* Release Version Select */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                                Release Version
+                            </label>
+                            <Select onValueChange={setSelectedRelease} value={selectedRelease}>
+                                <SelectTrigger className="w-full sm:w-[200px]">
+                                    <SelectValue placeholder="Select Release" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {releaseVersions.map((release) => (
+                                        <SelectItem key={release.id} value={release.id}>
+                                            {release.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Iteration Select */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                                Iteration
+                            </label>
+                            <Select onValueChange={setSelectedIteration} value={selectedIteration}>
+                                <SelectTrigger className="w-full sm:w-[180px]">
+                                    <SelectValue placeholder="Select Iteration" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {iterations.map((iteration) => (
+                                        <SelectItem key={iteration.id} value={iteration.id}>
+                                            {iteration.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Empty State - Centered with 40px spacing */}
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                 {/* Slightly transparent white background */}
-                <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
+                <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-200px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                     {/* Empty Folder Icon with bottom shadow - Enlarged 1.5x */}
                     <div className="flex justify-center mb-5 sm:mb-6 relative">
                         {/* Light gray shadow at the bottom of SVG - Enlarged */}
