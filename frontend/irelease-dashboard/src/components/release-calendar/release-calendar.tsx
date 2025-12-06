@@ -36,7 +36,7 @@ export function ReleaseCalendar() {
                     {/* Description - Reduced spacing */}
                     <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                         <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                            The Release Calendar page will be available in a future release.
+                            The release calendar page will be available in a future release.
                         </p>
                     </div>
                 </div>

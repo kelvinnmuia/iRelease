@@ -36,7 +36,7 @@ export function Reports() {
                     {/* Description - Reduced spacing */}
                     <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                         <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                            The Reports page will be available in a future release.
+                            The reports page will be available in a future release.
                         </p>
                     </div>
                 </div>
