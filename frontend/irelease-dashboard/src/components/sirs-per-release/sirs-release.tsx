@@ -73,8 +73,6 @@ export function SirsRelease() {
         <div className="min-h-screen bg-gray-50">
             {/* Imported Header Component */}
             <SirReleaseHeader
-                selectedRowsCount={selectedRowsCount}
-                totalFilteredCount={totalFilteredCount}
                 globalFilter={globalFilter}
                 selectedRelease={selectedRelease}
                 selectedIteration={selectedIteration}

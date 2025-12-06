@@ -2,23 +2,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ChevronDown, Map } from "lucide-react";
+import { Download, Columns3, Search, ChevronDown, Map } from "lucide-react";
 
 export interface SirsReleaseFiltersProps {
     // State values
     selectedRelease: string;
     selectedIteration: string;
     globalFilter: string;
-    
+
     // State setters
     setSelectedRelease: (release: string) => void;
     setSelectedIteration: (iteration: string) => void;
     setGlobalFilter: (filter: string) => void;
-    
+
     // Data
     releaseVersions: Array<{ id: string, name: string }>;
     iterations: Array<{ id: string, name: string }>;
-    
+
     // Callbacks (placeholders for now)
     onExportCSV?: () => void;
     onExportExcel?: () => void;
@@ -37,12 +37,12 @@ export const SirsReleaseFilters = ({
     setGlobalFilter,
     releaseVersions,
     iterations,
-    onExportCSV = () => {},
-    onExportExcel = () => {},
-    onExportJSON = () => {},
-    onToggleColumns = () => {},
-    onResetColumns = () => {},
-    onMapSirs = () => {} // New prop with default function
+    onExportCSV = () => { },
+    onExportExcel = () => { },
+    onExportJSON = () => { },
+    onToggleColumns = () => { },
+    onResetColumns = () => { },
+    onMapSirs = () => { } // New prop with default function
 }: SirsReleaseFiltersProps) => {
     return (
         <div className="bg-gray-50 pt-0 p-6">
@@ -53,9 +53,9 @@ export const SirsReleaseFilters = ({
                     <div className="flex gap-2 flex-1 md:flex-none">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 md:flex-none md:w-24 justify-center">
+                                <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 md:flex-none md:w-auto min-w-[100px]">
+                                    <Download className="w-4 h-4" />
                                     <span>Export</span>
-                                    <ChevronDown className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="min-w-[130px]">
@@ -73,9 +73,9 @@ export const SirsReleaseFilters = ({
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 md:flex-none md:w-32 justify-center">
-                                    <span>Show/Hide</span>
-                                    <ChevronDown className="w-4 h-4" />
+                                <Button variant="outline" size="sm" className="gap-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex-1 md:flex-none md:w-auto min-w-[140px]">
+                                    <Columns3 className="w-4 h-4" />
+                                    <span>Columns</span>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="min-w-[150px]">
@@ -141,7 +141,7 @@ export const SirsReleaseFilters = ({
                             size="sm"
                             variant="outline"
                             onClick={onMapSirs}
-                            className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 md:flex-none md:w-auto px-4"
+                            className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 gap-2"
                         >
                             <Map className="w-4 h-4" />
                             <span>Map SIRs</span>
