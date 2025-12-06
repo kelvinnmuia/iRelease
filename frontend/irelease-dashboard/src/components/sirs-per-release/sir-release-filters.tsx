@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Map } from "lucide-react";
 
 export interface SirsReleaseFiltersProps {
     // State values
@@ -25,6 +25,7 @@ export interface SirsReleaseFiltersProps {
     onExportJSON?: () => void;
     onToggleColumns?: () => void;
     onResetColumns?: () => void;
+    onMapSirs?: () => void; // New callback for Map SIRs
 }
 
 export const SirsReleaseFilters = ({
@@ -40,7 +41,8 @@ export const SirsReleaseFilters = ({
     onExportExcel = () => {},
     onExportJSON = () => {},
     onToggleColumns = () => {},
-    onResetColumns = () => {}
+    onResetColumns = () => {},
+    onMapSirs = () => {} // New prop with default function
 }: SirsReleaseFiltersProps) => {
     return (
         <div className="bg-gray-50 pt-0 p-6">
@@ -103,7 +105,7 @@ export const SirsReleaseFilters = ({
                     </div>
                 </div>
 
-                {/* Right Section - Release Version and Iteration */}
+                {/* Right Section - Release Version, Iteration, and Map SIRs Button */}
                 <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
                     <div className="flex gap-2 flex-1 md:flex-none">
                         {/* Release Version Select */}
@@ -133,6 +135,17 @@ export const SirsReleaseFilters = ({
                                 ))}
                             </SelectContent>
                         </Select>
+
+                        {/* Map SIRs Button */}
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={onMapSirs}
+                            className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 md:flex-none md:w-auto px-4"
+                        >
+                            <Map className="w-4 h-4" />
+                            <span>Map SIRs</span>
+                        </Button>
                     </div>
                 </div>
             </div>

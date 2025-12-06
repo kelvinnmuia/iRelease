@@ -1,11 +1,16 @@
 import React, { useState } from 'react'
 import { SirsReleaseFilters } from './sir-release-filters'
+import { SirReleaseHeader } from './sir-release-header' // Import the new header
 
 export function SirsRelease() {
     // State for filters
     const [selectedRelease, setSelectedRelease] = useState<string>('')
     const [selectedIteration, setSelectedIteration] = useState<string>('')
     const [globalFilter, setGlobalFilter] = useState<string>('')
+    
+    // State for selection and counts
+    const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
+    const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
 
     // Mock data for dropdowns (replace with actual API data)
     const releaseVersions = [
@@ -19,6 +24,14 @@ export function SirsRelease() {
         { id: '2', name: '3' },
         { id: '3', name: '4' }
     ]
+
+    // Mock data update function (replace with actual data fetching)
+    const updateCounts = () => {
+        // This would be replaced with actual data fetching logic
+        // For now, we'll use mock counts
+        const mockFilteredCount = globalFilter ? 15 : 25
+        setTotalFilteredCount(mockFilteredCount)
+    }
 
     // Placeholder callback functions
     const handleExportCSV = () => {
@@ -46,8 +59,27 @@ export function SirsRelease() {
         // Implement reset columns logic
     }
 
+    const handleMapSirs = () => {
+        console.log('Map SIRs clicked');
+        // Implement map SIRs logic
+    }
+
+    // Handle filter changes to update counts
+    React.useEffect(() => {
+        updateCounts();
+    }, [globalFilter, selectedRelease, selectedIteration]);
+
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Imported Header Component */}
+            <SirReleaseHeader
+                selectedRowsCount={selectedRowsCount}
+                totalFilteredCount={totalFilteredCount}
+                globalFilter={globalFilter}
+                selectedRelease={selectedRelease}
+                selectedIteration={selectedIteration}
+            />
+
             {/* Imported Filters Component */}
             <SirsReleaseFilters
                 selectedRelease={selectedRelease}
@@ -63,6 +95,7 @@ export function SirsRelease() {
                 onExportJSON={handleExportJSON}
                 onToggleColumns={handleToggleColumns}
                 onResetColumns={handleResetColumns}
+                onMapSirs={handleMapSirs}
             />
 
             {/* Empty State - Centered with 40px spacing */}
