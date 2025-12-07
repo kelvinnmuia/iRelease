@@ -142,11 +142,11 @@ const SearchableDropdown = ({
                 </div>
             </Button>
 
-            {/* Custom Dropdown Content */}
+            {/* Custom Dropdown Content - Adjusted width to 190px and reduced height */}
             {isOpen && (
                 <div
                     ref={dropdownRef}
-                    className="absolute z-50 mt-1 w-full min-w-[240px] bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
+                    className="absolute z-50 mt-1 w-[190px] bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
                     style={{ top: '100%' }}
                 >
                     {/* Search Input */}
@@ -155,7 +155,7 @@ const SearchableDropdown = ({
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                             <Input
                                 ref={searchInputRef}
-                                placeholder="Search releases..."
+                                placeholder="Search..."  // Changed from "Search releases..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -171,8 +171,8 @@ const SearchableDropdown = ({
                         </div>
                     </div>
 
-                    {/* Filtered Items List */}
-                    <div className="max-h-60 overflow-y-auto">
+                    {/* Filtered Items List - Reduced max-height */}
+                    <div className="max-h-48 overflow-y-auto">  {/* Changed from max-h-60 to max-h-48 */}
                         {filteredItems.length > 0 ? (
                             filteredItems.map((item) => (
                                 <button
