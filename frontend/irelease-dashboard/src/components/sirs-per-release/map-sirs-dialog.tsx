@@ -137,16 +137,16 @@ e.g., 117773, 119176, 119431`}
         <DialogFooter className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
-            onClick={handleCancel}
+            onClick={handleMap}
             className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
           >
-            Cancel
+            Map
           </Button>
           <Button
-            onClick={handleMap}
+            onClick={handleCancel}
             className="flex-1 bg-red-500 text-white hover:bg-red-600"
           >
-            Map
+            Discard
           </Button>
         </DialogFooter>
       </DialogContent>
