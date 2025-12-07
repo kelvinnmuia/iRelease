@@ -1,6 +1,6 @@
 import React from 'react'
 
-export function Reports() {
+export function MonthlyOverview() {
     return (
         <div>
             {/* Empty View - Centered */}
@@ -30,13 +30,13 @@ export function Reports() {
 
                     {/* Title */}
                     <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2 sm:mb-2">
-                        Reports - Coming Soon
+                        Monthly Overview - Coming Soon
                     </h2>
 
                     {/* Description */}
                     <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                         <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                            The reports page will be available in a future release.
+                            The monthly overview page will be available in a future release.
                         </p>
                     </div>
                 </div>

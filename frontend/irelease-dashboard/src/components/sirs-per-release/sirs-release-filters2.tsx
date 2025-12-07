@@ -1,8 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Download, Columns3, Search, ChevronDown, Map, X } from "lucide-react";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { Download, Columns3, Search, ChevronDown, Map } from "lucide-react";
 
 export interface SirsReleaseFiltersProps {
     // State values
@@ -27,185 +26,6 @@ export interface SirsReleaseFiltersProps {
     onResetColumns?: () => void;
     onMapSirs?: () => void; // New callback for Map SIRs
 }
-
-// Searchable Dropdown Component
-interface SearchableDropdownProps {
-    items: Array<{ id: string, name: string }>;
-    selectedId: string;
-    onSelect: (id: string) => void;
-    placeholder?: string;
-    className?: string;
-    buttonClassName?: string;
-}
-
-const SearchableDropdown = ({
-    items,
-    selectedId,
-    onSelect,
-    placeholder = "Select",
-    className = "",
-    buttonClassName = ""
-}: SearchableDropdownProps) => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isOpen, setIsOpen] = useState(false);
-    const searchInputRef = useRef<HTMLInputElement>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    // Filter items based on search term
-    const filteredItems = useMemo(() => {
-        if (!searchTerm.trim()) return items;
-        return items.filter(item =>
-            item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [items, searchTerm]);
-
-    // Get selected item name
-    const selectedItem = items.find(item => item.id === selectedId);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-                setSearchTerm("");
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    // Focus search input when dropdown opens
-    useEffect(() => {
-        if (isOpen && searchInputRef.current) {
-            setTimeout(() => {
-                searchInputRef.current?.focus();
-            }, 100);
-            setSearchTerm(""); // Reset search when opening
-        }
-    }, [isOpen]);
-
-    const handleItemSelect = (id: string) => {
-        onSelect(id);
-        setIsOpen(false);
-        setSearchTerm("");
-    };
-
-    const handleClearSearch = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setSearchTerm("");
-        setTimeout(() => {
-            searchInputRef.current?.focus();
-        }, 0);
-    };
-
-    const handleClearSelection = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onSelect("");
-        setIsOpen(false);
-        setSearchTerm("");
-    };
-
-    const handleTriggerClick = () => {
-        setIsOpen(!isOpen);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Escape') {
-            setIsOpen(false);
-            setSearchTerm("");
-        }
-    };
-
-    return (
-        <div className={`relative ${className}`} ref={containerRef}>
-            {/* Trigger Button */}
-            <Button
-                size="sm"
-                variant="outline"
-                className={`flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full min-w-[160px] h-9 ${buttonClassName}`}
-                onClick={handleTriggerClick}
-                type="button"
-            >
-                <span className="truncate flex-1 text-left">
-                    {selectedItem?.name || placeholder}
-                </span>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                    {selectedId && (
-                        <X
-                            className="w-3 h-3 text-gray-400 hover:text-gray-600"
-                            onClick={handleClearSelection}
-                        />
-                    )}
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
-            </Button>
-
-            {/* Custom Dropdown Content */}
-            {isOpen && (
-                <div
-                    ref={dropdownRef}
-                    className="absolute z-50 mt-1 w-full min-w-[240px] bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
-                    style={{ top: '100%' }}
-                >
-                    {/* Search Input */}
-                    <div className="p-3 border-b">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                            <Input
-                                ref={searchInputRef}
-                                placeholder="Search releases..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="w-full pl-9 pr-8 h-8 text-sm border-gray-300 focus:border-red-400 focus:ring-red-400 focus:ring-1"
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                            {searchTerm && (
-                                <X
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer"
-                                    onClick={handleClearSearch}
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Filtered Items List */}
-                    <div className="max-h-60 overflow-y-auto">
-                        {filteredItems.length > 0 ? (
-                            filteredItems.map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => handleItemSelect(item.id)}
-                                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors ${
-                                        selectedId === item.id 
-                                            ? "bg-red-50 text-red-600 font-medium" 
-                                            : "text-gray-700"
-                                    }`}
-                                    type="button"
-                                >
-                                    <span className="truncate block">{item.name}</span>
-                                </button>
-                            ))
-                        ) : (
-                            <div className="px-3 py-4 text-center text-sm text-gray-500">
-                                No releases found
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Show count if items are filtered */}
-                    {searchTerm && filteredItems.length > 0 && (
-                        <div className="px-3 py-2 border-t text-xs text-gray-500 bg-gray-50">
-                            {filteredItems.length} of {items.length} releases
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-};
 
 export const SirsReleaseFilters = ({
     selectedRelease,
@@ -320,22 +140,42 @@ export const SirsReleaseFilters = ({
                 {/* Right Section - Release Version, Iteration, and Map SIRs Button */}
                 <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
                     <div className="flex gap-2 flex-1 md:flex-none">
-                        {/* Searchable Release Version Dropdown */}
-                        <SearchableDropdown
-                            items={releaseVersions}
-                            selectedId={selectedRelease}
-                            onSelect={setSelectedRelease}
-                            placeholder="Release Version"
-                            buttonClassName="w-full md:w-[180px] min-w-[180px]"
-                        />
-
-                        {/* Iteration Select - Keep original for now */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full md:w-[120px] min-w-[120px] h-9"
+                                    className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full md:w-[160px] min-w-[160px]"
+                                >
+                                    <span className="truncate flex-1 text-left">
+                                        {selectedRelease
+                                            ? releaseVersions.find(r => r.id === selectedRelease)?.name || "Release Version"
+                                            : "Release Version"
+                                        }
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="min-w-[160px]">
+                                {releaseVersions.map((release) => (
+                                    <DropdownMenuItem
+                                        key={release.id}
+                                        onClick={() => setSelectedRelease(release.id)}
+                                        className={selectedRelease === release.id ? "bg-gray-100" : ""}
+                                    >
+                                        {release.name}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Iteration Select */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full md:w-[120px] min-w-[120px]"
                                 >
                                     <span className="truncate flex-1 text-left">
                                         {selectedIteration
@@ -364,7 +204,7 @@ export const SirsReleaseFilters = ({
                             size="sm"
                             variant="outline"
                             onClick={onMapSirs}
-                            className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 gap-2 h-9"
+                            className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 gap-2"
                         >
                             <Map className="w-4 h-4" />
                             <span>Map SIRs</span>

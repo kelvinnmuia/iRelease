@@ -16,7 +16,14 @@ export function SirsRelease() {
     const releaseVersions = [
         { id: '1', name: '3.9.230.1' },
         { id: '2', name: '3.9.231.2' },
-        { id: '3', name: '3.9.232.3' }
+        { id: '3', name: '3.9.232.3' },
+        { id: '4', name: '3.9.232.4' },
+        { id: '5', name: '3.9.232.5' },
+        { id: '6', name: '3.9.232.6' },
+        { id: '7', name: '3.9.232.7' },
+        { id: '8', name: '3.9.232.8' },
+        { id: '9', name: '3.9.232.9' },
+        { id: '10', name: '3.9.232.10' }
     ]
 
     const iterations = [

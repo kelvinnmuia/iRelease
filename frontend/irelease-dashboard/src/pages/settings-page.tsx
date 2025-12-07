@@ -1,7 +1,7 @@
-import { ReleasesDataTable } from "@/components/releases/releases-datatable2"
+import { Settings } from "@/components/settings/settings"
 
 export default function SettingsPage() {
   return (
-      <ReleasesDataTable />
+      <Settings />
   )
 }

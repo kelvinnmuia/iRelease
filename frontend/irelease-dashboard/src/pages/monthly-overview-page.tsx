@@ -1,7 +1,7 @@
-import { ReleasesDataTable } from "@/components/releases/releases-datatable2"
+import { MonthlyOverview } from "@/components/monthly-overview/monthly-overview"
 
-export default function SirsPerReleasePage() {
+export default function MonthlyOverviewPage() {
   return (
-      <ReleasesDataTable />
+      <MonthlyOverview />
   )
 }
