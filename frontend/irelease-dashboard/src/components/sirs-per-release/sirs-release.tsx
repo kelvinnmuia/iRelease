@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sir-release-header' // Import the new header
+import { SirReleaseHeader } from './sir-release-header'
+import { MapSirsDialog } from './map-sirs-dialog' // Import the dialog
 
 export function SirsRelease() {
     // State for filters
@@ -11,6 +12,9 @@ export function SirsRelease() {
     // State for selection and counts
     const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
+
+    // Add this ONE line - state to control dialog visibility
+    const [showMapSirsDialog, setShowMapSirsDialog] = useState<boolean>(false)
 
     // Mock data for dropdowns (replace with actual API data)
     const releaseVersions = [
@@ -66,9 +70,17 @@ export function SirsRelease() {
         // Implement reset columns logic
     }
 
+    // Update this ONE function - just add setShowMapSirsDialog(true)
     const handleMapSirs = () => {
         console.log('Map SIRs clicked');
-        // Implement map SIRs logic
+        setShowMapSirsDialog(true); // This opens the dialog
+    }
+
+    // Add this placeholder function - you'll implement it later
+    const handleMapSirsSubmit = (releaseVersion: string, iteration: string, sirs: string) => {
+        console.log('Placeholder - will implement later:', { releaseVersion, iteration, sirs });
+        // For now, just close the dialog
+        setShowMapSirsDialog(false);
     }
 
     // Handle filter changes to update counts
@@ -78,6 +90,13 @@ export function SirsRelease() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Add this ONE component - the Map SIRs Dialog */}
+            <MapSirsDialog
+                open={showMapSirsDialog}
+                onOpenChange={setShowMapSirsDialog}
+                onMapSirs={handleMapSirsSubmit}
+            />
+
             {/* Imported Header Component */}
             <SirReleaseHeader
                 globalFilter={globalFilter}
@@ -100,7 +119,7 @@ export function SirsRelease() {
                 onExportJSON={handleExportJSON}
                 onToggleColumns={handleToggleColumns}
                 onResetColumns={handleResetColumns}
-                onMapSirs={handleMapSirs}
+                onMapSirs={handleMapSirs} // Already connected!
             />
 
             {/* Empty State - Centered with 40px spacing */}

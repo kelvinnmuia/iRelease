@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,24 +19,42 @@ export const MapSirsDialog = ({
   const [releaseVersion, setReleaseVersion] = useState("");
   const [iteration, setIteration] = useState("");
   const [sirs, setSirs] = useState("");
+  const [sirsCount, setSirsCount] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Calculate SIRs count when sirs changes
+  useEffect(() => {
+    if (sirs.trim()) {
+      const count = sirs.split(/[\n,]+/).filter(s => s.trim()).length;
+      setSirsCount(count);
+    } else {
+      setSirsCount(0);
+    }
+  }, [sirs]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setReleaseVersion("");
+      setIteration("");
+      setSirs("");
+    }
+  }, [open]);
 
   const handleMap = () => {
     if (releaseVersion.trim() && iteration.trim() && sirs.trim()) {
       onMapSirs(releaseVersion, iteration, sirs);
-      // Reset form
-      setReleaseVersion("");
-      setIteration("");
-      setSirs("");
       onOpenChange(false);
     }
   };
 
   const handleCancel = () => {
-    // Reset form
-    setReleaseVersion("");
-    setIteration("");
-    setSirs("");
     onOpenChange(false);
+  };
+
+  // Handle textarea input
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setSirs(e.target.value);
   };
 
   return (
@@ -78,21 +96,40 @@ export const MapSirsDialog = ({
             />
           </div>
 
-          {/* SIRs Text Area */}
+          {/* SIRs Text Area - Fixed size with scroll */}
           <div className="space-y-2">
-            <Label htmlFor="sirs" className="text-sm font-medium">
-              SIRs List
-            </Label>
-            <Textarea
-              id="sirs"
-              value={sirs}
-              onChange={(e) => setSirs(e.target.value)}
-              placeholder="Paste multiple SIRs (one per line or comma-separated)"
-              rows={6}
-              className="resize-none focus:ring-2 focus:ring-red-400"
-            />
+            <div className="flex justify-between items-center">
+              <Label htmlFor="sirs" className="text-sm font-medium">
+                SIRs List
+              </Label>
+              {sirsCount > 0 && (
+                <span className="text-xs text-gray-500">
+                  {sirsCount} SIR{sirsCount !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                id="sirs"
+                value={sirs}
+                onChange={handleTextareaChange}
+                placeholder={`Paste multiple SIRs (one per line or comma-separated)
+
+e.g., 117773, 119176, 119431`}
+                rows={8}
+                className="w-full resize-none focus:ring-2 focus:ring-red-400 overflow-y-auto"
+                style={{
+                  height: '80px',
+                  minHeight: '80px',
+                  maxHeight: '80px',
+                }}
+              />
+            </div>
+            
             <p className="text-xs text-gray-500">
-              You can paste SIRs separated by commas, spaces, or new lines
+              You can paste SIRs separated by commas or new lines
             </p>
           </div>
         </div>
