@@ -4,22 +4,23 @@ import { SirReleaseHeader } from './sir-release-header'
 import { MapSirsDialog } from './map-sirs-dialog'
 import { SirsStatCards } from './sirs-stats-cards'
 import sirReleaseData from './sir-release-data.json'
+import { SirReleasesChart } from './sirs-releases-chart'
 
 interface SirReleaseData {
-  "sir-release-id": number;
-  "sir-id": number;
-  "release_version": string;
-  "iteration": number;
-  "changeddate": string;
-  "bug_severity": string;
-  "priority": string;
-  "assigned_to": string;
-  "bug_status": string;
-  "resolution": string;
-  "component": string;
-  "op_sys": string;
-  "short_desc": string;
-  "cf_sirwith": string;
+    "sir-release-id": number;
+    "sir-id": number;
+    "release_version": string;
+    "iteration": number;
+    "changeddate": string;
+    "bug_severity": string;
+    "priority": string;
+    "assigned_to": string;
+    "bug_status": string;
+    "resolution": string;
+    "component": string;
+    "op_sys": string;
+    "short_desc": string;
+    "cf_sirwith": string;
 }
 
 export function SirsRelease() {
@@ -27,11 +28,11 @@ export function SirsRelease() {
     const [selectedRelease, setSelectedRelease] = useState<string>('')
     const [selectedIteration, setSelectedIteration] = useState<string>('')
     const [globalFilter, setGlobalFilter] = useState<string>('')
-    
+
     // Add these states to track the actual release/iteration names
     const [selectedReleaseName, setSelectedReleaseName] = useState<string>('')
     const [selectedIterationName, setSelectedIterationName] = useState<string>('')
-    
+
     // State for selection and counts
     const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
@@ -85,17 +86,17 @@ export function SirsRelease() {
     // Filter data based on selected release and iteration
     useEffect(() => {
         let filtered = allData
-        
+
         // Filter by release version (using the actual name, not ID)
         if (selectedReleaseName) {
             filtered = filtered.filter(item => item.release_version === selectedReleaseName)
         }
-        
+
         // Filter by iteration (using the actual iteration number, not ID)
         if (selectedIterationName) {
             filtered = filtered.filter(item => item.iteration.toString() === selectedIterationName)
         }
-        
+
         // Apply global filter
         if (globalFilter) {
             const searchTerm = globalFilter.toLowerCase()
@@ -108,7 +109,7 @@ export function SirsRelease() {
                 item["sir-id"].toString().includes(searchTerm)
             )
         }
-        
+
         setFilteredData(filtered)
         setTotalFilteredCount(filtered.length)
     }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
@@ -195,17 +196,17 @@ export function SirsRelease() {
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
                             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-1.5 sm:w-24 sm:h-2 bg-gray-300/70 blur-sm rounded-full"></div>
-                            <svg 
-                                className="w-25 h-25 sm:w-30 sm:h-30 text-gray-400 relative z-10" 
-                                fill="none" 
-                                stroke="currentColor" 
+                            <svg
+                                className="w-25 h-25 sm:w-30 sm:h-30 text-gray-400 relative z-10"
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
-                                <path 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    strokeWidth={1.5} 
-                                    d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" 
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
                                 />
                             </svg>
                         </div>
@@ -224,17 +225,17 @@ export function SirsRelease() {
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
                             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-1.5 sm:w-24 sm:h-2 bg-gray-300/70 blur-sm rounded-full"></div>
-                            <svg 
-                                className="w-25 h-25 sm:w-30 sm:h-30 text-gray-400 relative z-10" 
-                                fill="none" 
-                                stroke="currentColor" 
+                            <svg
+                                className="w-25 h-25 sm:w-30 sm:h-30 text-gray-400 relative z-10"
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
-                                <path 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    strokeWidth={1.5} 
-                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
                         </div>
@@ -257,9 +258,17 @@ export function SirsRelease() {
                     <h3 className="text-base font-medium text-gray-600 mb-8">
                         SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
                     </h3>
-                    
+
                     {/* Cards section */}
                     <SirsStatCards sirReleaseData={filteredData} />
+
+
+                    {/* Chart section */}
+                    <SirReleasesChart
+                        sirReleaseData={filteredData}
+                        selectedReleaseName={selectedReleaseName}
+                        selectedIterationName={selectedIterationName}
+                    />
                 </div>
             )}
         </div>
