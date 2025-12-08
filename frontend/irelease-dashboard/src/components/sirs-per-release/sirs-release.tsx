@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { SirsReleaseFilters } from './sir-release-filters'
 import { SirReleaseHeader } from './sir-release-header'
 import { MapSirsDialog } from './map-sirs-dialog'
-import sirReleaseData from './sir-release-data.json' // Import the JSON
+import { SirsStatCards } from './sirs-stats-cards' // We'll update this component for 5 cards
+import sirReleaseData from './sir-release-data.json'
 
-// Define TypeScript interface for the data
 interface SirReleaseData {
   "sir-release-id": number;
   "sir-id": number;
@@ -28,6 +28,10 @@ export function SirsRelease() {
     const [selectedIteration, setSelectedIteration] = useState<string>('')
     const [globalFilter, setGlobalFilter] = useState<string>('')
     
+    // Add these states to track the actual release/iteration names
+    const [selectedReleaseName, setSelectedReleaseName] = useState<string>('')
+    const [selectedIterationName, setSelectedIterationName] = useState<string>('')
+    
     // State for selection and counts
     const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
@@ -39,8 +43,6 @@ export function SirsRelease() {
 
     // Load data from JSON on component mount
     useEffect(() => {
-        // In production, you would fetch from API
-        // For now, use the imported JSON data
         setAllData(sirReleaseData as SirReleaseData[])
     }, [])
 
@@ -61,18 +63,37 @@ export function SirsRelease() {
         }))
     }, [allData])
 
+    // Update the actual names when IDs are selected
+    useEffect(() => {
+        if (selectedRelease) {
+            const releaseObj = releaseVersions.find(r => r.id === selectedRelease)
+            setSelectedReleaseName(releaseObj?.name || '')
+        } else {
+            setSelectedReleaseName('')
+        }
+    }, [selectedRelease, releaseVersions])
+
+    useEffect(() => {
+        if (selectedIteration) {
+            const iterationObj = iterations.find(i => i.id === selectedIteration)
+            setSelectedIterationName(iterationObj?.name || '')
+        } else {
+            setSelectedIterationName('')
+        }
+    }, [selectedIteration, iterations])
+
     // Filter data based on selected release and iteration
     useEffect(() => {
         let filtered = allData
         
-        // Filter by release version
-        if (selectedRelease) {
-            filtered = filtered.filter(item => item.release_version === selectedRelease)
+        // Filter by release version (using the actual name, not ID)
+        if (selectedReleaseName) {
+            filtered = filtered.filter(item => item.release_version === selectedReleaseName)
         }
         
-        // Filter by iteration
-        if (selectedIteration) {
-            filtered = filtered.filter(item => item.iteration.toString() === selectedIteration)
+        // Filter by iteration (using the actual iteration number, not ID)
+        if (selectedIterationName) {
+            filtered = filtered.filter(item => item.iteration.toString() === selectedIterationName)
         }
         
         // Apply global filter
@@ -90,51 +111,41 @@ export function SirsRelease() {
         
         setFilteredData(filtered)
         setTotalFilteredCount(filtered.length)
-    }, [selectedRelease, selectedIteration, globalFilter, allData])
+    }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
 
     // Update counts whenever filters change
     const updateCounts = () => {
-        // Counts are already updated in the useEffect above
-        // This function is kept for compatibility with existing code
         console.log(`Filtered count: ${filteredData.length}`)
     }
 
     // Placeholder callback functions
     const handleExportCSV = () => {
         console.log('Export to CSV clicked');
-        // Implement export logic using filteredData
     }
 
     const handleExportExcel = () => {
         console.log('Export to Excel clicked');
-        // Implement export logic
     }
 
     const handleExportJSON = () => {
         console.log('Export to JSON clicked');
-        // Implement export logic
     }
 
     const handleToggleColumns = () => {
         console.log('Toggle columns clicked');
-        // Implement column toggle logic
     }
 
     const handleResetColumns = () => {
         console.log('Reset columns clicked');
-        // Implement reset columns logic
     }
 
-    // Update this ONE function - just add setShowMapSirsDialog(true)
     const handleMapSirs = () => {
         console.log('Map SIRs clicked');
-        setShowMapSirsDialog(true); // This opens the dialog
+        setShowMapSirsDialog(true);
     }
 
-    // Add this placeholder function - you'll implement it later
     const handleMapSirsSubmit = (releaseVersion: string, iteration: string, sirs: string) => {
         console.log('Placeholder - will implement later:', { releaseVersion, iteration, sirs });
-        // For now, just close the dialog
         setShowMapSirsDialog(false);
     }
 
@@ -149,21 +160,18 @@ export function SirsRelease() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Add this ONE component - the Map SIRs Dialog */}
             <MapSirsDialog
                 open={showMapSirsDialog}
                 onOpenChange={setShowMapSirsDialog}
                 onMapSirs={handleMapSirsSubmit}
             />
 
-            {/* Imported Header Component */}
             <SirReleaseHeader
                 globalFilter={globalFilter}
-                selectedRelease={selectedRelease}
-                selectedIteration={selectedIteration}
+                selectedRelease={selectedReleaseName}
+                selectedIteration={selectedIterationName}
             />
 
-            {/* Imported Filters Component */}
             <SirsReleaseFilters
                 selectedRelease={selectedRelease}
                 selectedIteration={selectedIteration}
@@ -183,7 +191,6 @@ export function SirsRelease() {
 
             {/* Conditional Rendering based on data state */}
             {!selectedRelease || !selectedIteration ? (
-                // Empty State - No filters selected
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -213,7 +220,6 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : hasFiltersButNoData ? (
-                // No data for selected filters
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -237,7 +243,7 @@ export function SirsRelease() {
                         </h2>
                         <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                             <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                                No SIRs found for Release {selectedRelease} • Iteration {selectedIteration}
+                                No SIRs found for Release {selectedReleaseName} • Iteration {selectedIterationName}
                             </p>
                             <p className="text-gray-500 text-sm mt-2">
                                 Try selecting a different release or iteration.
@@ -246,79 +252,13 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : (
-                // Data is available - show the analysis components
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
-                    {/* Data summary header */}
-                    <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h3 className="text-lg font-semibold">
-                                    Release {selectedRelease} • Iteration {selectedIteration}
-                                </h3>
-                                <p className="text-gray-600 text-sm">
-                                    Showing {filteredData.length} SIRs • Last updated: Today
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold">{filteredData.length}</div>
-                                    <div className="text-xs text-gray-500">Total SIRs</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Add your analysis components here */}
-                    {/* 1. SirsStatCards component */}
-                    {/* <SirsStatCards sirReleaseData={filteredData} /> */}
-                    
-                    {/* 2. SirsChart component */}
-                    {/* <SirsChart sirReleaseData={filteredData} /> */}
-                    
-                    {/* 3. SirsDataTable component */}
-                    {/* <SirsDataTable sirReleaseData={filteredData} /> */}
-
-                    {/* For now, show a preview of the data */}
-                    <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                        <div className="p-4 border-b">
-                            <h3 className="font-semibold">SIR Preview (First 3 items)</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SIR ID</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Severity</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Component</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredData.slice(0, 3).map((item) => (
-                                        <tr key={item["sir-release-id"]}>
-                                            <td className="px-4 py-3 text-sm font-medium">{item["sir-id"]}</td>
-                                            <td className="px-4 py-3">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                    item.bug_severity === "blocker" ? "bg-red-100 text-red-800" :
-                                                    item.bug_severity === "critical" ? "bg-orange-100 text-orange-800" :
-                                                    item.bug_severity === "major" ? "bg-amber-100 text-amber-800" :
-                                                    "bg-blue-100 text-blue-800"
-                                                }`}>
-                                                    {item.bug_severity}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">{item.component}</td>
-                                            <td className="px-4 py-3 text-sm truncate max-w-xs">{item.short_desc}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        {filteredData.length > 3 && (
-                            <div className="p-4 border-t text-center text-sm text-gray-500">
-                                Showing 3 of {filteredData.length} SIRs. Add analysis components to view full details.
-                            </div>
-                        )}
+                    {/* Only show the cards section */}
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-4">
+                            Release {selectedReleaseName} • Iteration {selectedIterationName}
+                        </h3>
+                        <SirsStatCards sirReleaseData={filteredData} />
                     </div>
                 </div>
             )}

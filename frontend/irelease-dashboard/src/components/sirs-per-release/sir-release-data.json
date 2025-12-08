@@ -78,5 +78,21 @@
     "op_sys": "All",
     "short_desc": "[KRA][EXM]Upon submission of an exemption the system keeps on loading, and does not display search results.",
     "cf_sirwith": "under user"
+  },
+  {
+    "sir-release-id": 6,
+    "sir-id": 125230,
+    "release_version": "3.9.232.3",
+    "iteration": 4,
+    "changeddate": "2025-09-09 13:12:11",
+    "bug_severity": "minor",
+    "priority": "P4",
+    "assigned_to": "gilbert.mule@kra.go.ke",
+    "bug_status": "CLOSED",
+    "resolution": "FIXED",
+    "component": "EXM",
+    "op_sys": "All",
+    "short_desc": "[KRA][EXM]Upon submission of an exemption the system keeps on loading, and does not display search results.",
+    "cf_sirwith": "under user"
   }
 ]
