@@ -1,5 +1,5 @@
 import { Card, CardContent } from "../ui/card"
-import { TrendingUp, TrendingDown, AlertTriangle, AlertCircle, AlertOctagon, AlertCircleIcon, BarChart3 } from "lucide-react"
+import { TrendingUp, TrendingDown } from "lucide-react"
 
 // Define the interface for the data
 interface SirReleaseData {
@@ -44,8 +44,8 @@ export function SirsStatCards({ sirReleaseData }: SirsStatCardsProps) {
     minor: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "minor").length,
   };
 
-  // Calculate trends (you can modify this to compare with previous iteration/release)
-  const totalTrend = calculateTrend(counts.total, Math.floor(counts.total * 0.9)); // Example: 10% decrease from previous
+  // Calculate trends
+  const totalTrend = calculateTrend(counts.total, Math.floor(counts.total * 0.9));
   const blockerTrend = calculateTrend(counts.blocker, 0);
   const criticalTrend = calculateTrend(counts.critical, 0);
   const majorTrend = calculateTrend(counts.major, 0);
@@ -58,7 +58,6 @@ export function SirsStatCards({ sirReleaseData }: SirsStatCardsProps) {
       trend: totalTrend.trend, 
       positive: totalTrend.positive, 
       bgColor: "bg-gray-100 dark:bg-gray-800",
-      icon: BarChart3,
       colorClass: "text-gray-600 dark:text-gray-400"
     },
     { 
@@ -67,8 +66,7 @@ export function SirsStatCards({ sirReleaseData }: SirsStatCardsProps) {
       trend: blockerTrend.trend, 
       positive: blockerTrend.positive, 
       bgColor: "bg-red-100 dark:bg-red-900",
-      icon: AlertOctagon,
-      colorClass: "text-red-600 dark:text-red-400"
+      colorClass: "text-gray-600 dark:text-gray-400"
     },
     { 
       label: "Critical SIRs", 
@@ -76,8 +74,7 @@ export function SirsStatCards({ sirReleaseData }: SirsStatCardsProps) {
       trend: criticalTrend.trend, 
       positive: criticalTrend.positive, 
       bgColor: "bg-orange-100 dark:bg-orange-900",
-      icon: AlertTriangle,
-      colorClass: "text-orange-600 dark:text-orange-400"
+      colorClass: "text-gray-600 dark:text-gray-400"
     },
     { 
       label: "Major SIRs", 
@@ -85,8 +82,7 @@ export function SirsStatCards({ sirReleaseData }: SirsStatCardsProps) {
       trend: majorTrend.trend, 
       positive: majorTrend.positive, 
       bgColor: "bg-amber-100 dark:bg-amber-900",
-      icon: AlertCircle,
-      colorClass: "text-amber-600 dark:text-amber-400"
+      colorClass: "text-gray-600 dark:text-gray-400"
     },
     { 
       label: "Minor SIRs", 
@@ -94,25 +90,24 @@ export function SirsStatCards({ sirReleaseData }: SirsStatCardsProps) {
       trend: minorTrend.trend, 
       positive: minorTrend.positive, 
       bgColor: "bg-blue-100 dark:bg-blue-900",
-      icon: AlertCircleIcon,
-      colorClass: "text-blue-600 dark:text-blue-400"
+      colorClass: "text-gray-600 dark:text-gray-400"
     },
   ]
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
       {sirsStats.map((stat) => {
-        const Icon = stat.icon;
         return (
           <Card key={stat.label} className="overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-4 md:p-5">
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2">
                 <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">{stat.label}</p>
-                <Icon className={`w-4 h-4 md:w-5 md:h-5 ${stat.colorClass}`} />
               </div>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xl md:text-2xl lg:text-3xl font-bold">{stat.value}</p>
+                  <p className={`text-xl md:text-2xl lg:text-3xl font-bold ${stat.colorClass}`}>
+                    {stat.value}
+                  </p>
                 </div>
                 <div className={`${stat.bgColor} px-2 py-1 rounded text-xs font-medium flex items-center gap-1`}>
                   {stat.positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}

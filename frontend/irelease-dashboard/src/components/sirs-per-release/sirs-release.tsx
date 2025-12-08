@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { SirsReleaseFilters } from './sir-release-filters'
 import { SirReleaseHeader } from './sir-release-header'
 import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards' // We'll update this component for 5 cards
+import { SirsStatCards } from './sirs-stats-cards'
 import sirReleaseData from './sir-release-data.json'
 
 interface SirReleaseData {
@@ -252,14 +252,14 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : (
-                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
-                    {/* Only show the cards section */}
-                    <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-4">
-                            Release {selectedReleaseName} • Iteration {selectedIterationName}
-                        </h3>
-                        <SirsStatCards sirReleaseData={filteredData} />
-                    </div>
+                <div className="px-4 sm:px-6 pt-4 sm:pt-3 pb-4 sm:pb-6">
+                    {/* Updated heading */}
+                    <h3 className="text-base font-medium text-gray-600 mb-8">
+                        SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
+                    </h3>
+                    
+                    {/* Cards section */}
+                    <SirsStatCards sirReleaseData={filteredData} />
                 </div>
             )}
         </div>
