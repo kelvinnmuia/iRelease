@@ -1,4 +1,4 @@
-import { Card, CardContent } from "../ui/card"
+import { Card, CardContent } from "../components/ui/card"
 import { TrendingUp, TrendingDown, AlertTriangle, AlertCircle, AlertOctagon, AlertCircleIcon } from "lucide-react"
 
 const sirsStats = [

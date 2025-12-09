@@ -2,7 +2,7 @@ import { StatsCards } from "@/components/dashboard/stats-cards"
 import { ReleaseTypeChart } from "@/components/dashboard/release-type-chart"
 import { ReleasesBySystemName } from "@/components/dashboard/releases-by-system-name"
 import { SirsTypeChart } from "@/components/dashboard/sirs-types-chart"
-import { DeploymentStatus } from "@/components/dashboard/deploymnet-status"
+import { DeploymentStatus } from "@/components/dashboard/deployment-status"
 
 export default function DashboardPage() {
   return (

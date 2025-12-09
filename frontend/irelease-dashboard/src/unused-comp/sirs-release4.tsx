@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sir-release-header'
-import { MapSirsDialog } from './map-sirs-dialog' // Import the dialog
+import { SirsReleaseFilters } from '../components/sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../components/sirs-per-release/sir-release-header'
+import { MapSirsDialog } from '../components/sirs-per-release/map-sirs-dialog' // Import the dialog
 
 export function SirsRelease() {
     // State for filters

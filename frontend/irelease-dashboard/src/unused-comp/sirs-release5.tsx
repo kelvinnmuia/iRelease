@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sir-release-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import sirReleaseData from './sir-release-data.json' // Import the JSON
+import { SirsReleaseFilters } from '../components/sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../components/sirs-per-release/sir-release-header'
+import { MapSirsDialog } from '../components/sirs-per-release/map-sirs-dialog'
+import sirReleaseData from '../components/sirs-per-release/sir-release-data.json' // Import the JSON
 
 // Define TypeScript interface for the data
 interface SirReleaseData {

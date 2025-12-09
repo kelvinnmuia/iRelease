@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sir-release-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards'
-import sirReleaseData from './sir-release-data.json'
-import { SirReleasesChart } from './sirs-releases-chart'
+import { SirsReleaseFilters } from '../components/sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../components/sirs-per-release/sir-release-header'
+import { MapSirsDialog } from '../components/sirs-per-release/map-sirs-dialog'
+import { SirsStatCards } from '../components/sirs-per-release/sirs-stats-cards'
+import sirReleaseData from '../components/sirs-per-release/sir-release-data.json'
+import { SirReleasesChart } from '../components/sirs-per-release/sirs-releases-chart'
 
 interface SirReleaseData {
     "sir-release-id": number;
