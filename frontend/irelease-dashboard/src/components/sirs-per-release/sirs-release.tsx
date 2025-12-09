@@ -260,7 +260,9 @@ export function SirsRelease() {
                     </h3>
 
                     {/* Cards section */}
-                    <SirsStatCards sirReleaseData={filteredData} />
+                    <div className="mb-6">
+                        <SirsStatCards sirReleaseData={filteredData} />
+                    </div>
 
 
                     {/* Chart section */}

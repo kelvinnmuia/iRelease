@@ -68,7 +68,7 @@ export function SirReleasesChart({
     const RADIAN = Math.PI / 180;
     
     // Position label in the middle of the segment (closer to outer edge)
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -237,7 +237,7 @@ export function SirReleasesChart({
                       {item.name}
                     </span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left flex-shrink-0 lg:mr-70">
                     <div className="text-sm font-semibold text-gray-900">
                       {item.value}
                     </div>

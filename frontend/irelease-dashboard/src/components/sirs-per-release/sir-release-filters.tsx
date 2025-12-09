@@ -326,7 +326,7 @@ export const SirsReleaseFilters = ({
                             selectedId={selectedRelease}
                             onSelect={setSelectedRelease}
                             placeholder="Release Version"
-                            buttonClassName="w-full md:w-[180px] min-w-[180px]"
+                            buttonClassName="w-full md:w-[160px] min-w-[160px]"
                         />
 
                         {/* Iteration Select - Keep original for now */}
