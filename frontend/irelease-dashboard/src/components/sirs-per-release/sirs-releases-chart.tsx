@@ -237,7 +237,7 @@ export function SirReleasesChart({
                       {item.name}
                     </span>
                   </div>
-                  <div className="text-left flex-shrink-0 lg:mr-70">
+                  <div className="text-left flex-shrink-0 lg:mr-60">
                     <div className="text-sm font-semibold text-gray-900">
                       {item.value}
                     </div>
