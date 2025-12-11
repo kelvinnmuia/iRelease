@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react"
-import { ChevronDown, Download, MoreVertical, ChevronLeft, ChevronRight, FileText, FileSpreadsheet, Columns3, RefreshCcw, Search, Calendar } from "lucide-react"
+import { ChevronDown, MoreVertical, ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
@@ -13,6 +13,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
+
+// Import JSON data
+import sirReleaseData from "../sir-release-data.json"
 
 // Define SIR Release columns
 const allColumns = [
@@ -32,213 +35,6 @@ const allColumns = [
   { key: "cf_sirwith", label: "Cf Sir With", width: "w-32" },
 ]
 
-// Static data matching the JSON structure
-const staticData = [
-  {
-    id: 1,
-    sir_release_id: 1,
-    sir_id: 126064,
-    release_version: "3.9.230.1",
-    iteration: "1",
-    changed_date: "2025-09-22 18:47:19",
-    bug_severity: "blocker",
-    priority: "P1",
-    assigned_to: "zhongcheng.sun.external@atos.net",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MV",
-    op_sys: "All",
-    short_desc: "[KRA] [MVS]Cannot extend period for MV",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 2,
-    sir_release_id: 2,
-    sir_id: 127418,
-    release_version: "3.9.230.1",
-    iteration: "1",
-    changed_date: "2025-09-08 14:13:37",
-    bug_severity: "critical",
-    priority: "P1",
-    assigned_to: "zhongcheng.sun.external@atos.net",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MAN",
-    op_sys: "All",
-    short_desc: "[KRA][MAN]Submission of Export manifest with dummy data",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 3,
-    sir_release_id: 3,
-    sir_id: 127419,
-    release_version: "3.9.230.1",
-    iteration: "1",
-    changed_date: "2025-09-08 14:13:37",
-    bug_severity: "major",
-    priority: "P1",
-    assigned_to: "zhongcheng.sun.external@atos.net",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MAN",
-    op_sys: "All",
-    short_desc: "[KRA][MAN]Submission of Export manifest with dummy data",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 4,
-    sir_release_id: 4,
-    sir_id: 127417,
-    release_version: "3.9.230.1",
-    iteration: "1",
-    changed_date: "2025-09-08 14:13:37",
-    bug_severity: "minor",
-    priority: "P1",
-    assigned_to: "zhongcheng.sun.external@atos.net",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MAN",
-    op_sys: "All",
-    short_desc: "[KRA][MAN]Submission of Export manifest with dummy data",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 5,
-    sir_release_id: 5,
-    sir_id: 127420,
-    release_version: "3.9.230.1",
-    iteration: "1",
-    changed_date: "2025-09-08 14:13:37",
-    bug_severity: "critical",
-    priority: "P1",
-    assigned_to: "zhongcheng.sun.external@atos.net",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MAN",
-    op_sys: "All",
-    short_desc: "[KRA][MAN]Submission of Export manifest with dummy data",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 6,
-    sir_release_id: 3,
-    sir_id: 127735,
-    release_version: "3.9.231.2",
-    iteration: "2",
-    changed_date: "2025-09-25 17:20:44",
-    bug_severity: "critical",
-    priority: "P2",
-    assigned_to: "chao.wang@eviden.com",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MV",
-    op_sys: "All",
-    short_desc: "[kra][mvs] c32 for timv and TEMV displayed incorrect details on dates",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 7,
-    sir_release_id: 4,
-    sir_id: 127734,
-    release_version: "3.9.231.2",
-    iteration: "2",
-    changed_date: "2025-09-22 20:12:53",
-    bug_severity: "major",
-    priority: "P3",
-    assigned_to: "chao.wang@eviden.com",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "MV",
-    op_sys: "All",
-    short_desc: "[kra][mvs]TIMV when submitting an extension, remarks should be mandatory",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 8,
-    sir_release_id: 5,
-    sir_id: 125230,
-    release_version: "3.9.232.3",
-    iteration: "3",
-    changed_date: "2025-09-09 13:12:11",
-    bug_severity: "minor",
-    priority: "P4",
-    assigned_to: "gilbert.mule@kra.go.ke",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "EXM",
-    op_sys: "All",
-    short_desc: "[KRA][EXM]Upon submission of an exemption the system keeps on loading, and does not display search results.",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 9,
-    sir_release_id: 6,
-    sir_id: 125232,
-    release_version: "3.9.232.3",
-    iteration: "4",
-    changed_date: "2025-09-09 13:12:11",
-    bug_severity: "minor",
-    priority: "P4",
-    assigned_to: "gilbert.mule@kra.go.ke",
-    bug_status: "CLOSED",
-    resolution: "FIXED",
-    component: "EXM",
-    op_sys: "All",
-    short_desc: "[KRA][EXM]Upon submission of an exemption the system keeps on loading, and does not display search results.",
-    cf_sirwith: "under user"
-  },
-  {
-    id: 10,
-    sir_release_id: 7,
-    sir_id: 128000,
-    release_version: "3.9.233.4",
-    iteration: "5",
-    changed_date: "2025-10-01 10:30:00",
-    bug_severity: "blocker",
-    priority: "P1",
-    assigned_to: "john.doe@example.com",
-    bug_status: "OPEN",
-    resolution: "UNRESOLVED",
-    component: "API",
-    op_sys: "Linux",
-    short_desc: "[KRA][API]Authentication failure for external integrations",
-    cf_sirwith: "team review"
-  },
-  {
-    id: 11,
-    sir_release_id: 8,
-    sir_id: 128001,
-    release_version: "3.9.233.4",
-    iteration: "5",
-    changed_date: "2025-10-01 11:45:00",
-    bug_severity: "major",
-    priority: "P2",
-    assigned_to: "jane.smith@example.com",
-    bug_status: "IN_PROGRESS",
-    resolution: "WORKING",
-    component: "UI",
-    op_sys: "Windows",
-    short_desc: "[KRA][UI]Dashboard data visualization not loading for large datasets",
-    cf_sirwith: "frontend team"
-  },
-  {
-    id: 12,
-    sir_release_id: 9,
-    sir_id: 128002,
-    release_version: "3.9.234.5",
-    iteration: "6",
-    changed_date: "2025-10-02 09:15:00",
-    bug_severity: "critical",
-    priority: "P1",
-    assigned_to: "alice.johnson@example.com",
-    bug_status: "RESOLVED",
-    resolution: "FIXED",
-    component: "DB",
-    op_sys: "All",
-    short_desc: "[KRA][DB]Database connection pool exhaustion under high load",
-    cf_sirwith: "dba team"
-  }
-]
 
 // Status configurations
 const bugSeverity: Record<string, { color: string; dot: string }> = {
@@ -447,7 +243,7 @@ const saveItemsPerPage = (itemsPerPage: number) => {
 
 // Main component
 export function SirReleaseDataTable() {
-  const [data, setData] = useState(staticData)
+  const [data, setData] = useState(sirReleaseData)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
@@ -652,15 +448,14 @@ export function SirReleaseDataTable() {
   const paginatedData = sortedAndFilteredData.slice(startIndex, startIndex + itemsPerPage)
 
   // Get IDs of all items on the current page
-  const currentPageIds = new Set(paginatedData.map(item => item.id))
+  const currentPageIds = new Set(paginatedData.map(item => item.sir_release_id))
 
   // Check if all items on current page are selected
   const allCurrentPageSelected = paginatedData.length > 0 && 
-    paginatedData.every(item => selectedRows.has(item.id))
-
+    paginatedData.every(item => selectedRows.has(item.sir_release_id))
   // Check if some items on current page are selected (for indeterminate state)
   const someCurrentPageSelected = paginatedData.length > 0 && 
-    paginatedData.some(item => selectedRows.has(item.id)) && 
+    paginatedData.some(item => selectedRows.has(item.sir_release_id)) && 
     !allCurrentPageSelected
 
   const toggleRowSelection = (id: number) => {
@@ -721,7 +516,7 @@ export function SirReleaseDataTable() {
   const saveEdit = () => {
     if (sirToEdit) {
       const updatedData = data.map(item =>
-        item.id === sirToEdit.id ? { ...editFormData } : item
+        item.sir_release_id === sirToEdit.id ? { ...editFormData } : item
       )
       setData(updatedData)
       setEditDialogOpen(false)
@@ -797,7 +592,7 @@ export function SirReleaseDataTable() {
 
     // Create new SIR object
     const newSIR = {
-      id: Math.max(...data.map(item => item.id)) + 1,
+      sir_release_id: Math.max(...data.map(item => item.sir_release_id)) + 1,
       ...addFormData
     }
 
@@ -832,7 +627,7 @@ export function SirReleaseDataTable() {
 
   const confirmBulkDelete = () => {
     // Remove selected SIRs from data
-    const updatedData = data.filter(item => !selectedRows.has(item.id))
+    const updatedData = data.filter(item => !selectedRows.has(item.sir_release_id))
     setData(updatedData)
 
     // Clear selection
@@ -851,7 +646,7 @@ export function SirReleaseDataTable() {
   // Export functions
   const exportToCSV = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.id))
+      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
       : sortedAndFilteredData
 
     // Filter data to only include visible columns
@@ -883,7 +678,7 @@ export function SirReleaseDataTable() {
 
   const exportToExcel = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.id))
+      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
       : sortedAndFilteredData
 
     // Filter data to only include visible columns
@@ -911,7 +706,7 @@ export function SirReleaseDataTable() {
 
   const exportToJSON = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.id))
+      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
       : sortedAndFilteredData
 
     // Filter data to only include visible columns
@@ -968,12 +763,11 @@ export function SirReleaseDataTable() {
   const confirmDelete = () => {
     if (sirToDelete) {
       // Remove the SIR from data
-      const updatedData = data.filter(item => item.id !== sirToDelete.id)
+      const updatedData = data.filter(item => item.sir_release_id !== sirToDelete.sir_release_id)
       setData(updatedData)
 
       // Show success toast
-      toast.success(`Successfully deleted SIR ${sirToDelete.sir_id}`)
-
+      toast.success(`Successfully deleted SIR ${sirToDelete.sir_release_id}`)
       // Close dialog
       setDeleteDialogOpen(false)
       setSirToDelete(null)
@@ -1002,55 +796,8 @@ export function SirReleaseDataTable() {
       <div className="bg-gray-50 border-b border-gray-200 p-6">
         {/* Enhanced Responsive Controls */}
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-          {/* Left Section - Export, Show/Hide, Search */}
-          <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:max-w-2xl">
-            {/* Export and Show/Hide - Always visible */}
-            <div className="flex gap-2 flex-1 md:flex-none">
-              {/*<DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 md:flex-none md:w-auto min-w-[100px]">
-                    <Download className="w-4 h-4" />
-                    <span>Export</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[140px]">
-                  <DropdownMenuItem onClick={exportToCSV}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export as CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportToExcel}>
-                    <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    Export as Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={exportToJSON}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export as JSON
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>*/}
-            </div>
-
-            {/* Search Input */}
-            <div className="flex-1 min-w-0">
-              {/*<div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
-                <Input
-                  placeholder="Search SIRs..."
-                  value={globalFilter}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                    setGlobalFilter(e.target.value)
-                    setCurrentPage(1)
-                  }}
-                  className="w-full pl-9 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 focus:ring-2 focus:ring-offset-0 focus:outline-none"
-                />
-              </div>*/}
-            </div>
-          </div>
-
-          {/* Right Section - Date Range, Ordering, Add/Delete */}
+          {/* Right Section - Date Range and Delete Button */}
           <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
-            {/* Date Range and Ordering - Always visible */}
             <div className="flex gap-2 flex-1 md:flex-none">
               {/* Date Range - Increased width for better date display */}
               <div className="relative flex-1 md:flex-none md:w-56 lg:w-64" ref={datePickerRef}>
@@ -1111,39 +858,13 @@ export function SirReleaseDataTable() {
                   </div>
                 )}
               </div>
-
-              {/* Ordering - Always visible */}
-              {/*<DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" className="flex items-center gap-2 bg-white border-gray-300 hover:bg-gray-50 flex-1 md:flex-none md:w-36 justify-center">
-                    <span>Order by</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="min-w-[130px]">
-                  <DropdownMenuItem onClick={() => setSortOrder("newest")}>
-                    Date (Newest)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
-                    Date (Oldest)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>*/}
             </div>
 
-            {/* Add and Delete Buttons */}
+            {/* Delete Button */}
             <div className="flex gap-2">
-              {/*<Button
-                variant="outline"
-                size="sm"
-                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32"
-                onClick={openAddDialog}
-              >
-                + Add New
-              </Button>*/}
               <Button
                 size="sm"
-                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32"
+                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32 lg:-mr-6"
                 onClick={openBulkDeleteDialog}
               >
                 - Delete
@@ -1235,14 +956,14 @@ export function SirReleaseDataTable() {
             {paginatedData.length > 0 ? (
               paginatedData.map((row) => (
                 <TableRow
-                  key={row.id}
+                  key={row.sir_release_id}
                   className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 h-12"
                 >
                   <TableCell className="px-4 h-12">
                     <input
                       type="checkbox"
-                      checked={selectedRows.has(row.id)}
-                      onChange={() => toggleRowSelection(row.id)}
+                      checked={selectedRows.has(row.sir_release_id)}
+                      onChange={() => toggleRowSelection(row.sir_release_id)}
                       className="rounded border-gray-300 text-red-400 focus:ring-red-400"
                     />
                   </TableCell>

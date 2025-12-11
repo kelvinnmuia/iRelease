@@ -3,11 +3,11 @@ import { TrendingUp, TrendingDown } from "lucide-react"
 
 // Define the interface for the data
 interface SirReleaseData {
-  "sir-release-id": number;
-  "sir-id": number;
+  "sir_release_id": number;
+  "sir_id": number;
   "release_version": string;
   "iteration": number;
-  "changeddate": string;
+  "changed_date": string;
   "bug_severity": string;
   "priority": string;
   "assigned_to": string;

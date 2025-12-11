@@ -8,11 +8,11 @@ import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-data
 import sirReleaseData from './sir-release-data.json'
 
 interface SirReleaseData {
-    "sir-release-id": number;
-    "sir-id": number;
+    "sir_release_id": number;
+    "sir_id": number;
     "release_version": string;
     "iteration": number;
-    "changeddate": string;
+    "changed_date": string;
     "bug_severity": string;
     "priority": string;
     "assigned_to": string;
@@ -110,7 +110,7 @@ export function SirsRelease() {
                 item["component"].toLowerCase().includes(searchTerm) ||
                 item["assigned_to"].toLowerCase().includes(searchTerm) ||
                 item["bug_status"].toLowerCase().includes(searchTerm) ||
-                item["sir-id"].toString().includes(searchTerm)
+                item["sir_id"].toString().includes(searchTerm)
             )
         }
 
@@ -152,12 +152,11 @@ export function SirsRelease() {
     // Format the filtered data for the DataTable
     const getFormattedDataForDataTable = () => {
         return filteredData.map(item => ({
-            id: item["sir-release-id"],
-            sir_release_id: item["sir-release-id"],
-            sir_id: item["sir-id"],
+            sir_release_id: item.sir_release_id,
+            sir_id: item.sir_id,
             release_version: item.release_version,
             iteration: item.iteration.toString(),
-            changed_date: item.changeddate,
+            changed_date: item.changed_date,
             bug_severity: item.bug_severity,
             priority: item.priority,
             assigned_to: item.assigned_to,
