@@ -270,7 +270,7 @@ export function SirsRelease() {
             ) : (
                 <div className="flex flex-col">
                     {/* Tabs for switching between Overview and DataTable */}
-                    <div className="px-4 sm:px-6 pt-4">
+                    <div className="px-4 sm:px-6 pt-1">
                         <div className="flex space-x-1 border-b border-gray-200">
                             <button
                                 onClick={() => setActiveView('overview')}
@@ -297,9 +297,9 @@ export function SirsRelease() {
 
                     {/* Content based on active view */}
                     {activeView === 'overview' ? (
-                        <div className="px-4 sm:px-6 pt-4 sm:pt-3 pb-4 sm:pb-6">
+                        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                             {/* Updated heading */}
-                            <h3 className="text-base font-medium text-gray-600 mb-8">
+                            <h3 className="text-base font-medium text-gray-500 mb-8">
                                 SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
                             </h3>
 
@@ -316,15 +316,12 @@ export function SirsRelease() {
                             />
                         </div>
                     ) : (
-                        <div className="px-4 sm:px-6 pt-4 sm:pt-3 pb-4 sm:pb-6">
+                        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                             {/* DataTable section */}
-                            <div className="mb-4">
-                                <h3 className="text-base font-medium text-gray-600">
-                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
+                            <div className="mb-2">
+                                <h3 className="text-base font-medium text-gray-500">
+                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName} 
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Showing {filteredData.length} SIR(s)
-                                </p>
                             </div>
                             
                             {/* Render the DataTable with filtered data */}
