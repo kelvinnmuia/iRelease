@@ -1,6 +1,6 @@
 [
   {
-    "sir_release_id": 1,
+    "sir_release_id": "SIR-REL-2025-001",
     "sir_id": 126064,
     "release_version": "3.9.230.1",
     "iteration": 1,
@@ -16,7 +16,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 2,
+    "sir_release_id": "SIR-REL-2025-002",
     "sir_id": 127418,
     "release_version": "3.9.230.1",
     "iteration": 1,
@@ -32,7 +32,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 3,
+    "sir_release_id": "SIR-REL-2025-003",
     "sir_id": 127419,
     "release_version": "3.9.230.1",
     "iteration": 1,
@@ -48,7 +48,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 4,
+    "sir_release_id": "SIR-REL-2025-004",
     "sir_id": 127417,
     "release_version": "3.9.230.1",
     "iteration": 1,
@@ -64,7 +64,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 5,
+    "sir_release_id": "SIR-REL-2025-005",
     "sir_id": 127420,
     "release_version": "3.9.230.1",
     "iteration": 1,
@@ -80,7 +80,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 3,
+    "sir_release_id": "SIR-REL-2025-006",
     "sir_id": 127735,
     "release_version": "3.9.231.2",
     "iteration": 2,
@@ -96,7 +96,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 4,
+    "sir_release_id": "SIR-REL-2025-007",
     "sir_id": 127734,
     "release_version": "3.9.231.2",
     "iteration": 2,
@@ -112,7 +112,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 5,
+    "sir_release_id": "SIR-REL-2025-008",
     "sir_id": 125230,
     "release_version": "3.9.232.3",
     "iteration": 3,
@@ -128,7 +128,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 6,
+    "sir_release_id": "SIR-REL-2025-009",
     "sir_id": 125232,
     "release_version": "3.9.232.3",
     "iteration": 4,
@@ -144,7 +144,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": 7,
+    "sir_release_id": "SIR-REL-2025-010",
     "sir_id": 125232,
     "release_version": "3.9.232.3",
     "iteration": 5,

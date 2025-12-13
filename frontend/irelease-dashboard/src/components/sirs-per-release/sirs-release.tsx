@@ -180,6 +180,7 @@ export function SirsRelease() {
                 setGlobalFilter={setGlobalFilter}
                 releaseVersions={releaseVersions}
                 iterations={iterations}
+                isDatatableView={activeView === 'datatable'} // Add this line
                 onExportCSV={handleExportCSV}
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
@@ -288,12 +289,18 @@ export function SirsRelease() {
 
                             {/* Cards section */}
                             <div className="mb-6">
-                                <SirsStatCards sirReleaseData={filteredData} />
+                                <SirsStatCards sirReleaseData={filteredData.map(item => ({
+                                    ...item,
+                                    sir_release_id: Number(item.sir_release_id)
+                                }))} />
                             </div>
 
                             {/* Chart section */}
                             <SirReleasesChart
-                                sirReleaseData={filteredData}
+                                sirReleaseData={filteredData.map(item => ({
+                                    ...item,
+                                    sir_release_id: Number(item.sir_release_id)
+                                }))}
                                 selectedReleaseName={selectedReleaseName}
                                 selectedIterationName={selectedIterationName}
                             />

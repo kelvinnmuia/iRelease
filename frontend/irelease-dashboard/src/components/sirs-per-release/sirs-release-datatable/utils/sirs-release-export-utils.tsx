@@ -17,7 +17,7 @@ const transformSirReleaseForExport = (sir_release_data: SirReleaseData, visibleC
 export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
     const dataToExport = selectedRows.size > 0
-      ? data.filter(item => selectedRows.has(item.sir_release_id))
+      ? data.filter(item => selectedRows.has(Number(item.sir_release_id)))
       : data;
 
     const filteredDataForExport = dataToExport.map(sir_release_data => 
@@ -36,7 +36,7 @@ export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig
 export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
     const dataToExport = selectedRows.size > 0
-      ? data.filter(item => selectedRows.has(item.sir_release_id))
+      ? data.filter(item => selectedRows.has(Number(item.sir_release_id)))
       : data;
 
     const filteredDataForExport = dataToExport.map(sir_release_data => 
@@ -61,7 +61,7 @@ export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConf
 export const exportToJSON = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
     const dataToExport = selectedRows.size > 0
-      ? data.filter(item => selectedRows.has(item.sir_release_id))
+      ? data.filter(item => selectedRows.has(Number(item.sir_release_id)))
       : data;
 
     const filteredDataForExport = dataToExport.map(sir_release_data => 

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "./utils/sirs-release-export-utils"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 
@@ -244,7 +245,7 @@ const saveItemsPerPage = (itemsPerPage: number) => {
 // Main component
 export function SirReleaseDataTable() {
   const [data, setData] = useState(sirReleaseData)
-  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
+  const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
   const [dateRange, setDateRange] = useState(() => loadDateRangeFilter())
@@ -340,8 +341,8 @@ export function SirReleaseDataTable() {
   // Reset add form when dialog opens/closes
   useEffect(() => {
     if (addDialogOpen) {
-      const newSirId = Math.max(...data.map(item => item.sir_id)) + 1
-      const newSirReleaseId = Math.max(...data.map(item => item.sir_release_id)) + 1
+      const newSirId = Math.max(...data.map(item => Number(item.sir_id)), 0) + 1
+      const newSirReleaseId = Math.max(...data.map(item => Number(item.sir_release_id)), 0) + 1
       
       setAddFormData({
         sir_release_id: newSirReleaseId,
@@ -458,7 +459,7 @@ export function SirReleaseDataTable() {
     paginatedData.some(item => selectedRows.has(item.sir_release_id)) && 
     !allCurrentPageSelected
 
-  const toggleRowSelection = (id: number) => {
+  const toggleRowSelection = (id: number | string) => {
     const newSelected = new Set(selectedRows)
     if (newSelected.has(id)) {
       newSelected.delete(id)
@@ -592,7 +593,7 @@ export function SirReleaseDataTable() {
 
     // Create new SIR object
     const newSIR = {
-      sir_release_id: Math.max(...data.map(item => item.sir_release_id)) + 1,
+      sir_release_id: Math.max(...data.map(item => Number(item.sir_release_id)), 0) + 1,
       ...addFormData
     }
 
