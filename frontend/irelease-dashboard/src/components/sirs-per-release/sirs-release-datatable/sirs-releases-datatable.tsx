@@ -935,8 +935,8 @@ export function SirReleaseDataTable({
 
         {/* Filter status */}
         {(globalFilter || dateRange) && (
-          <div className="mt-2 text-sm text-gray-500">data?: any[]; // Add this prop
-            Showing {sortedAndFilteredData.length} SIRs
+          <div className="mt-2 text-sm text-gray-500">
+            Showing {sortedAndFilteredData.length} SIR(s)
             {globalFilter && ` matching "${globalFilter}"`}
             {dateRange && ` within date range: ${dateRange}`}
           </div>
