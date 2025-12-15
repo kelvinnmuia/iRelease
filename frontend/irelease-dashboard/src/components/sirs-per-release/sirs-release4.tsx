@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { SirsReleaseFilters } from './sir-release-filters'
 import { SirReleaseHeader } from './sir-release-header'
 import { MapSirsDialog } from './map-sirs-dialog'
 import { SirsStatCards } from './sirs-stats-cards'
 import { SirReleasesChart } from './sirs-releases-chart'
-import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable'
+import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable' // Import the DataTable
 import sirReleaseData from './sir-release-data.json'
 import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
 import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
@@ -19,29 +19,11 @@ export function SirsRelease() {
     const [selectedReleaseName, setSelectedReleaseName] = useState<string>('')
     const [selectedIterationName, setSelectedIterationName] = useState<string>('')
 
-    // State for selection and counts in DataTable
-    const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
+    // State for selection and counts
     const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
+    const [filteredData, setFilteredData] = useState<SirReleaseData[]>([])
     const [allData, setAllData] = useState<SirReleaseData[]>([])
-
-    // Add state for visible columns (needed for export)
-    const [visibleColumns, setVisibleColumns] = useState<ColumnConfig[]>([
-        { key: 'sir_release_id', label: 'Sir_Rel_Id', width: 'w-35' },
-        { key: 'sir_id', label: 'Sir_Id', width: 'w-40' },
-        { key: 'release_version', label: 'Release Version', width: 'w-32' },
-        { key: 'iteration', label: 'Iteration', width: 'w-28' },
-        { key: 'changed_date', label: 'Changed Date', width: 'w-48' },
-        { key: 'bug_severity', label: 'Bug Severity', width: 'w-48' },
-        { key: 'priority', label: 'Priority', width: 'w-32' },
-        { key: 'assigned_to', label: 'Assigned To', width: 'w-32' },
-        { key: 'bug_status', label: 'Bug Status', width: 'w-32' },
-        { key: 'resolution', label: 'Resolution', width: 'w-32' },
-        { key: 'component', label: 'Component', width: 'w-32' },
-        { key: 'op_sys', label: 'Op Sys', width: 'w-32' },
-        { key: 'short_desc', label: 'Short Description', width: 'w-48' },
-        { key: 'cf_sirwith', label: 'Cf Sir With', width: 'w-32' }
-    ])
 
     // Add state to control dialog visibility
     const [showMapSirsDialog, setShowMapSirsDialog] = useState<boolean>(false)
@@ -55,7 +37,7 @@ export function SirsRelease() {
     }, [])
 
     // Extract unique release versions and iterations from the JSON data
-    const releaseVersions = useMemo(() => {
+    const releaseVersions = React.useMemo(() => {
         const versions = [...new Set(allData.map(item => item.release_version))]
         return versions.map((version, index) => ({
             id: (index + 1).toString(),
@@ -63,7 +45,7 @@ export function SirsRelease() {
         }))
     }, [allData])
 
-    const iterations = useMemo(() => {
+    const iterations = React.useMemo(() => {
         const uniqueIterations = [...new Set(allData.map(item => item.iteration.toString()))]
         return uniqueIterations.map((iteration, index) => ({
             id: (index + 1).toString(),
@@ -90,8 +72,8 @@ export function SirsRelease() {
         }
     }, [selectedIteration, iterations])
 
-    // MEMOIZED: Filter data based on selected release and iteration
-    const filteredData = useMemo(() => {
+    // Filter data based on selected release and iteration
+    useEffect(() => {
         let filtered = allData
 
         // Filter by release version (using the actual name, not ID)
@@ -117,64 +99,51 @@ export function SirsRelease() {
             )
         }
 
-        return filtered
+        setFilteredData(filtered)
+        setTotalFilteredCount(filtered.length)
     }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
 
-    // Update total filtered count
-    useEffect(() => {
-        setTotalFilteredCount(filteredData.length)
-    }, [filteredData])
-
-    // Update selected rows count when selection changes
-    useEffect(() => {
-        setSelectedRowsCount(selectedRows.size)
-    }, [selectedRows])
-
-    // Export handlers using useCallback
-    const handleExportCSV = useCallback(() => {
+    // Placeholder callback functions
+     const handleExportCSV = useCallback(() => {
         const success = exportToCSV(filteredData, visibleColumns, selectedRows)
         if (success) {
             console.log('CSV export successful')
+            // You could add toast notification here
+            // toast.success('CSV exported successfully!')
         } else {
             console.error('CSV export failed')
+            // toast.error('Failed to export CSV')
         }
     }, [filteredData, visibleColumns, selectedRows])
 
-    const handleExportExcel = useCallback(() => {
-        const success = exportToExcel(filteredData, visibleColumns, selectedRows)
-        if (success) {
-            console.log('Excel export successful')
-        } else {
-            console.error('Excel export failed')
-        }
-    }, [filteredData, visibleColumns, selectedRows])
+    const handleExportExcel = () => {
+        console.log('Export to Excel clicked');
+    }
 
-    const handleExportJSON = useCallback(() => {
-        const success = exportToJSON(filteredData, visibleColumns, selectedRows)
-        if (success) {
-            console.log('JSON export successful')
-        } else {
-            console.error('JSON export failed')
-        }
-    }, [filteredData, visibleColumns, selectedRows])
+    const handleExportJSON = () => {
+        console.log('Export to JSON clicked');
+    }
 
-    const handleMapSirs = useCallback(() => {
-        console.log('Map SIRs clicked')
-        setShowMapSirsDialog(true)
-    }, [])
+    const handleToggleColumns = () => {
+        console.log('Toggle columns clicked');
+    }
 
-    const handleMapSirsSubmit = useCallback((releaseVersion: string, iteration: string, sirs: string) => {
-        console.log('Placeholder - will implement later:', { releaseVersion, iteration, sirs })
-        setShowMapSirsDialog(false)
-    }, [])
+    const handleResetColumns = () => {
+        console.log('Reset columns clicked');
+    }
 
-    // Callback to handle row selection from DataTable
-    const handleRowSelectionChange = useCallback((selectedIds: Set<number>) => {
-        setSelectedRows(selectedIds)
-    }, [])
+    const handleMapSirs = () => {
+        console.log('Map SIRs clicked');
+        setShowMapSirsDialog(true);
+    }
 
-    // MEMOIZED: Format the filtered data for the DataTable
-    const formattedDataForDataTable = useMemo(() => {
+    const handleMapSirsSubmit = (releaseVersion: string, iteration: string, sirs: string) => {
+        console.log('Placeholder - will implement later:', { releaseVersion, iteration, sirs });
+        setShowMapSirsDialog(false);
+    }
+
+    // Format the filtered data for the DataTable
+    const getFormattedDataForDataTable = () => {
         return filteredData.map(item => ({
             sir_release_id: item.sir_release_id,
             sir_id: item.sir_id,
@@ -191,7 +160,7 @@ export function SirsRelease() {
             short_desc: item.short_desc,
             cf_sirwith: item.cf_sirwith
         }))
-    }, [filteredData])
+    }
 
     // Check if we have data to show
     const hasDataToShow = selectedRelease && selectedIteration && filteredData.length > 0
@@ -215,16 +184,17 @@ export function SirsRelease() {
                 selectedRelease={selectedRelease}
                 selectedIteration={selectedIteration}
                 globalFilter={globalFilter}
-                selectedRowsCount={selectedRowsCount}
                 setSelectedRelease={setSelectedRelease}
                 setSelectedIteration={setSelectedIteration}
                 setGlobalFilter={setGlobalFilter}
                 releaseVersions={releaseVersions}
                 iterations={iterations}
-                isDatatableView={activeView === 'datatable'}
+                isDatatableView={activeView === 'datatable'} // Add this line
                 onExportCSV={handleExportCSV}
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
+                onToggleColumns={handleToggleColumns}
+                onResetColumns={handleResetColumns}
                 onMapSirs={handleMapSirs}
             />
 
@@ -297,19 +267,21 @@ export function SirsRelease() {
                         <div className="flex space-x-1 border-b border-gray-200">
                             <button
                                 onClick={() => setActiveView('overview')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors ${activeView === 'overview'
-                                    ? 'text-red-600 border-b-2 border-red-600'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeView === 'overview'
+                                        ? 'text-red-600 border-b-2 border-red-600'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
                             >
                                 Overview
                             </button>
                             <button
                                 onClick={() => setActiveView('datatable')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors ${activeView === 'datatable'
-                                    ? 'text-red-600 border-b-2 border-red-600'
-                                    : 'text-gray-500 hover:text-gray-700'
-                                    }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeView === 'datatable'
+                                        ? 'text-red-600 border-b-2 border-red-600'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
                             >
                                 Data Table
                             </button>
@@ -347,15 +319,14 @@ export function SirsRelease() {
                             {/* DataTable section */}
                             <div className="mb-2">
                                 <h3 className="text-base font-medium text-gray-500">
-                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
+                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName} 
                                 </h3>
                             </div>
-
+                            
                             {/* Render the DataTable with filtered data */}
-                            <SirReleaseDataTable
-                                filteredData={formattedDataForDataTable}
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
+                            <SirReleaseDataTable />
+                            {/* Note: The DataTable has its own internal data, 
+                                but you could pass filtered data as a prop if you want */}
                         </div>
                     )}
                 </div>
