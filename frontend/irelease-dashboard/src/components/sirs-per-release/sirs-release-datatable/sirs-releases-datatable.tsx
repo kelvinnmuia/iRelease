@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "./utils/sirs-release-export-utils"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
+import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
 
 // Import JSON data
 import sirReleaseData from "../sir-release-data.json"
@@ -35,11 +36,16 @@ interface SirReleaseDataTableProps {
     short_desc: string;
     cf_sirwith: string;
   }>;
+
   onRowSelectionChange?: (selectedIds: Set<number>) => void;
+  visibleColumns?: ColumnConfig[]; // Accept visibleColumns prop
+  columnVisibility?: Record<string, boolean>;
+  toggleColumnVisibility?: (columnKey: string) => void;
+  resetColumnVisibility?: () => void;
 }
 
 // Define SIR Release columns
-const allColumns = [
+{/*const allColumns = [
   { key: "sir_release_id", label: "Sir_Rel_Id", width: "w-32" },
   { key: "sir_id", label: "Sir_Id", width: "w-42" },
   { key: "release_version", label: "Release Version", width: "w-32" },
@@ -54,7 +60,7 @@ const allColumns = [
   { key: "op_sys", label: "Op Sys", width: "w-32" },
   { key: "short_desc", label: "Short Description", width: "w-48" },
   { key: "cf_sirwith", label: "Cf Sir With", width: "w-32" },
-]
+]*/}
 
 
 // Status configurations
@@ -268,7 +274,8 @@ const saveItemsPerPage = (itemsPerPage: number) => {
 
 export function SirReleaseDataTable({
   filteredData: externalFilteredData,
-  onRowSelectionChange
+  onRowSelectionChange,
+  visibleColumns: propVisibleColumns // Rename prop for clarity
 }: SirReleaseDataTableProps = {}) {
   const [data, setData] = useState(externalFilteredData || sirReleaseData)
   const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
@@ -422,7 +429,7 @@ export function SirReleaseDataTable({
   }, [itemsPerPage])
 
   // Get visible columns
-  const visibleColumns = allColumns.filter(col => columnVisibility[col.key])
+  const visibleColumns = propVisibleColumns || allColumns.filter(col => columnVisibility[col.key])
 
   // Apply date range when both dates are selected
   const applyDateRange = () => {
@@ -1227,8 +1234,8 @@ export function SirReleaseDataTable({
                   variant={currentPage === page ? "default" : "outline"}
                   onClick={() => setCurrentPage(page as number)}
                   className={`min-w-9 h-9 p-0 ${currentPage === page
-                      ? "bg-red-500 text-white hover:bg-red-600 border-red-500"
-                      : "border-gray-300 hover:bg-gray-50"
+                    ? "bg-red-500 text-white hover:bg-red-600 border-red-500"
+                    : "border-gray-300 hover:bg-gray-50"
                     }`}
                 >
                   {page}

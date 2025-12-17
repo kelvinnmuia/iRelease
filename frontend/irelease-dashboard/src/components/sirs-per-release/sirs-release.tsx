@@ -8,6 +8,7 @@ import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-data
 import sirReleaseData from './sir-release-data.json'
 import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
 import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
+import { useColumnVisibility } from './sirs-releases-column-visibility'
 
 export function SirsRelease() {
     // State for filters
@@ -26,7 +27,7 @@ export function SirsRelease() {
     const [allData, setAllData] = useState<SirReleaseData[]>([])
 
     // Add state for visible columns (needed for export)
-    const [visibleColumns, setVisibleColumns] = useState<ColumnConfig[]>([
+    {/*const [tableVisibleColumns, setTableVisibleColumns] = useState<ColumnConfig[]>([
         { key: 'sir_release_id', label: 'Sir_Rel_Id', width: 'w-35' },
         { key: 'sir_id', label: 'Sir_Id', width: 'w-40' },
         { key: 'release_version', label: 'Release Version', width: 'w-32' },
@@ -41,7 +42,7 @@ export function SirsRelease() {
         { key: 'op_sys', label: 'Op Sys', width: 'w-32' },
         { key: 'short_desc', label: 'Short Description', width: 'w-48' },
         { key: 'cf_sirwith', label: 'Cf Sir With', width: 'w-32' }
-    ])
+    ])*/}
 
     // Add state to control dialog visibility
     const [showMapSirsDialog, setShowMapSirsDialog] = useState<boolean>(false)
@@ -129,6 +130,14 @@ export function SirsRelease() {
     useEffect(() => {
         setSelectedRowsCount(selectedRows.size)
     }, [selectedRows])
+
+    // Get column visibility hook first (before using visibleColumns)
+    const {
+        columnVisibility,
+        toggleColumnVisibility,
+        resetColumnVisibility,
+        visibleColumns
+    } = useColumnVisibility()
 
     // Export handlers using useCallback
     const handleExportCSV = useCallback(() => {
@@ -226,6 +235,11 @@ export function SirsRelease() {
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
                 onMapSirs={handleMapSirs}
+
+                // Add column visibility props
+                columnVisibility={columnVisibility}
+                toggleColumnVisibility={toggleColumnVisibility}
+                resetColumnVisibility={resetColumnVisibility}
             />
 
             {/* Conditional Rendering based on data state */}
@@ -355,6 +369,10 @@ export function SirsRelease() {
                             <SirReleaseDataTable
                                 filteredData={formattedDataForDataTable}
                                 onRowSelectionChange={handleRowSelectionChange}
+                                visibleColumns={visibleColumns} // Pass visibleColumns from hook
+                                columnVisibility={columnVisibility}
+                                toggleColumnVisibility={toggleColumnVisibility}
+                                resetColumnVisibility={resetColumnVisibility}
                             />
                         </div>
                     )}

@@ -5,6 +5,7 @@ import { IterationDropdown } from "./iteration-dropdown";
 import { SirsReleaseExportMenu } from "./sirs-release-datatable/sirs-release-export-menu";
 import { ColumnsDropdown } from "./columns-dropdown";
 import { SearchInput } from "./search-input";
+import { SirsReleasesColumnVisibility } from "./sirs-releases-column-visibility";
 
 export interface SirsReleaseFiltersProps {
     // State values
@@ -30,6 +31,11 @@ export interface SirsReleaseFiltersProps {
     onToggleColumns?: () => void;
     onResetColumns?: () => void;
     onMapSirs?: () => void;
+
+    // Add column visibility props (matching the releases pattern)
+    columnVisibility?: Record<string, boolean>;
+    toggleColumnVisibility?: (columnKey: string) => void;
+    resetColumnVisibility?: () => void;
 }
 
 export const SirsReleaseFilters = ({
@@ -48,11 +54,16 @@ export const SirsReleaseFilters = ({
     onExportJSON = () => { },
     onToggleColumns = () => { },
     onResetColumns = () => { },
-    onMapSirs = () => { }
+    onMapSirs = () => { },
+
+    // New column visibility props
+    columnVisibility = {},
+    toggleColumnVisibility = () => { },
+    resetColumnVisibility = () => { }
 }: SirsReleaseFiltersProps) => {
     // Check if both release and iteration are selected
     const areFiltersSelected = Boolean(selectedRelease && selectedIteration);
-    
+
     // Determine if datatable features should be enabled
     const shouldEnableDatatableFeatures = isDatatableView && areFiltersSelected;
 
@@ -71,10 +82,11 @@ export const SirsReleaseFilters = ({
                             disabled={!shouldEnableDatatableFeatures}
                         />
 
-                        <ColumnsDropdown
+                        <SirsReleasesColumnVisibility
+                            columnVisibility={columnVisibility}
+                            toggleColumnVisibility={toggleColumnVisibility}
+                            resetColumnVisibility={resetColumnVisibility}
                             areFiltersSelected={shouldEnableDatatableFeatures}
-                            onToggleColumns={onToggleColumns}
-                            onResetColumns={onResetColumns}
                         />
                     </div>
 
@@ -83,7 +95,7 @@ export const SirsReleaseFilters = ({
                         <SearchInput
                             globalFilter={globalFilter}
                             setGlobalFilter={setGlobalFilter}
-                             areFiltersSelected={shouldEnableDatatableFeatures}
+                            areFiltersSelected={shouldEnableDatatableFeatures}
                         />
                     </div>
                 </div>
