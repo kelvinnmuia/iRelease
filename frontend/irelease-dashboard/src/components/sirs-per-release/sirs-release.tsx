@@ -109,12 +109,21 @@ export function SirsRelease() {
         if (globalFilter) {
             const searchTerm = globalFilter.toLowerCase()
             filtered = filtered.filter(item =>
-                item["short_desc"].toLowerCase().includes(searchTerm) ||
-                item["bug_severity"].toLowerCase().includes(searchTerm) ||
-                item["component"].toLowerCase().includes(searchTerm) ||
-                item["assigned_to"].toLowerCase().includes(searchTerm) ||
-                item["bug_status"].toLowerCase().includes(searchTerm) ||
-                item["sir_id"].toString().includes(searchTerm)
+                item.short_desc?.toLowerCase().includes(searchTerm) ||
+                item.bug_severity?.toLowerCase().includes(searchTerm) ||
+                item.component?.toLowerCase().includes(searchTerm) ||
+                item.assigned_to?.toLowerCase().includes(searchTerm) ||
+                item.bug_status?.toLowerCase().includes(searchTerm) ||
+                item.resolution?.toLowerCase().includes(searchTerm) ||
+                item.op_sys?.toLowerCase().includes(searchTerm) ||
+                item.cf_sirwith?.toLowerCase().includes(searchTerm) ||
+                item.release_version?.toLowerCase().includes(searchTerm) ||
+                item.priority?.toLowerCase().includes(searchTerm) ||
+                item.changed_date?.toLowerCase().includes(searchTerm) ||
+                // Make sure these are checked:
+                item.sir_id?.toString().toLowerCase().includes(searchTerm) ||
+                item.sir_release_id?.toString().toLowerCase().includes(searchTerm) ||  // This is key!
+                item.iteration?.toString().toLowerCase().includes(searchTerm)
             )
         }
 
