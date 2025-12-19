@@ -144,7 +144,7 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": "SIR-REL-2025-010",
+    "sir_release_id": "SIR-REL-2024-010",
     "sir_id": 127426,
     "release_version": "3.9.230.1",
     "iteration": 1,
@@ -160,11 +160,11 @@
     "cf_sirwith": "under user"
   },
   {
-    "sir_release_id": "SIR-REL-2025-011",
+    "sir_release_id": "SIR-REL-2024-011",
     "sir_id": 127427,
     "release_version": "3.9.230.1",
     "iteration": 1,
-    "changed_date": "2025-09-26 14:13:37",
+    "changed_date": "2025-09-20 14:13:37",
     "bug_severity": "critical",
     "priority": "P1",
     "assigned_to": "zhongcheng.sun.external@atos.net",

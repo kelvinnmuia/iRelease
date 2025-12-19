@@ -27,6 +27,24 @@ export function SirsRelease() {
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
     const [allData, setAllData] = useState<SirReleaseData[]>([])
 
+    // Add state for visible columns (needed for export)
+    {/*const [tableVisibleColumns, setTableVisibleColumns] = useState<ColumnConfig[]>([
+        { key: 'sir_release_id', label: 'Sir_Rel_Id', width: 'w-35' },
+        { key: 'sir_id', label: 'Sir_Id', width: 'w-40' },
+        { key: 'release_version', label: 'Release Version', width: 'w-32' },
+        { key: 'iteration', label: 'Iteration', width: 'w-28' },
+        { key: 'changed_date', label: 'Changed Date', width: 'w-48' },
+        { key: 'bug_severity', label: 'Bug Severity', width: 'w-48' },
+        { key: 'priority', label: 'Priority', width: 'w-32' },
+        { key: 'assigned_to', label: 'Assigned To', width: 'w-32' },
+        { key: 'bug_status', label: 'Bug Status', width: 'w-32' },
+        { key: 'resolution', label: 'Resolution', width: 'w-32' },
+        { key: 'component', label: 'Component', width: 'w-32' },
+        { key: 'op_sys', label: 'Op Sys', width: 'w-32' },
+        { key: 'short_desc', label: 'Short Description', width: 'w-48' },
+        { key: 'cf_sirwith', label: 'Cf Sir With', width: 'w-32' }
+    ])*/}
+
     // Add state to control dialog visibility
     const [showMapSirsDialog, setShowMapSirsDialog] = useState<boolean>(false)
 
@@ -206,11 +224,9 @@ export function SirsRelease() {
         }))
     }, [filteredData])
 
-    // Check if we have data to show - UPDATED LOGIC
-    const hasReleaseAndIteration = selectedRelease && selectedIteration;
-    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredData.length > 0;
-    const hasSearch = !!globalFilter;
-    const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch;
+    // Check if we have data to show
+    const hasDataToShow = selectedRelease && selectedIteration && filteredData.length > 0
+    const hasFiltersButNoData = selectedRelease && selectedIteration && filteredData.length === 0
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -248,9 +264,8 @@ export function SirsRelease() {
                 resetColumnVisibility={resetColumnVisibility}
             />
 
-            {/* Conditional Rendering based on data state - UPDATED */}
+            {/* Conditional Rendering based on data state */}
             {!selectedRelease || !selectedIteration ? (
-                // Show when no release/iteration is selected
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -279,8 +294,7 @@ export function SirsRelease() {
                         </div>
                     </div>
                 </div>
-            ) : noDataAndNoSearch ? (
-                // Show when release/iteration has no data AND no search is active
+            ) : hasFiltersButNoData ? (
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -313,9 +327,6 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : (
-                // Show tabs/datatable when:
-                // 1. There IS data, OR
-                // 2. User is searching (even with 0 results)
                 <div className="flex flex-col">
                     {/* Tabs for switching between Overview and DataTable */}
                     <div className="px-4 sm:px-6 pt-1">
@@ -347,10 +358,9 @@ export function SirsRelease() {
                             {/* Updated heading */}
                             <h3 className="text-base font-medium text-gray-500 mb-8">
                                 SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
-                                {globalFilter && ` • Matching "${globalFilter}"`}
                             </h3>
 
-                            {/* Cards section - Will handle empty state internally */}
+                            {/* Cards section */}
                             <div className="mb-6">
                                 <SirsStatCards sirReleaseData={filteredData.map(item => ({
                                     ...item,
@@ -358,7 +368,7 @@ export function SirsRelease() {
                                 }))} />
                             </div>
 
-                            {/* Chart section - Will handle empty state internally */}
+                            {/* Chart section */}
                             <SirReleasesChart
                                 sirReleaseData={filteredData.map(item => ({
                                     ...item,
@@ -374,15 +384,14 @@ export function SirsRelease() {
                             <div className="mb-2">
                                 <h3 className="text-base font-medium text-gray-500">
                                     SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
-                                    {globalFilter && ` • Matching "${globalFilter}"`}
                                 </h3>
                             </div>
 
-                            {/* Render the DataTable with filtered data - Will show "No results found" if empty */}
+                            {/* Render the DataTable with filtered data */}
                             <SirReleaseDataTable
                                 filteredData={formattedDataForDataTable}
                                 onRowSelectionChange={handleRowSelectionChange}
-                                visibleColumns={visibleColumns}
+                                visibleColumns={visibleColumns} // Pass visibleColumns from hook
                                 columnVisibility={columnVisibility}
                                 toggleColumnVisibility={toggleColumnVisibility}
                                 resetColumnVisibility={resetColumnVisibility}
