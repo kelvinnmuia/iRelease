@@ -9,8 +9,7 @@ import sirReleaseData from './sir-release-data.json'
 import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
 import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
 import { useColumnVisibility } from './sirs-releases-column-visibility'
-import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils'
-import { toast } from "sonner"
+import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils';
 
 export function SirsRelease() {
     // State for filters
@@ -144,31 +143,31 @@ export function SirsRelease() {
         visibleColumns
     } = useColumnVisibility()
 
-    // Export handlers using useCallback - FIXED WITH TOAST
+    // Export handlers using useCallback
     const handleExportCSV = useCallback(() => {
         const success = exportToCSV(filteredData, visibleColumns, selectedRows)
         if (success) {
-            toast.success("CSV exported successfully!")
+            console.log('CSV export successful')
         } else {
-            toast.error("Failed to export CSV")
+            console.error('CSV export failed')
         }
     }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportExcel = useCallback(() => {
         const success = exportToExcel(filteredData, visibleColumns, selectedRows)
         if (success) {
-            toast.success("Excel file exported successfully!")
+            console.log('Excel export successful')
         } else {
-            toast.error("Failed to export Excel file")
+            console.error('Excel export failed')
         }
     }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportJSON = useCallback(() => {
         const success = exportToJSON(filteredData, visibleColumns, selectedRows)
         if (success) {
-            toast.success("JSON exported successfully!")
+            console.log('JSON export successful')
         } else {
-            toast.error("Failed to export JSON")
+            console.error('JSON export failed')
         }
     }, [filteredData, visibleColumns, selectedRows])
 
