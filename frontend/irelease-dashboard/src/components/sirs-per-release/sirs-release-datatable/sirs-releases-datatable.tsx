@@ -17,7 +17,8 @@ import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{
-    sir_release_id: number | string;
+    id: number;  // Added id field
+    sir_release_id: string;
     sir_id: number | string;
     release_version: string;
     iteration: number | string;
@@ -41,10 +42,10 @@ interface SirReleaseDataTableProps {
   
   // Sync props
   onDateRangeChange?: (dateRange: string) => void;
-  onDeleteRows?: (ids: Set<number | string>) => void;
+  onDeleteRows?: (ids: Set<number>) => void;
   onAddSIR?: (sirData: any) => void;
   onEditSIR?: (sirData: any) => void;
-  onDeleteSIR?: (sirId: number | string) => void;
+  onDeleteSIR?: (id: number) => void;
 }
 
 // Status configurations
@@ -145,7 +146,7 @@ export function SirReleaseDataTable({
   onEditSIR,
   onDeleteSIR,
 }: SirReleaseDataTableProps = {}) {
-  const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [dateRange, setDateRange] = useState("")
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -181,14 +182,7 @@ export function SirReleaseDataTable({
   // Notify parent when selection changes
   useEffect(() => {
     if (onRowSelectionChange) {
-      const numericSelectedRows = new Set<number>();
-      selectedRows.forEach(id => {
-        const numId = Number(id);
-        if (!isNaN(numId)) {
-          numericSelectedRows.add(numId);
-        }
-      });
-      onRowSelectionChange(numericSelectedRows);
+      onRowSelectionChange(selectedRows);
     }
   }, [selectedRows, onRowSelectionChange])
 
@@ -303,17 +297,17 @@ export function SirReleaseDataTable({
   const paginatedData = sortedAndFilteredData.slice(startIndex, startIndex + itemsPerPage)
 
   // Get IDs of all items on the current page
-  const currentPageIds = new Set(paginatedData.map(item => item.sir_release_id))
+  const currentPageIds = new Set(paginatedData.map(item => item.id))
 
   // Check if all items on current page are selected
   const allCurrentPageSelected = paginatedData.length > 0 &&
-    paginatedData.every(item => selectedRows.has(item.sir_release_id))
+    paginatedData.every(item => selectedRows.has(item.id))
   // Check if some items on current page are selected (for indeterminate state)
   const someCurrentPageSelected = paginatedData.length > 0 &&
-    paginatedData.some(item => selectedRows.has(item.sir_release_id)) &&
+    paginatedData.some(item => selectedRows.has(item.id)) &&
     !allCurrentPageSelected
 
-  const toggleRowSelection = (id: number | string) => {
+  const toggleRowSelection = (id: number) => {
     const newSelected = new Set(selectedRows)
     if (newSelected.has(id)) {
       newSelected.delete(id)
@@ -483,8 +477,8 @@ export function SirReleaseDataTable({
 
   const confirmDelete = () => {
     if (sirToDelete && onDeleteSIR) {
-      onDeleteSIR(sirToDelete.sir_release_id)
-      toast.success(`Successfully deleted SIR ${sirToDelete.sir_release_id}`)
+      onDeleteSIR(sirToDelete.id)
+      toast.success(`Successfully deleted SIR ${sirToDelete.sir_id}`)
       setDeleteDialogOpen(false)
       setSirToDelete(null)
     }
@@ -669,14 +663,14 @@ export function SirReleaseDataTable({
             {paginatedData.length > 0 ? (
               paginatedData.map((row) => (
                 <TableRow
-                  key={row.sir_release_id}
+                  key={row.id}
                   className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 h-12"
                 >
                   <TableCell className="px-4 h-12">
                     <input
                       type="checkbox"
-                      checked={selectedRows.has(row.sir_release_id)}
-                      onChange={() => toggleRowSelection(row.sir_release_id)}
+                      checked={selectedRows.has(row.id)}
+                      onChange={() => toggleRowSelection(row.id)}
                       className="rounded border-gray-300 text-red-400 focus:ring-red-400"
                     />
                   </TableCell>

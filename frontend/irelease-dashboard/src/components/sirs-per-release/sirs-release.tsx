@@ -11,6 +11,7 @@ import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatab
 import { useColumnVisibility } from './sirs-releases-column-visibility'
 import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils'
 import { toast } from "sonner"
+import { transformSirsReleaseData } from './sirs-release-datatable/utils/sirs-release-data-transform'
 
 export function SirsRelease() {
     // State for filters
@@ -37,7 +38,9 @@ export function SirsRelease() {
 
     // Load data from JSON on component mount
     useEffect(() => {
-        setAllData(sirReleaseData as SirReleaseData[])
+        // Transform the data to include the id field
+        const transformedData = transformSirsReleaseData(sirReleaseData)
+        setAllData(transformedData)
     }, [])
 
     // Extract unique release versions and iterations from the JSON data
@@ -164,7 +167,7 @@ export function SirsRelease() {
         visibleColumns
     } = useColumnVisibility()
 
-    // Export handlers - FIXED: Now properly handles selected rows
+    // Export handlers - UPDATED: Now uses id directly
     const handleExportCSV = useCallback(() => {
         // Get the data to export - ONLY the filtered data (with date range applied)
         let dataToExport = filteredDataWithDateRange
@@ -172,15 +175,11 @@ export function SirsRelease() {
         // If there are selected rows, filter to only include selected rows
         if (selectedRows.size > 0) {
             dataToExport = filteredDataWithDateRange.filter(item => 
-                selectedRows.has(Number(item.sir_release_id))
+                selectedRows.has(item.id)
             )
         }
         
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToCSV(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToCSV(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("CSV exported successfully!")
         } else {
@@ -195,15 +194,11 @@ export function SirsRelease() {
         // If there are selected rows, filter to only include selected rows
         if (selectedRows.size > 0) {
             dataToExport = filteredDataWithDateRange.filter(item => 
-                selectedRows.has(Number(item.sir_release_id))
+                selectedRows.has(item.id)
             )
         }
         
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToExcel(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToExcel(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("Excel file exported successfully!")
         } else {
@@ -218,15 +213,11 @@ export function SirsRelease() {
         // If there are selected rows, filter to only include selected rows
         if (selectedRows.size > 0) {
             dataToExport = filteredDataWithDateRange.filter(item => 
-                selectedRows.has(Number(item.sir_release_id))
+                selectedRows.has(item.id)
             )
         }
         
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToJSON(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToJSON(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("JSON exported successfully!")
         } else {
@@ -254,37 +245,73 @@ export function SirsRelease() {
         setDateRange(range)
     }, [])
 
-    // CRUD operations
+    // CRUD operations - UPDATED to use id
     const handleAddSIR = useCallback((sirData: any) => {
-        const newData = [...allData, sirData]
+        // Generate new id
+        const newId = allData.length > 0 ? Math.max(...allData.map(item => item.id)) + 1 : 1
+        const newItem = {
+            id: newId,
+            sir_release_id: sirData.sir_release_id,
+            sir_id: sirData.sir_id,
+            release_version: sirData.release_version,
+            iteration: Number(sirData.iteration),
+            changed_date: sirData.changed_date,
+            bug_severity: sirData.bug_severity,
+            priority: sirData.priority,
+            assigned_to: sirData.assigned_to,
+            bug_status: sirData.bug_status,
+            resolution: sirData.resolution,
+            component: sirData.component,
+            op_sys: sirData.op_sys,
+            short_desc: sirData.short_desc,
+            cf_sirwith: sirData.cf_sirwith
+        }
+        const newData = [...allData, newItem]
         setAllData(newData)
     }, [allData])
 
     const handleEditSIR = useCallback((sirData: any) => {
         const updatedData = allData.map(item =>
-            item.sir_release_id === sirData.sir_release_id ? sirData : item
+            item.id === sirData.id ? {
+                ...item,
+                sir_release_id: sirData.sir_release_id,
+                sir_id: sirData.sir_id,
+                release_version: sirData.release_version,
+                iteration: Number(sirData.iteration),
+                changed_date: sirData.changed_date,
+                bug_severity: sirData.bug_severity,
+                priority: sirData.priority,
+                assigned_to: sirData.assigned_to,
+                bug_status: sirData.bug_status,
+                resolution: sirData.resolution,
+                component: sirData.component,
+                op_sys: sirData.op_sys,
+                short_desc: sirData.short_desc,
+                cf_sirwith: sirData.cf_sirwith
+            } : item
         )
         setAllData(updatedData)
     }, [allData])
 
-    const handleDeleteSIR = useCallback((sirId: number | string) => {
-        const updatedData = allData.filter(item => item.sir_release_id !== sirId)
+    const handleDeleteSIR = useCallback((id: number) => {
+        const updatedData = allData.filter(item => item.id !== id)
         setAllData(updatedData)
         // Remove from selected rows if it was selected
         const newSelectedRows = new Set(selectedRows)
-        newSelectedRows.delete(Number(sirId))
+        newSelectedRows.delete(id)
         setSelectedRows(newSelectedRows)
     }, [allData, selectedRows])
 
-    const handleDeleteRows = useCallback((ids: Set<number | string>) => {
-        const updatedData = allData.filter(item => !ids.has(item.sir_release_id))
+    const handleDeleteRows = useCallback((ids: Set<number>) => {
+        const updatedData = allData.filter(item => !ids.has(item.id))
         setAllData(updatedData)
         setSelectedRows(new Set())
     }, [allData])
 
-    // MEMOIZED: Format the filtered data for the DataTable
+    // MEMOIZED: Format the filtered data for the DataTable - ADD id field
     const formattedDataForDataTable = useMemo(() => {
         return filteredDataWithDateRange.map(item => ({
+            id: item.id,
             sir_release_id: item.sir_release_id,
             sir_id: item.sir_id,
             release_version: item.release_version,
@@ -304,9 +331,10 @@ export function SirsRelease() {
 
     // Check if we have data to show - UPDATED LOGIC
     const hasReleaseAndIteration = selectedRelease && selectedIteration;
-    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredDataWithDateRange.length > 0;
+    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredData.length > 0; // Use filteredData (before date range)
     const hasSearch = !!globalFilter;
-    const noDataAndNoSearch = hasReleaseAndIteration && filteredDataWithDateRange.length === 0 && !hasSearch;
+    const hasDateRange = !!dateRange;
+    const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch && !hasDateRange;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -374,7 +402,7 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : noDataAndNoSearch ? (
-                // Show when release/iteration has no data AND no search is active
+                // Show when release/iteration has no data AND no search is active AND no date range is applied
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -408,8 +436,9 @@ export function SirsRelease() {
                 </div>
             ) : (
                 // Show tabs/datatable when:
-                // 1. There IS data, OR
-                // 2. User is searching (even with 0 results)
+                // 1. There IS data (before date range is applied), OR
+                // 2. User is searching (even with 0 results), OR
+                // 3. User has applied a date range (even if it filters out all data)
                 <div className="flex flex-col">
                     {/* Tabs for switching between Overview and DataTable */}
                     <div className="px-4 sm:px-6 pt-1">
@@ -442,6 +471,7 @@ export function SirsRelease() {
                             <h3 className="text-base font-medium text-gray-500 mb-8">
                                 SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
                                 {globalFilter && ` • Matching "${globalFilter}"`}
+                                {dateRange && ` • Date range: ${dateRange}`}
                             </h3>
 
                             {/* Cards section - Will handle empty state internally */}
