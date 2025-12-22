@@ -1,9 +1,9 @@
-import { SirReleaseData } from "./types/sirs-releases-types";
+import { SirReleaseData } from "../types/sirs-releases-types";
 
-export function transformSirsData(jsonData: any[]): SirReleaseData[] {
+export function transformSirsReleaseData(jsonData: any[]): SirReleaseData[] {
   return jsonData.map((item, index) => ({
     id: index + 1, // Auto-incremented numeric ID
-    sir_release_id: item["sir_release_id"] || "", // Simple like others
+    sir_release_id: item["sir_release_id"] || "",
     sir_id: Number(item["sir_id"] || 0),
     release_version: item["release_version"] || "",
     iteration: Number(item["iteration"] || 0),
