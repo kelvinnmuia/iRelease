@@ -8,9 +8,7 @@ const transformSirReleaseForExport = (sir_release_data: SirReleaseData, visibleC
   const exportData: Record<string, any> = {};
   
   visibleColumns.forEach(col => {
-    // Handle potential undefined values
-    const value = sir_release_data[col.key];
-    exportData[col.label] = value !== undefined ? value : '';
+    exportData[col.label] = sir_release_data[col.key];
   });
   
   return exportData;
@@ -18,27 +16,15 @@ const transformSirReleaseForExport = (sir_release_data: SirReleaseData, visibleC
 
 export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
-    // Note: The data parameter should already be filtered to only include selected rows
-    // when the user has made a selection. The parent component handles this filtering.
+    // IMPORTANT: The data passed here should already be filtered to only include selected rows
+    // The parent component now handles the filtering before calling this function
     
-    if (data.length === 0) {
-      console.warn('No data to export');
-      return false;
-    }
-
     const filteredDataForExport = data.map(sir_release_data => 
       transformSirReleaseForExport(sir_release_data, visibleColumns)
     );
 
-    const csv = Papa.unparse(filteredDataForExport, { 
-      header: true,
-      delimiter: ',',
-      quotes: true,
-      escapeFormulae: true // Prevent CSV injection
-    });
-    
-    const filename = `SIRs-releases-export-${new Date().toISOString().split('T')[0]}.csv`;
-    downloadFile(csv, filename, 'text/csv;charset=utf-8;');
+    const csv = Papa.unparse(filteredDataForExport, { header: true });
+    downloadFile(csv, `releases-export-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
     return true;
   } catch (error) {
     console.error('Error exporting to CSV:', error);
@@ -48,14 +34,9 @@ export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig
 
 export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
-    // Note: The data parameter should already be filtered to only include selected rows
-    // when the user has made a selection. The parent component handles this filtering.
+    // IMPORTANT: The data passed here should already be filtered to only include selected rows
+    // The parent component now handles the filtering before calling this function
     
-    if (data.length === 0) {
-      console.warn('No data to export');
-      return false;
-    }
-
     const filteredDataForExport = data.map(sir_release_data => 
       transformSirReleaseForExport(sir_release_data, visibleColumns)
     );
@@ -64,24 +45,10 @@ export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConf
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'SIR Releases');
 
-    // Set column widths based on column labels and content
-    const maxContentLengths: number[] = [];
-    filteredDataForExport.forEach(row => {
-      Object.values(row).forEach((value, index) => {
-        const length = String(value).length;
-        if (!maxContentLengths[index] || length > maxContentLengths[index]) {
-          maxContentLengths[index] = length;
-        }
-      });
-    });
-
-    const cols = visibleColumns.map((col, index) => ({ 
-      wch: Math.max(col.label.length, maxContentLengths[index] || 10, 15) 
-    }));
+    const cols = visibleColumns.map((col) => ({ wch: Math.max(col.label.length, 15) }));
     worksheet['!cols'] = cols;
 
-    const filename = `SIRs-releases-export-${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(workbook, filename);
+    XLSX.writeFile(workbook, `SIRs-releases-export-${new Date().toISOString().split('T')[0]}.xlsx`);
     return true;
   } catch (error) {
     console.error('Error exporting to Excel:', error);
@@ -91,21 +58,15 @@ export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConf
 
 export const exportToJSON = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
-    // Note: The data parameter should already be filtered to only include selected rows
-    // when the user has made a selection. The parent component handles this filtering.
+    // IMPORTANT: The data passed here should already be filtered to only include selected rows
+    // The parent component now handles the filtering before calling this function
     
-    if (data.length === 0) {
-      console.warn('No data to export');
-      return false;
-    }
-
     const filteredDataForExport = data.map(sir_release_data => 
       transformSirReleaseForExport(sir_release_data, visibleColumns)
     );
 
     const json = JSON.stringify(filteredDataForExport, null, 2);
-    const filename = `SIRs-releases-export-${new Date().toISOString().split('T')[0]}.json`;
-    downloadFile(json, filename, 'application/json');
+    downloadFile(json, `SIRs-releases-export-${new Date().toISOString().split('T')[0]}.json`, 'application/json');
     return true;
   } catch (error) {
     console.error('Error exporting to JSON:', error);
@@ -153,22 +114,14 @@ export const exportSingleSirRelease = (sir_release_data: SirReleaseData) => {
 };
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
-  try {
-    const blob = new Blob([content], { type: mimeType });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
+  const blob = new Blob([content], { type: mimeType });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
 
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Clean up the URL object
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-  } catch (error) {
-    console.error('Error downloading file:', error);
-    throw error;
-  }
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };

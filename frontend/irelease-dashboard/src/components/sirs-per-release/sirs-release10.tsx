@@ -17,7 +17,6 @@ export function SirsRelease() {
     const [selectedRelease, setSelectedRelease] = useState<string>('')
     const [selectedIteration, setSelectedIteration] = useState<string>('')
     const [globalFilter, setGlobalFilter] = useState<string>('')
-    const [dateRange, setDateRange] = useState<string>('')
 
     // Add these states to track the actual release/iteration names
     const [selectedReleaseName, setSelectedReleaseName] = useState<string>('')
@@ -127,29 +126,10 @@ export function SirsRelease() {
         return filtered
     }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
 
-    // Apply date range filter to the data
-    const filteredDataWithDateRange = useMemo(() => {
-        if (!dateRange) return filteredData
-
-        const rangeParts = dateRange.split(' - ')
-        if (rangeParts.length !== 2) return filteredData
-
-        const [startStr, endStr] = rangeParts
-        const startDate = parseDate(startStr.trim())
-        const endDate = parseDate(endStr.trim())
-
-        if (!startDate || !endDate) return filteredData
-
-        return filteredData.filter(item => {
-            const itemDate = parseDate(item.changed_date)
-            return itemDate && itemDate >= startDate && itemDate <= endDate
-        })
-    }, [filteredData, dateRange])
-
     // Update total filtered count
     useEffect(() => {
-        setTotalFilteredCount(filteredDataWithDateRange.length)
-    }, [filteredDataWithDateRange])
+        setTotalFilteredCount(filteredData.length)
+    }, [filteredData])
 
     // Update selected rows count when selection changes
     useEffect(() => {
@@ -164,75 +144,33 @@ export function SirsRelease() {
         visibleColumns
     } = useColumnVisibility()
 
-    // Export handlers - FIXED: Now properly handles selected rows
+    // Export handlers using useCallback - FIXED WITH TOAST
     const handleExportCSV = useCallback(() => {
-        // Get the data to export - ONLY the filtered data (with date range applied)
-        let dataToExport = filteredDataWithDateRange
-        
-        // If there are selected rows, filter to only include selected rows
-        if (selectedRows.size > 0) {
-            dataToExport = filteredDataWithDateRange.filter(item => 
-                selectedRows.has(Number(item.sir_release_id))
-            )
-        }
-        
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToCSV(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToCSV(filteredData, visibleColumns, selectedRows)
         if (success) {
             toast.success("CSV exported successfully!")
         } else {
             toast.error("Failed to export CSV")
         }
-    }, [filteredDataWithDateRange, visibleColumns, selectedRows])
+    }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportExcel = useCallback(() => {
-        // Get the data to export - ONLY the filtered data (with date range applied)
-        let dataToExport = filteredDataWithDateRange
-        
-        // If there are selected rows, filter to only include selected rows
-        if (selectedRows.size > 0) {
-            dataToExport = filteredDataWithDateRange.filter(item => 
-                selectedRows.has(Number(item.sir_release_id))
-            )
-        }
-        
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToExcel(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToExcel(filteredData, visibleColumns, selectedRows)
         if (success) {
             toast.success("Excel file exported successfully!")
         } else {
             toast.error("Failed to export Excel file")
         }
-    }, [filteredDataWithDateRange, visibleColumns, selectedRows])
+    }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportJSON = useCallback(() => {
-        // Get the data to export - ONLY the filtered data (with date range applied)
-        let dataToExport = filteredDataWithDateRange
-        
-        // If there are selected rows, filter to only include selected rows
-        if (selectedRows.size > 0) {
-            dataToExport = filteredDataWithDateRange.filter(item => 
-                selectedRows.has(Number(item.sir_release_id))
-            )
-        }
-        
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToJSON(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToJSON(filteredData, visibleColumns, selectedRows)
         if (success) {
             toast.success("JSON exported successfully!")
         } else {
             toast.error("Failed to export JSON")
         }
-    }, [filteredDataWithDateRange, visibleColumns, selectedRows])
+    }, [filteredData, visibleColumns, selectedRows])
 
     const handleMapSirs = useCallback(() => {
         console.log('Map SIRs clicked')
@@ -249,42 +187,9 @@ export function SirsRelease() {
         setSelectedRows(selectedIds)
     }, [])
 
-    // Handle date range change from DataTable
-    const handleDateRangeChange = useCallback((range: string) => {
-        setDateRange(range)
-    }, [])
-
-    // CRUD operations
-    const handleAddSIR = useCallback((sirData: any) => {
-        const newData = [...allData, sirData]
-        setAllData(newData)
-    }, [allData])
-
-    const handleEditSIR = useCallback((sirData: any) => {
-        const updatedData = allData.map(item =>
-            item.sir_release_id === sirData.sir_release_id ? sirData : item
-        )
-        setAllData(updatedData)
-    }, [allData])
-
-    const handleDeleteSIR = useCallback((sirId: number | string) => {
-        const updatedData = allData.filter(item => item.sir_release_id !== sirId)
-        setAllData(updatedData)
-        // Remove from selected rows if it was selected
-        const newSelectedRows = new Set(selectedRows)
-        newSelectedRows.delete(Number(sirId))
-        setSelectedRows(newSelectedRows)
-    }, [allData, selectedRows])
-
-    const handleDeleteRows = useCallback((ids: Set<number | string>) => {
-        const updatedData = allData.filter(item => !ids.has(item.sir_release_id))
-        setAllData(updatedData)
-        setSelectedRows(new Set())
-    }, [allData])
-
     // MEMOIZED: Format the filtered data for the DataTable
     const formattedDataForDataTable = useMemo(() => {
-        return filteredDataWithDateRange.map(item => ({
+        return filteredData.map(item => ({
             sir_release_id: item.sir_release_id,
             sir_id: item.sir_id,
             release_version: item.release_version,
@@ -300,13 +205,13 @@ export function SirsRelease() {
             short_desc: item.short_desc,
             cf_sirwith: item.cf_sirwith
         }))
-    }, [filteredDataWithDateRange])
+    }, [filteredData])
 
     // Check if we have data to show - UPDATED LOGIC
     const hasReleaseAndIteration = selectedRelease && selectedIteration;
-    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredDataWithDateRange.length > 0;
+    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredData.length > 0;
     const hasSearch = !!globalFilter;
-    const noDataAndNoSearch = hasReleaseAndIteration && filteredDataWithDateRange.length === 0 && !hasSearch;
+    const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -318,7 +223,7 @@ export function SirsRelease() {
 
             <SirReleaseHeader
                 selectedRowsCount={selectedRowsCount}
-                totalFilteredCount={filteredDataWithDateRange.length}
+                totalFilteredCount={filteredData.length}
                 globalFilter={globalFilter}
             />
 
@@ -337,6 +242,8 @@ export function SirsRelease() {
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
                 onMapSirs={handleMapSirs}
+
+                // Add column visibility props
                 columnVisibility={columnVisibility}
                 toggleColumnVisibility={toggleColumnVisibility}
                 resetColumnVisibility={resetColumnVisibility}
@@ -446,7 +353,7 @@ export function SirsRelease() {
 
                             {/* Cards section - Will handle empty state internally */}
                             <div className="mb-6">
-                                <SirsStatCards sirReleaseData={filteredDataWithDateRange.map(item => ({
+                                <SirsStatCards sirReleaseData={filteredData.map(item => ({
                                     ...item,
                                     sir_release_id: Number(item.sir_release_id)
                                 }))} />
@@ -454,7 +361,7 @@ export function SirsRelease() {
 
                             {/* Chart section - Will handle empty state internally */}
                             <SirReleasesChart
-                                sirReleaseData={filteredDataWithDateRange.map(item => ({
+                                sirReleaseData={filteredData.map(item => ({
                                     ...item,
                                     sir_release_id: Number(item.sir_release_id)
                                 }))}
@@ -468,7 +375,7 @@ export function SirsRelease() {
                             <div className="mb-2">
                                 <h3 className="text-base font-medium text-gray-500">
                                     SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
-                                    {dateRange && ` • Date range: ${dateRange}`}
+                                    {globalFilter && ` • Matching "${globalFilter}"`}
                                 </h3>
                             </div>
 
@@ -480,11 +387,6 @@ export function SirsRelease() {
                                 columnVisibility={columnVisibility}
                                 toggleColumnVisibility={toggleColumnVisibility}
                                 resetColumnVisibility={resetColumnVisibility}
-                                onDateRangeChange={handleDateRangeChange}
-                                onDeleteRows={handleDeleteRows}
-                                onAddSIR={handleAddSIR}
-                                onEditSIR={handleEditSIR}
-                                onDeleteSIR={handleDeleteSIR}
                             />
                         </div>
                     )}

@@ -166,7 +166,7 @@ export function SirsRelease() {
 
     // Export handlers - FIXED: Now properly handles selected rows
     const handleExportCSV = useCallback(() => {
-        // Get the data to export - ONLY the filtered data (with date range applied)
+        // Get the data to export
         let dataToExport = filteredDataWithDateRange
         
         // If there are selected rows, filter to only include selected rows
@@ -176,11 +176,7 @@ export function SirsRelease() {
             )
         }
         
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToCSV(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToCSV(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("CSV exported successfully!")
         } else {
@@ -189,7 +185,7 @@ export function SirsRelease() {
     }, [filteredDataWithDateRange, visibleColumns, selectedRows])
 
     const handleExportExcel = useCallback(() => {
-        // Get the data to export - ONLY the filtered data (with date range applied)
+        // Get the data to export
         let dataToExport = filteredDataWithDateRange
         
         // If there are selected rows, filter to only include selected rows
@@ -199,11 +195,7 @@ export function SirsRelease() {
             )
         }
         
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToExcel(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToExcel(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("Excel file exported successfully!")
         } else {
@@ -212,7 +204,7 @@ export function SirsRelease() {
     }, [filteredDataWithDateRange, visibleColumns, selectedRows])
 
     const handleExportJSON = useCallback(() => {
-        // Get the data to export - ONLY the filtered data (with date range applied)
+        // Get the data to export
         let dataToExport = filteredDataWithDateRange
         
         // If there are selected rows, filter to only include selected rows
@@ -222,11 +214,7 @@ export function SirsRelease() {
             )
         }
         
-        // Convert selectedRows Set to pass to export function
-        const exportSelectedRows = new Set<number>();
-        selectedRows.forEach(id => exportSelectedRows.add(id));
-        
-        const success = exportToJSON(dataToExport, visibleColumns, exportSelectedRows)
+        const success = exportToJSON(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("JSON exported successfully!")
         } else {
@@ -468,6 +456,7 @@ export function SirsRelease() {
                             <div className="mb-2">
                                 <h3 className="text-base font-medium text-gray-500">
                                     SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
+                                    {globalFilter && ` • Matching "${globalFilter}"`}
                                     {dateRange && ` • Date range: ${dateRange}`}
                                 </h3>
                             </div>

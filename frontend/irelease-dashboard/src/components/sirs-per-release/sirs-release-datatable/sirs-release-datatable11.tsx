@@ -39,8 +39,12 @@ interface SirReleaseDataTableProps {
   toggleColumnVisibility?: (columnKey: string) => void;
   resetColumnVisibility?: () => void;
   
-  // Sync props
+  // New props for syncing
+  onGlobalFilterChange?: (filter: string) => void;
   onDateRangeChange?: (dateRange: string) => void;
+  onExportCSV?: () => void;
+  onExportExcel?: () => void;
+  onExportJSON?: () => void;
   onDeleteRows?: (ids: Set<number | string>) => void;
   onAddSIR?: (sirData: any) => void;
   onEditSIR?: (sirData: any) => void;
@@ -130,6 +134,10 @@ const formatDate = (date: Date): string => {
   return `${day} ${month} ${year} ${hours}:${minutes}`
 }
 
+const getLatestDate = (item: any): Date | null => {
+  return parseDate(item.changed_date)
+}
+
 export function SirReleaseDataTable({
   filteredData: externalFilteredData = [],
   onRowSelectionChange,
@@ -138,8 +146,12 @@ export function SirReleaseDataTable({
   toggleColumnVisibility = () => {},
   resetColumnVisibility = () => {},
   
-  // Sync props
+  // New sync props
+  onGlobalFilterChange,
   onDateRangeChange,
+  onExportCSV,
+  onExportExcel,
+  onExportJSON,
   onDeleteRows,
   onAddSIR,
   onEditSIR,
@@ -147,10 +159,12 @@ export function SirReleaseDataTable({
 }: SirReleaseDataTableProps = {}) {
   const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
+  const [globalFilter, setGlobalFilter] = useState("")
   const [dateRange, setDateRange] = useState("")
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [sirToDelete, setSirToDelete] = useState<any>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -191,6 +205,14 @@ export function SirReleaseDataTable({
       onRowSelectionChange(numericSelectedRows);
     }
   }, [selectedRows, onRowSelectionChange])
+
+  // Notify parent when global filter changes
+  const handleGlobalFilterChange = (value: string) => {
+    setGlobalFilter(value);
+    if (onGlobalFilterChange) {
+      onGlobalFilterChange(value);
+    }
+  }
 
   // Notify parent when date range changes
   const handleDateRangeChange = (range: string) => {
@@ -296,8 +318,50 @@ export function SirReleaseDataTable({
     handleDateRangeChange("")
   }
 
-  // All data is already filtered by parent, so we just use externalFilteredData directly
-  const sortedAndFilteredData = [...externalFilteredData]
+  // Filter data based on DataTable's global search and date range
+  const filteredData = externalFilteredData.filter(item => {
+    // DataTable's global text search
+    const matchesGlobalSearch = !globalFilter ||
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(globalFilter.toLowerCase())
+      )
+
+    // DataTable's date range filter
+    const matchesDateRange = !dateRange || (() => {
+      const rangeParts = dateRange.split(' - ')
+      if (rangeParts.length !== 2) return true
+
+      const [startStr, endStr] = rangeParts
+      const startDate = parseDate(startStr.trim())
+      const endDate = parseDate(endStr.trim())
+
+      if (!startDate || !endDate) return true
+
+      const itemDate = parseDate(item.changed_date)
+      return itemDate && itemDate >= startDate && itemDate <= endDate
+    })()
+
+    return matchesGlobalSearch && matchesDateRange
+  })
+
+  // Apply sorting to filteredData
+  const sortedAndFilteredData = [...filteredData].sort((a, b) => {
+    if (!sortOrder) return 0
+
+    const dateA = getLatestDate(a)
+    const dateB = getLatestDate(b)
+
+    if (!dateA && !dateB) return 0
+    if (!dateA) return 1
+    if (!dateB) return -1
+
+    if (sortOrder === "newest") {
+      return dateB.getTime() - dateA.getTime()
+    } else {
+      return dateA.getTime() - dateB.getTime()
+    }
+  })
+
   const totalPages = Math.ceil(sortedAndFilteredData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedData = sortedAndFilteredData.slice(startIndex, startIndex + itemsPerPage)
@@ -459,6 +523,25 @@ export function SirReleaseDataTable({
     }
   }
 
+  // Export functions - Use parent's export functions if provided
+  const handleExportCSV = () => {
+    if (onExportCSV) {
+      onExportCSV();
+    }
+  }
+
+  const handleExportExcel = () => {
+    if (onExportExcel) {
+      onExportExcel();
+    }
+  }
+
+  const handleExportJSON = () => {
+    if (onExportJSON) {
+      onExportJSON();
+    }
+  }
+
   // Export single SIR to Excel
   const exportSingleSIR = (sir: any) => {
     const filteredSIR = visibleColumns.reduce((acc, col) => {
@@ -506,15 +589,50 @@ export function SirReleaseDataTable({
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase().replace('_', ' ');
   }
 
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    if (sortOrder === "newest") {
+      setSortOrder("oldest")
+    } else if (sortOrder === "oldest") {
+      setSortOrder(null)
+    } else {
+      setSortOrder("newest")
+    }
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header - Light Gray Background - SIMPLIFIED */}
+      {/* Header - Light Gray Background */}
       <div className="bg-gray-50 border-b border-gray-200 p-6">
+        {/* Enhanced Responsive Controls */}
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-          {/* Right Section - Date Range and Delete Button */}
+          {/* Left Section - Search */}
+          <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:max-w-2xl">
+            {/* Search Input */}
+            <div className="flex-1 min-w-0">
+              <Input
+                placeholder="Search within table..."
+                value={globalFilter}
+                onChange={(e) => handleGlobalFilterChange(e.target.value)}
+                className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 border-gray-300"
+              />
+            </div>
+          </div>
+
+          {/* Right Section - Date Range, Sort, and Delete Button */}
           <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
             <div className="flex gap-2 flex-1 md:flex-none">
-              {/* Date Range */}
+              {/* Sort Button */}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={toggleSortOrder}
+                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 gap-2"
+              >
+                {sortOrder === "newest" ? "Newest First" : sortOrder === "oldest" ? "Oldest First" : "Sort by Date"}
+              </Button>
+
+              {/* Date Range - Increased width for better date display */}
               <div className="relative flex-1 md:flex-none md:w-56 lg:w-64" ref={datePickerRef}>
                 <div
                   className="flex items-center cursor-pointer"
@@ -596,9 +714,11 @@ export function SirReleaseDataTable({
         )}
 
         {/* Filter status */}
-        {dateRange && (
+        {(globalFilter || dateRange) && (
           <div className="mt-2 text-sm text-gray-500">
-            Showing {sortedAndFilteredData.length} SIR(s) within date range: {dateRange}
+            Showing {sortedAndFilteredData.length} SIR(s)
+            {globalFilter && ` matching "${globalFilter}"`}
+            {dateRange && ` within date range: ${dateRange}`}
           </div>
         )}
       </div>
@@ -811,8 +931,8 @@ export function SirReleaseDataTable({
       <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="text-sm text-gray-600 text-center sm:text-left">
           Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
-          {dateRange && (
-            <span className="ml-2">(filtered by date range)</span>
+          {(globalFilter || dateRange) && (
+            <span className="ml-2">(filtered from {externalFilteredData.length} records)</span>
           )}
           <span className="ml-2">• {visibleColumns.length} columns visible</span>
         </div>
