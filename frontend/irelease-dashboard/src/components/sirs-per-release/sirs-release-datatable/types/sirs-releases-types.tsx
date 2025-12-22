@@ -1,5 +1,6 @@
 export interface SirReleaseData {
-    "sir_release_id": string;
+    "id": number;              
+    "sir_release_id": string;        
     "sir_id": number;
     "release_version": string;
     "iteration": number;
