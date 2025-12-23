@@ -15,6 +15,7 @@ import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
 import { SirsReleasesTruncatedText } from "./sirs-releases-truncated-text";
+import { EditSirsReleaseDialog } from "./edit-sirs-release-dialog";
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{
@@ -305,33 +306,6 @@ export function SirReleaseDataTable({
   const openEditDialog = (sir: any) => {
     setSirToEdit(sir)
     setEditDialogOpen(true)
-  }
-
-  const handleEditFormChange = (field: string, value: any) => {
-    setEditFormData((prev: any) => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target
-    handleEditFormChange(id, value)
-  }
-
-  const saveEdit = () => {
-    if (sirToEdit && onEditSIR) {
-      onEditSIR(editFormData);
-      setEditDialogOpen(false)
-      setSirToEdit(null)
-      toast.success(`Successfully updated SIR ${editFormData.sir_id}`)
-    }
-  }
-
-  const cancelEdit = () => {
-    setEditDialogOpen(false)
-    setSirToEdit(null)
-    setEditFormData({})
   }
 
   // Bulk delete functions
@@ -808,313 +782,21 @@ export function SirReleaseDataTable({
       </div>
 
       {/* Edit SIR Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-clip mx-auto p-4 sm:p-6">
-          <DialogHeader className="border-b pb-4">
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              Edit SIR
-            </DialogTitle>
-            <DialogDescription className="text-gray-600">
-              Update SIR {sirToEdit?.sir_id} details
-            </DialogDescription>
-          </DialogHeader>
 
-          <div className="space-y-6 py-4 w-full">
-            {/* SIR Information */}
-            <div className="space-y-4 w-full">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="sir_release_id" className="text-sm font-medium text-gray-700">
-                    SIR Release ID
-                  </Label>
-                  <div className="w-full">
-                    <Input
-                      id="sir_release_id"
-                      value={editFormData.sir_release_id || ''}
-                      disabled
-                      className="w-full bg-gray-100 text-gray-600"
-                      placeholder="SIR Release ID"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="sir_id" className="text-sm font-medium text-gray-700">
-                    SIR ID
-                  </Label>
-                  <div className="w-full">
-                    <Input
-                      id="sir_id"
-                      type="number"
-                      value={editFormData.sir_id || ''}
-                      onChange={handleInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      placeholder="Enter SIR ID"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="release_version" className="text-sm font-medium text-gray-700">
-                    Release Version
-                  </Label>
-                  <div className="w-full">
-                    <Input
-                      id="release_version"
-                      value={editFormData.release_version || ''}
-                      onChange={handleInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      placeholder="Enter release version"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
-                    Iteration
-                  </Label>
-                  <div className="w-full">
-                    <Input
-                      id="iteration"
-                      value={editFormData.iteration || ''}
-                      onChange={handleInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      placeholder="Enter iteration"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="bug_severity" className="text-sm font-medium text-gray-700">
-                    Bug Severity
-                  </Label>
-                  <div className="w-full">
-                    <Select
-                      value={editFormData.bug_severity || ''}
-                      onValueChange={(value) => handleEditFormChange('bug_severity', value)}
-                    >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                        <SelectValue placeholder="Select bug severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {bugSeverityOptions.map((severity) => (
-                          <SelectItem key={severity} value={severity.toLowerCase()}>
-                            {severity}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="priority" className="text-sm font-medium text-gray-700">
-                    Priority
-                  </Label>
-                  <div className="w-full">
-                    <Select
-                      value={editFormData.priority || ''}
-                      onValueChange={(value) => handleEditFormChange('priority', value)}
-                    >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {priorityOptions.map((priority) => (
-                          <SelectItem key={priority} value={priority}>
-                            {priority}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Information */}
-            <div className="space-y-4 w-full">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="assigned_to" className="text-sm font-medium text-gray-700">
-                    Assigned To
-                  </Label>
-                  <div className="w-full">
-                    <Input
-                      id="assigned_to"
-                      value={editFormData.assigned_to || ''}
-                      onChange={handleInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      placeholder="Enter assigned to email"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="bug_status" className="text-sm font-medium text-gray-700">
-                    Bug Status
-                  </Label>
-                  <div className="w-full">
-                    <Select
-                      value={editFormData.bug_status || ''}
-                      onValueChange={(value) => handleEditFormChange('bug_status', value)}
-                    >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                        <SelectValue placeholder="Select bug status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {bugStatusOptions.map((status) => (
-                          <SelectItem key={status} value={status.toUpperCase().replace(' ', '_')}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="resolution" className="text-sm font-medium text-gray-700">
-                    Resolution
-                  </Label>
-                  <div className="w-full">
-                    <Select
-                      value={editFormData.resolution || ''}
-                      onValueChange={(value) => handleEditFormChange('resolution', value)}
-                    >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                        <SelectValue placeholder="Select resolution" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {resolutionOptions.map((resolution) => (
-                          <SelectItem key={resolution} value={resolution.toUpperCase()}>
-                            {resolution}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="component" className="text-sm font-medium text-gray-700">
-                    Component
-                  </Label>
-                  <div className="w-full">
-                    <Select
-                      value={editFormData.component || ''}
-                      onValueChange={(value) => handleEditFormChange('component', value)}
-                    >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                        <SelectValue placeholder="Select component" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {componentOptions.map((component) => (
-                          <SelectItem key={component} value={component}>
-                            {component}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="op_sys" className="text-sm font-medium text-gray-700">
-                    Operating System
-                  </Label>
-                  <div className="w-full">
-                    <Select
-                      value={editFormData.op_sys || ''}
-                      onValueChange={(value) => handleEditFormChange('op_sys', value)}
-                    >
-                      <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                        <SelectValue placeholder="Select operating system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {osOptions.map((os) => (
-                          <SelectItem key={os} value={os}>
-                            {os}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="cf_sirwith" className="text-sm font-medium text-gray-700">
-                    Cf Sir With
-                  </Label>
-                  <div className="w-full">
-                    <Input
-                      id="cf_sirwith"
-                      value={editFormData.cf_sirwith || ''}
-                      onChange={handleInputChange}
-                      className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                      placeholder="Enter cf sir with"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 w-full">
-                <Label htmlFor="short_desc" className="text-sm font-medium text-gray-700">
-                  Short Description
-                </Label>
-                <div className="w-full">
-                  <Textarea
-                    id="short_desc"
-                    value={editFormData.short_desc || ''}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
-                    placeholder="Enter short description"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 w-full">
-                <Label className="text-sm font-medium text-gray-700">
-                  Changed Date
-                </Label>
-                <div className="w-full">
-                  <Input
-                    value={editFormData.changed_date || ''}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleEditFormChange('changed_date', e.target.value)}
-                    className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                    placeholder="YYYY-MM-DD HH:MM:SS"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t w-full">
-            <Button
-              variant="outline"
-              onClick={saveEdit}
-              className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full"
-            >
-              Save Changes
-            </Button>
-            <Button
-              onClick={cancelEdit}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full"
-            >
-              Discard
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditSirsReleaseDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        sirToEdit={sirToEdit}
+        onSave={(editedSIR) => {
+          if (onEditSIR) {
+            onEditSIR(editedSIR);
+            setEditDialogOpen(false);
+            setSirToEdit(null);
+            // Only show toast here (not in the dialog component)
+            toast.success(`Successfully updated SIR ${editedSIR.sir_id}`);
+          }
+        }}
+      />
 
       {/* Bulk Delete Confirmation Dialog */}
       <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
