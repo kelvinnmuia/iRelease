@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 
 // Import JSON data
-import sirReleaseData from "../sir-release-data.json"
+import sirReleaseData from "../sirs-per-release/sir-release-data.json"
 
 // Define SIR Release columns
 const allColumns = [

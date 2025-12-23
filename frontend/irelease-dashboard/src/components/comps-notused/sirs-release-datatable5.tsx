@@ -11,20 +11,19 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "./utils/sirs-release-export-utils"
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
 
 // Import JSON data
-import sirReleaseData from "../sir-release-data.json"
+import sirReleaseData from "../sirs-per-release/sir-release-data.json"
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{
     sir_release_id: number | string;
     sir_id: number | string;
     release_version: string;
-    iteration: number | string;
+    iteration: string;
     changed_date: string;
     bug_severity: string;
     priority: string;
@@ -36,16 +35,11 @@ interface SirReleaseDataTableProps {
     short_desc: string;
     cf_sirwith: string;
   }>;
-
-  onRowSelectionChange?: (selectedIds: Set<number>) => void;
-  visibleColumns?: ColumnConfig[]; // Accept visibleColumns prop
-  columnVisibility?: Record<string, boolean>;
-  toggleColumnVisibility?: (columnKey: string) => void;
-  resetColumnVisibility?: () => void;
+  onRowSelectionChange?: (selectedIds: Set<number | string>) => void;
 }
 
 // Define SIR Release columns
-{/*const allColumns = [
+const allColumns = [
   { key: "sir_release_id", label: "Sir_Rel_Id", width: "w-32" },
   { key: "sir_id", label: "Sir_Id", width: "w-42" },
   { key: "release_version", label: "Release Version", width: "w-32" },
@@ -60,7 +54,7 @@ interface SirReleaseDataTableProps {
   { key: "op_sys", label: "Op Sys", width: "w-32" },
   { key: "short_desc", label: "Short Description", width: "w-48" },
   { key: "cf_sirwith", label: "Cf Sir With", width: "w-32" },
-]*/}
+]
 
 
 // Status configurations
@@ -150,7 +144,7 @@ const formatDate = (date: Date): string => {
   const year = date.getFullYear()
   const hours = date.getHours().toString().padStart(2, '0')
   const minutes = date.getMinutes().toString().padStart(2, '0')
-
+  
   return `${day} ${month} ${year} ${hours}:${minutes}`
 }
 
@@ -269,15 +263,11 @@ const saveItemsPerPage = (itemsPerPage: number) => {
 };
 
 // Main component
-
-// In sirs-releases-datatable.tsx, update the component:
-
-export function SirReleaseDataTable({
-  filteredData: externalFilteredData,
-  onRowSelectionChange,
-  visibleColumns: propVisibleColumns // Rename prop for clarity
+export function SirReleaseDataTable({ 
+  filteredData: externalFilteredData, 
+  onRowSelectionChange 
 }: SirReleaseDataTableProps = {}) {
-  const [data, setData] = useState(externalFilteredData || sirReleaseData)
+  const [data, setData] = useState(sirReleaseData)
   const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
@@ -322,32 +312,6 @@ export function SirReleaseDataTable({
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
   const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage())
   const datePickerRef = useRef<HTMLDivElement>(null)
-
-  // CRITICAL FIX: Sync external filtered data when it changes
-  useEffect(() => {
-    if (externalFilteredData) {
-      setData(externalFilteredData);
-      // Reset to first page when filtered data changes
-      setCurrentPage(1);
-      // Clear selection when data changes
-      setSelectedRows(new Set());
-    }
-  }, [externalFilteredData]);
-
-  // Notify parent when selection changes
-  useEffect(() => {
-    if (onRowSelectionChange) {
-      // Convert selectedRows to Set<number>
-      const numericSelectedRows = new Set<number>();
-      selectedRows.forEach(id => {
-        const numId = Number(id);
-        if (!isNaN(numId)) {
-          numericSelectedRows.add(numId);
-        }
-      });
-      onRowSelectionChange(numericSelectedRows);
-    }
-  }, [selectedRows, onRowSelectionChange]);
 
   // Effect to handle clicks outside the date picker
   useEffect(() => {
@@ -402,7 +366,7 @@ export function SirReleaseDataTable({
     if (addDialogOpen) {
       const newSirId = Math.max(...data.map(item => Number(item.sir_id)), 0) + 1
       const newSirReleaseId = Math.max(...data.map(item => Number(item.sir_release_id)), 0) + 1
-
+      
       setAddFormData({
         sir_release_id: newSirReleaseId,
         sir_id: newSirId,
@@ -429,7 +393,7 @@ export function SirReleaseDataTable({
   }, [itemsPerPage])
 
   // Get visible columns
-  const visibleColumns = propVisibleColumns || allColumns.filter(col => columnVisibility[col.key])
+  const visibleColumns = allColumns.filter(col => columnVisibility[col.key])
 
   // Apply date range when both dates are selected
   const applyDateRange = () => {
@@ -454,7 +418,7 @@ export function SirReleaseDataTable({
     setEndDate("")
     setShowDatePicker(false)
     setCurrentPage(1)
-
+    
     saveDateRangeFilter("")
     clearDateRangeDetails()
   }
@@ -511,11 +475,11 @@ export function SirReleaseDataTable({
   const currentPageIds = new Set(paginatedData.map(item => item.sir_release_id))
 
   // Check if all items on current page are selected
-  const allCurrentPageSelected = paginatedData.length > 0 &&
+  const allCurrentPageSelected = paginatedData.length > 0 && 
     paginatedData.every(item => selectedRows.has(item.sir_release_id))
   // Check if some items on current page are selected (for indeterminate state)
-  const someCurrentPageSelected = paginatedData.length > 0 &&
-    paginatedData.some(item => selectedRows.has(item.sir_release_id)) &&
+  const someCurrentPageSelected = paginatedData.length > 0 && 
+    paginatedData.some(item => selectedRows.has(item.sir_release_id)) && 
     !allCurrentPageSelected
 
   const toggleRowSelection = (id: number | string) => {
@@ -530,13 +494,13 @@ export function SirReleaseDataTable({
 
   const toggleSelectAll = () => {
     const newSelected = new Set(selectedRows)
-
+    
     if (allCurrentPageSelected) {
       currentPageIds.forEach(id => newSelected.delete(id))
     } else {
       currentPageIds.forEach(id => newSelected.add(id))
     }
-
+    
     setSelectedRows(newSelected)
   }
 
@@ -942,8 +906,8 @@ export function SirReleaseDataTable({
 
         {/* Filter status */}
         {(globalFilter || dateRange) && (
-          <div className="mt-2 text-sm text-gray-500">
-            Showing {sortedAndFilteredData.length} SIR(s)
+          <div className="mt-2 text-sm text-gray-500">data?: any[]; // Add this prop
+            Showing {sortedAndFilteredData.length} SIRs
             {globalFilter && ` matching "${globalFilter}"`}
             {dateRange && ` within date range: ${dateRange}`}
           </div>
@@ -977,7 +941,7 @@ export function SirReleaseDataTable({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
+        
         <div className="text-sm text-gray-600">
           {sortedAndFilteredData.length} record(s) found
         </div>
@@ -1075,7 +1039,7 @@ export function SirReleaseDataTable({
                       const config = priorityConfig[stringValue] || { color: "text-gray-600", bgColor: "bg-gray-100" }
                       return (
                         <TableCell key={col.key} className="px-4 h-12">
-                          <Badge
+                          <Badge 
                             className={`${config.bgColor} ${config.color} border-0 font-medium`}
                             variant="secondary"
                           >
@@ -1163,7 +1127,7 @@ export function SirReleaseDataTable({
           )}
           <span className="ml-2">• {visibleColumns.length} columns visible</span>
         </div>
-
+        
         {/* Enhanced Pagination */}
         <div className="flex items-center gap-1">
           <Button
@@ -1175,13 +1139,13 @@ export function SirReleaseDataTable({
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-
+          
           {/* Smart page number rendering */}
           {(() => {
             const pages: (number | string)[] = [];
             const maxVisiblePages = 5;
             const ellipsis = "...";
-
+            
             if (totalPages <= maxVisiblePages) {
               // Show all pages if total pages is small
               for (let i = 1; i <= totalPages; i++) {
@@ -1190,7 +1154,7 @@ export function SirReleaseDataTable({
             } else {
               // Always show first page
               pages.push(1);
-
+              
               if (currentPage <= 3) {
                 // Near the beginning: 1, 2, 3, 4, ..., last
                 for (let i = 2; i <= 4; i++) {
@@ -1214,7 +1178,7 @@ export function SirReleaseDataTable({
                 pages.push(totalPages);
               }
             }
-
+            
             return pages.map((page, index) => {
               if (page === ellipsis) {
                 return (
@@ -1226,24 +1190,25 @@ export function SirReleaseDataTable({
                   </span>
                 );
               }
-
+              
               return (
                 <Button
                   key={page}
                   size="sm"
                   variant={currentPage === page ? "default" : "outline"}
                   onClick={() => setCurrentPage(page as number)}
-                  className={`min-w-9 h-9 p-0 ${currentPage === page
-                    ? "bg-red-500 text-white hover:bg-red-600 border-red-500"
-                    : "border-gray-300 hover:bg-gray-50"
-                    }`}
+                  className={`min-w-9 h-9 p-0 ${
+                    currentPage === page 
+                      ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
+                      : "border-gray-300 hover:bg-gray-50"
+                  }`}
                 >
                   {page}
                 </Button>
               );
             });
           })()}
-
+          
           <Button
             variant="outline"
             size="sm"
@@ -1282,8 +1247,9 @@ export function SirReleaseDataTable({
                       type="number"
                       value={addFormData.sir_id || ''}
                       onChange={handleAddInputChange}
-                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${validationErrors.sir_id ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.sir_id ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter SIR ID"
                     />
                     {validationErrors.sir_id && (
@@ -1301,8 +1267,9 @@ export function SirReleaseDataTable({
                       id="release_version"
                       value={addFormData.release_version || ''}
                       onChange={handleAddInputChange}
-                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${validationErrors.release_version ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.release_version ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="Enter release version"
                     />
                     {validationErrors.release_version && (
@@ -1337,8 +1304,9 @@ export function SirReleaseDataTable({
                       value={addFormData.bug_severity || ''}
                       onValueChange={(value) => handleAddFormChange('bug_severity', value)}
                     >
-                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${validationErrors.bug_severity ? 'border-red-500' : 'border-gray-300'
-                        }`}>
+                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.bug_severity ? 'border-red-500' : 'border-gray-300'
+                      }`}>
                         <SelectValue placeholder="Select bug severity" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1366,8 +1334,9 @@ export function SirReleaseDataTable({
                       value={addFormData.priority || ''}
                       onValueChange={(value) => handleAddFormChange('priority', value)}
                     >
-                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${validationErrors.priority ? 'border-red-500' : 'border-gray-300'
-                        }`}>
+                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.priority ? 'border-red-500' : 'border-gray-300'
+                      }`}>
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1393,8 +1362,9 @@ export function SirReleaseDataTable({
                       value={addFormData.bug_status || ''}
                       onValueChange={(value) => handleAddFormChange('bug_status', value)}
                     >
-                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${validationErrors.bug_status ? 'border-red-500' : 'border-gray-300'
-                        }`}>
+                      <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                        validationErrors.bug_status ? 'border-red-500' : 'border-gray-300'
+                      }`}>
                         <SelectValue placeholder="Select bug status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1513,8 +1483,9 @@ export function SirReleaseDataTable({
                     value={addFormData.short_desc || ''}
                     onChange={handleAddInputChange}
                     rows={3}
-                    className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none ${validationErrors.short_desc ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                    className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none ${
+                      validationErrors.short_desc ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Enter short description"
                   />
                   {validationErrors.short_desc && (

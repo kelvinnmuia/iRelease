@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sir-release-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards'
-import { SirReleasesChart } from './sirs-releases-chart'
-import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable' // Import the DataTable
-import sirReleaseData from './sir-release-data.json'
-import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
-import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { SirsReleaseFilters } from '../components/sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../components/sirs-per-release/sirs-releases-header'
+import { MapSirsDialog } from '../components/sirs-per-release/map-sirs-dialog'
+import { SirsStatCards } from '../components/sirs-per-release/sirs-stats-cards'
+import { SirReleasesChart } from '../components/sirs-per-release/sirs-releases-chart'
+import { SirReleaseDataTable } from '../components/sirs-per-release/sirs-release-datatable/sirs-releases-datatable'
+import sirReleaseData from '../components/sirs-per-release/sir-release-data.json'
+import { SirReleaseData, ColumnConfig } from '../components/sirs-per-release/sirs-release-datatable/types/sirs-releases-types'
+import { exportToCSV, exportToExcel, exportToJSON } from '../components/sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils'
+import { useColumnVisibility } from '../components/sirs-per-release/sirs-releases-column-visibility'
+import { parseDate, formatDate, dateMatchesSearch } from '../components/sirs-per-release/sirs-release-datatable/utils/sirs-release-date-utils';
 
 export function SirsRelease() {
     // State for filters
@@ -19,10 +21,10 @@ export function SirsRelease() {
     const [selectedReleaseName, setSelectedReleaseName] = useState<string>('')
     const [selectedIterationName, setSelectedIterationName] = useState<string>('')
 
-    // State for selection and counts
+    // State for selection and counts in DataTable
+    const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
     const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
-    const [filteredData, setFilteredData] = useState<SirReleaseData[]>([])
     const [allData, setAllData] = useState<SirReleaseData[]>([])
 
     // Add state to control dialog visibility
@@ -37,7 +39,7 @@ export function SirsRelease() {
     }, [])
 
     // Extract unique release versions and iterations from the JSON data
-    const releaseVersions = React.useMemo(() => {
+    const releaseVersions = useMemo(() => {
         const versions = [...new Set(allData.map(item => item.release_version))]
         return versions.map((version, index) => ({
             id: (index + 1).toString(),
@@ -45,7 +47,7 @@ export function SirsRelease() {
         }))
     }, [allData])
 
-    const iterations = React.useMemo(() => {
+    const iterations = useMemo(() => {
         const uniqueIterations = [...new Set(allData.map(item => item.iteration.toString()))]
         return uniqueIterations.map((iteration, index) => ({
             id: (index + 1).toString(),
@@ -72,8 +74,8 @@ export function SirsRelease() {
         }
     }, [selectedIteration, iterations])
 
-    // Filter data based on selected release and iteration
-    useEffect(() => {
+    // MEMOIZED: Filter data based on selected release and iteration
+    const filteredData = useMemo(() => {
         let filtered = allData
 
         // Filter by release version (using the actual name, not ID)
@@ -89,61 +91,103 @@ export function SirsRelease() {
         // Apply global filter
         if (globalFilter) {
             const searchTerm = globalFilter.toLowerCase()
-            filtered = filtered.filter(item =>
-                item["short_desc"].toLowerCase().includes(searchTerm) ||
-                item["bug_severity"].toLowerCase().includes(searchTerm) ||
-                item["component"].toLowerCase().includes(searchTerm) ||
-                item["assigned_to"].toLowerCase().includes(searchTerm) ||
-                item["bug_status"].toLowerCase().includes(searchTerm) ||
-                item["sir_id"].toString().includes(searchTerm)
-            )
+            filtered = filtered.filter(item => {
+                // Check standard text fields
+                const textMatch =
+                    item.short_desc?.toLowerCase().includes(searchTerm) ||
+                    item.bug_severity?.toLowerCase().includes(searchTerm) ||
+                    item.component?.toLowerCase().includes(searchTerm) ||
+                    item.assigned_to?.toLowerCase().includes(searchTerm) ||
+                    item.bug_status?.toLowerCase().includes(searchTerm) ||
+                    item.resolution?.toLowerCase().includes(searchTerm) ||
+                    item.op_sys?.toLowerCase().includes(searchTerm) ||
+                    item.cf_sirwith?.toLowerCase().includes(searchTerm) ||
+                    item.release_version?.toLowerCase().includes(searchTerm) ||
+                    item.priority?.toLowerCase().includes(searchTerm) ||
+                    // Basic text search on date field
+                    (item.changed_date && item.changed_date.toLowerCase().includes(searchTerm)) ||
+                    item.sir_id?.toString().toLowerCase().includes(searchTerm) ||
+                    item.sir_release_id?.toString().toLowerCase().includes(searchTerm) ||
+                    item.iteration?.toString().toLowerCase().includes(searchTerm)
+
+                // If standard text matches, return true
+                if (textMatch) return true
+
+                // Special handling for date searching
+                if (item.changed_date) {
+                    return dateMatchesSearch(item.changed_date, searchTerm)
+                }
+
+                return false
+            })
         }
 
-        setFilteredData(filtered)
-        setTotalFilteredCount(filtered.length)
+        return filtered
     }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
 
-    // Placeholder callback functions
-     const handleExportCSV = useCallback(() => {
+    // Update total filtered count
+    useEffect(() => {
+        setTotalFilteredCount(filteredData.length)
+    }, [filteredData])
+
+    // Update selected rows count when selection changes
+    useEffect(() => {
+        setSelectedRowsCount(selectedRows.size)
+    }, [selectedRows])
+
+    // Get column visibility hook first (before using visibleColumns)
+    const {
+        columnVisibility,
+        toggleColumnVisibility,
+        resetColumnVisibility,
+        visibleColumns
+    } = useColumnVisibility()
+
+    // Export handlers using useCallback
+    const handleExportCSV = useCallback(() => {
         const success = exportToCSV(filteredData, visibleColumns, selectedRows)
         if (success) {
             console.log('CSV export successful')
-            // You could add toast notification here
-            // toast.success('CSV exported successfully!')
         } else {
             console.error('CSV export failed')
-            // toast.error('Failed to export CSV')
         }
     }, [filteredData, visibleColumns, selectedRows])
 
-    const handleExportExcel = () => {
-        console.log('Export to Excel clicked');
-    }
+    const handleExportExcel = useCallback(() => {
+        const success = exportToExcel(filteredData, visibleColumns, selectedRows)
+        if (success) {
+            console.log('Excel export successful')
+        } else {
+            console.error('Excel export failed')
+        }
+    }, [filteredData, visibleColumns, selectedRows])
 
-    const handleExportJSON = () => {
-        console.log('Export to JSON clicked');
-    }
+    const handleExportJSON = useCallback(() => {
+        const success = exportToJSON(filteredData, visibleColumns, selectedRows)
+        if (success) {
+            console.log('JSON export successful')
+        } else {
+            console.error('JSON export failed')
+        }
+    }, [filteredData, visibleColumns, selectedRows])
 
-    const handleToggleColumns = () => {
-        console.log('Toggle columns clicked');
-    }
+    const handleMapSirs = useCallback(() => {
+        console.log('Map SIRs clicked')
+        setShowMapSirsDialog(true)
+    }, [])
 
-    const handleResetColumns = () => {
-        console.log('Reset columns clicked');
-    }
+    const handleMapSirsSubmit = useCallback((releaseVersion: string, iteration: string, sirs: string) => {
+        console.log('Placeholder - will implement later:', { releaseVersion, iteration, sirs })
+        setShowMapSirsDialog(false)
+    }, [])
 
-    const handleMapSirs = () => {
-        console.log('Map SIRs clicked');
-        setShowMapSirsDialog(true);
-    }
+    // Callback to handle row selection from DataTable
+    const handleRowSelectionChange = useCallback((selectedIds: Set<number>) => {
+        setSelectedRows(selectedIds)
+    }, [])
 
-    const handleMapSirsSubmit = (releaseVersion: string, iteration: string, sirs: string) => {
-        console.log('Placeholder - will implement later:', { releaseVersion, iteration, sirs });
-        setShowMapSirsDialog(false);
-    }
-
-    // Format the filtered data for the DataTable
-    const getFormattedDataForDataTable = () => {
+    // MEMOIZED: Format the filtered data for the DataTable
+    const formattedDataForDataTable = useMemo(() => {
         return filteredData.map(item => ({
             sir_release_id: item.sir_release_id,
             sir_id: item.sir_id,
@@ -160,11 +204,13 @@ export function SirsRelease() {
             short_desc: item.short_desc,
             cf_sirwith: item.cf_sirwith
         }))
-    }
+    }, [filteredData])
 
-    // Check if we have data to show
-    const hasDataToShow = selectedRelease && selectedIteration && filteredData.length > 0
-    const hasFiltersButNoData = selectedRelease && selectedIteration && filteredData.length === 0
+    // Check if we have data to show - UPDATED LOGIC
+    const hasReleaseAndIteration = selectedRelease && selectedIteration;
+    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredData.length > 0;
+    const hasSearch = !!globalFilter;
+    const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -175,31 +221,36 @@ export function SirsRelease() {
             />
 
             <SirReleaseHeader
+                selectedRowsCount={selectedRowsCount}
+                totalFilteredCount={filteredData.length}
                 globalFilter={globalFilter}
-                selectedRelease={selectedReleaseName}
-                selectedIteration={selectedIterationName}
             />
 
             <SirsReleaseFilters
                 selectedRelease={selectedRelease}
                 selectedIteration={selectedIteration}
                 globalFilter={globalFilter}
+                selectedRowsCount={selectedRowsCount}
                 setSelectedRelease={setSelectedRelease}
                 setSelectedIteration={setSelectedIteration}
                 setGlobalFilter={setGlobalFilter}
                 releaseVersions={releaseVersions}
                 iterations={iterations}
-                isDatatableView={activeView === 'datatable'} // Add this line
+                isDatatableView={activeView === 'datatable'}
                 onExportCSV={handleExportCSV}
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
-                onToggleColumns={handleToggleColumns}
-                onResetColumns={handleResetColumns}
                 onMapSirs={handleMapSirs}
+
+                // Add column visibility props
+                columnVisibility={columnVisibility}
+                toggleColumnVisibility={toggleColumnVisibility}
+                resetColumnVisibility={resetColumnVisibility}
             />
 
-            {/* Conditional Rendering based on data state */}
+            {/* Conditional Rendering based on data state - UPDATED */}
             {!selectedRelease || !selectedIteration ? (
+                // Show when no release/iteration is selected
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -228,7 +279,8 @@ export function SirsRelease() {
                         </div>
                     </div>
                 </div>
-            ) : hasFiltersButNoData ? (
+            ) : noDataAndNoSearch ? (
+                // Show when release/iteration has no data AND no search is active
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -261,27 +313,28 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : (
+                // Show tabs/datatable when:
+                // 1. There IS data, OR
+                // 2. User is searching (even with 0 results)
                 <div className="flex flex-col">
                     {/* Tabs for switching between Overview and DataTable */}
                     <div className="px-4 sm:px-6 pt-1">
                         <div className="flex space-x-1 border-b border-gray-200">
                             <button
                                 onClick={() => setActiveView('overview')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                                    activeView === 'overview'
-                                        ? 'text-red-600 border-b-2 border-red-600'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${activeView === 'overview'
+                                    ? 'text-red-600 border-b-2 border-red-600'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
                             >
                                 Overview
                             </button>
                             <button
                                 onClick={() => setActiveView('datatable')}
-                                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                                    activeView === 'datatable'
-                                        ? 'text-red-600 border-b-2 border-red-600'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${activeView === 'datatable'
+                                    ? 'text-red-600 border-b-2 border-red-600'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                    }`}
                             >
                                 Data Table
                             </button>
@@ -294,9 +347,10 @@ export function SirsRelease() {
                             {/* Updated heading */}
                             <h3 className="text-base font-medium text-gray-500 mb-8">
                                 SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
+                                {globalFilter && ` • Matching "${globalFilter}"`}
                             </h3>
 
-                            {/* Cards section */}
+                            {/* Cards section - Will handle empty state internally */}
                             <div className="mb-6">
                                 <SirsStatCards sirReleaseData={filteredData.map(item => ({
                                     ...item,
@@ -304,7 +358,7 @@ export function SirsRelease() {
                                 }))} />
                             </div>
 
-                            {/* Chart section */}
+                            {/* Chart section - Will handle empty state internally */}
                             <SirReleasesChart
                                 sirReleaseData={filteredData.map(item => ({
                                     ...item,
@@ -319,14 +373,20 @@ export function SirsRelease() {
                             {/* DataTable section */}
                             <div className="mb-2">
                                 <h3 className="text-base font-medium text-gray-500">
-                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName} 
+                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
+                                    {globalFilter && ` • Matching "${globalFilter}"`}
                                 </h3>
                             </div>
-                            
-                            {/* Render the DataTable with filtered data */}
-                            <SirReleaseDataTable />
-                            {/* Note: The DataTable has its own internal data, 
-                                but you could pass filtered data as a prop if you want */}
+
+                            {/* Render the DataTable with filtered data - Will show "No results found" if empty */}
+                            <SirReleaseDataTable
+                                filteredData={formattedDataForDataTable}
+                                onRowSelectionChange={handleRowSelectionChange}
+                                visibleColumns={visibleColumns}
+                                columnVisibility={columnVisibility}
+                                toggleColumnVisibility={toggleColumnVisibility}
+                                resetColumnVisibility={resetColumnVisibility}
+                            />
                         </div>
                     )}
                 </div>

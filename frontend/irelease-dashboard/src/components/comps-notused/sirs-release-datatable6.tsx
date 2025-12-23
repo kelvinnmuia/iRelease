@@ -11,9 +11,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
+import { allColumns, ColumnConfig } from '../sirs-per-release/sirs-releases-column-visibility';
+
+// Import JSON data
+import sirReleaseData from "../sirs-per-release/sir-release-data.json"
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{
@@ -34,22 +38,30 @@ interface SirReleaseDataTableProps {
   }>;
 
   onRowSelectionChange?: (selectedIds: Set<number>) => void;
-  visibleColumns?: ColumnConfig[];
+  visibleColumns?: ColumnConfig[]; // Accept visibleColumns prop
   columnVisibility?: Record<string, boolean>;
   toggleColumnVisibility?: (columnKey: string) => void;
   resetColumnVisibility?: () => void;
-  
-  // New props for syncing
-  onGlobalFilterChange?: (filter: string) => void;
-  onDateRangeChange?: (dateRange: string) => void;
-  onExportCSV?: () => void;
-  onExportExcel?: () => void;
-  onExportJSON?: () => void;
-  onDeleteRows?: (ids: Set<number | string>) => void;
-  onAddSIR?: (sirData: any) => void;
-  onEditSIR?: (sirData: any) => void;
-  onDeleteSIR?: (sirId: number | string) => void;
 }
+
+// Define SIR Release columns
+{/*const allColumns = [
+  { key: "sir_release_id", label: "Sir_Rel_Id", width: "w-32" },
+  { key: "sir_id", label: "Sir_Id", width: "w-42" },
+  { key: "release_version", label: "Release Version", width: "w-32" },
+  { key: "iteration", label: "Iteration", width: "w-28" },
+  { key: "changed_date", label: "Changed Date", width: "w-48" },
+  { key: "bug_severity", label: "Bug Severity", width: "w-48" },
+  { key: "priority", label: "Priority", width: "w-32" },
+  { key: "assigned_to", label: "Assigned To", width: "w-32" },
+  { key: "bug_status", label: "Bug Status", width: "w-32" },
+  { key: "resolution", label: "Resolution", width: "w-32" },
+  { key: "component", label: "Component", width: "w-32" },
+  { key: "op_sys", label: "Op Sys", width: "w-32" },
+  { key: "short_desc", label: "Short Description", width: "w-48" },
+  { key: "cf_sirwith", label: "Cf Sir With", width: "w-32" },
+]*/}
+
 
 // Status configurations
 const bugSeverity: Record<string, { color: string; dot: string }> = {
@@ -75,6 +87,7 @@ const resolutionStatus: Record<string, { color: string; dot: string }> = {
   "Working": { color: "text-gray-600", dot: "bg-yellow-500" },
 }
 
+// Priority configuration
 const priorityConfig: Record<string, { color: string; bgColor: string }> = {
   "P1": { color: "text-red-600", bgColor: "bg-red-50" },
   "P2": { color: "text-orange-600", bgColor: "bg-orange-50" },
@@ -82,6 +95,7 @@ const priorityConfig: Record<string, { color: string; bgColor: string }> = {
   "P4": { color: "text-blue-600", bgColor: "bg-blue-50" },
 }
 
+// Options for dropdowns
 const bugSeverityOptions = ["Critical", "Minor", "Major", "Blocker"]
 const bugStatusOptions = ["Open", "In Progress", "Resolved", "Verified", "Closed"]
 const resolutionOptions = ["Unresolved", "Working", "Fixed", "Verified", "Closed"]
@@ -89,6 +103,7 @@ const priorityOptions = ["P1", "P2", "P3", "P4"]
 const componentOptions = ["MV", "MAN", "EXM", "API", "UI", "DB", "ALL"]
 const osOptions = ["All", "Linux", "Windows", "MacOS"]
 
+// TruncatedText component with tooltip for full text
 const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: number }) => {
   const shouldTruncate = text.length > maxLength
   const displayText = shouldTruncate ? `${text.substring(0, maxLength)}...` : text
@@ -118,12 +133,16 @@ const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: num
   )
 }
 
+// Helper function to parse date strings
 const parseDate = (dateStr: string): Date | null => {
   if (!dateStr) return null
+
+  // Handle "YYYY-MM-DD HH:MM:SS" format
   const date = new Date(dateStr)
   return isNaN(date.getTime()) ? null : date
 }
 
+// Helper function to format date as "DD MMM YYYY HH:MM"
 const formatDate = (date: Date): string => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const day = date.getDate().toString().padStart(2, '0')
@@ -131,39 +150,151 @@ const formatDate = (date: Date): string => {
   const year = date.getFullYear()
   const hours = date.getHours().toString().padStart(2, '0')
   const minutes = date.getMinutes().toString().padStart(2, '0')
+
   return `${day} ${month} ${year} ${hours}:${minutes}`
 }
 
+// Helper function to get the latest date for sorting
 const getLatestDate = (item: any): Date | null => {
   return parseDate(item.changed_date)
 }
 
+// Helper function to get the earliest date for sorting
+const getEarliestDate = (item: any): Date | null => {
+  return parseDate(item.changed_date)
+}
+
+// localStorage keys (specific to SIR Releases)
+const COLUMN_VISIBILITY_KEY = 'sir-releases-dashboard-column-visibility';
+const DATE_RANGE_FILTER_KEY = 'sir-releases-dashboard-date-range-filter';
+const DATE_RANGE_DETAILS_KEY = 'sir-releases-dashboard-date-range-details';
+const ITEMS_PER_PAGE_KEY = 'sir-releases-dashboard-items-per-page';
+
+// Load column visibility from localStorage
+const loadColumnVisibility = (): Record<string, boolean> => {
+  try {
+    const saved = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const validatedVisibility: Record<string, boolean> = {};
+      allColumns.forEach(col => {
+        validatedVisibility[col.key] = parsed[col.key] !== undefined ? parsed[col.key] : true;
+      });
+      return validatedVisibility;
+    }
+  } catch (error) {
+    console.warn('Failed to load column visibility from localStorage:', error);
+  }
+  return allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {});
+};
+
+// Save column visibility to localStorage
+const saveColumnVisibility = (visibility: Record<string, boolean>) => {
+  try {
+    localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(visibility));
+  } catch (error) {
+    console.warn('Failed to save column visibility to localStorage:', error);
+  }
+};
+
+// Load date range filter from localStorage
+const loadDateRangeFilter = (): string => {
+  try {
+    const saved = localStorage.getItem(DATE_RANGE_FILTER_KEY);
+    return saved || "";
+  } catch (error) {
+    console.warn('Failed to load date range filter from localStorage:', error);
+    return "";
+  }
+};
+
+// Save date range filter to localStorage
+const saveDateRangeFilter = (dateRange: string) => {
+  try {
+    localStorage.setItem(DATE_RANGE_FILTER_KEY, dateRange);
+  } catch (error) {
+    console.warn('Failed to save date range filter to localStorage:', error);
+  }
+};
+
+// Load date range details from localStorage
+const loadDateRangeDetails = (): { startDate: string; endDate: string } => {
+  try {
+    const saved = localStorage.getItem(DATE_RANGE_DETAILS_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.warn('Failed to load date range details from localStorage:', error);
+  }
+  return { startDate: "", endDate: "" };
+};
+
+// Save date range details to localStorage
+const saveDateRangeDetails = (startDate: string, endDate: string) => {
+  try {
+    localStorage.setItem(DATE_RANGE_DETAILS_KEY, JSON.stringify({ startDate, endDate }));
+  } catch (error) {
+    console.warn('Failed to save date range details to localStorage:', error);
+  }
+};
+
+// Clear date range details from localStorage
+const clearDateRangeDetails = () => {
+  try {
+    localStorage.removeItem(DATE_RANGE_DETAILS_KEY);
+  } catch (error) {
+    console.warn('Failed to clear date range details from localStorage:', error);
+  }
+};
+
+// Load items per page from localStorage
+const loadItemsPerPage = (): number => {
+  try {
+    const saved = localStorage.getItem(ITEMS_PER_PAGE_KEY);
+    return saved ? parseInt(saved) : 10;
+  } catch (error) {
+    console.warn('Failed to load items per page from localStorage:', error);
+    return 10;
+  }
+};
+
+// Save items per page to localStorage
+const saveItemsPerPage = (itemsPerPage: number) => {
+  try {
+    localStorage.setItem(ITEMS_PER_PAGE_KEY, itemsPerPage.toString());
+  } catch (error) {
+    console.warn('Failed to save items per page to localStorage:', error);
+  }
+};
+
+// Main component
+
+// In sirs-releases-datatable.tsx, update the component:
+
 export function SirReleaseDataTable({
-  filteredData: externalFilteredData = [],
+  filteredData: externalFilteredData,
   onRowSelectionChange,
-  visibleColumns: propVisibleColumns,
-  columnVisibility = {},
-  toggleColumnVisibility = () => {},
-  resetColumnVisibility = () => {},
-  
-  // New sync props
-  onGlobalFilterChange,
-  onDateRangeChange,
-  onExportCSV,
-  onExportExcel,
-  onExportJSON,
-  onDeleteRows,
-  onAddSIR,
-  onEditSIR,
-  onDeleteSIR,
+  visibleColumns: propVisibleColumns // Rename prop for clarity
 }: SirReleaseDataTableProps = {}) {
+  const [data, setData] = useState(externalFilteredData || sirReleaseData)
   const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [globalFilter, setGlobalFilter] = useState("")
-  const [dateRange, setDateRange] = useState("")
+  const [dateRange, setDateRange] = useState(() => loadDateRangeFilter())
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
+  const [startDate, setStartDate] = useState(() => {
+    const details = loadDateRangeDetails();
+    return details.startDate;
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const details = loadDateRangeDetails();
+    return details.endDate;
+  });
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
+    () => loadColumnVisibility()
+  )
+  const [columnSearchQuery, setColumnSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [sirToDelete, setSirToDelete] = useState<any>(null)
@@ -189,12 +320,24 @@ export function SirReleaseDataTable({
   })
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage())
   const datePickerRef = useRef<HTMLDivElement>(null)
+
+  // CRITICAL FIX: Sync external filtered data when it changes
+  useEffect(() => {
+    if (externalFilteredData) {
+      setData(externalFilteredData);
+      // Reset to first page when filtered data changes
+      setCurrentPage(1);
+      // Clear selection when data changes
+      setSelectedRows(new Set());
+    }
+  }, [externalFilteredData]);
 
   // Notify parent when selection changes
   useEffect(() => {
     if (onRowSelectionChange) {
+      // Convert selectedRows to Set<number>
       const numericSelectedRows = new Set<number>();
       selectedRows.forEach(id => {
         const numId = Number(id);
@@ -204,23 +347,7 @@ export function SirReleaseDataTable({
       });
       onRowSelectionChange(numericSelectedRows);
     }
-  }, [selectedRows, onRowSelectionChange])
-
-  // Notify parent when global filter changes
-  const handleGlobalFilterChange = (value: string) => {
-    setGlobalFilter(value);
-    if (onGlobalFilterChange) {
-      onGlobalFilterChange(value);
-    }
-  }
-
-  // Notify parent when date range changes
-  const handleDateRangeChange = (range: string) => {
-    setDateRange(range);
-    if (onDateRangeChange) {
-      onDateRangeChange(range);
-    }
-  }
+  }, [selectedRows, onRowSelectionChange]);
 
   // Effect to handle clicks outside the date picker
   useEffect(() => {
@@ -241,6 +368,28 @@ export function SirReleaseDataTable({
     }
   }, [showDatePicker])
 
+  // Save column visibility to localStorage whenever it changes
+  useEffect(() => {
+    saveColumnVisibility(columnVisibility);
+  }, [columnVisibility]);
+
+  // Save date range filter to localStorage whenever it changes
+  useEffect(() => {
+    saveDateRangeFilter(dateRange);
+  }, [dateRange]);
+
+  // Save date range details to localStorage whenever they change
+  useEffect(() => {
+    if (startDate || endDate) {
+      saveDateRangeDetails(startDate, endDate);
+    }
+  }, [startDate, endDate]);
+
+  // Save items per page to localStorage whenever it changes
+  useEffect(() => {
+    saveItemsPerPage(itemsPerPage);
+  }, [itemsPerPage]);
+
   // Initialize edit form when sirToEdit changes
   useEffect(() => {
     if (sirToEdit) {
@@ -251,12 +400,8 @@ export function SirReleaseDataTable({
   // Reset add form when dialog opens/closes
   useEffect(() => {
     if (addDialogOpen) {
-      const newSirId = externalFilteredData.length > 0 
-        ? Math.max(...externalFilteredData.map(item => Number(item.sir_id)), 0) + 1
-        : 1
-      const newSirReleaseId = externalFilteredData.length > 0
-        ? Math.max(...externalFilteredData.map(item => Number(item.sir_release_id)), 0) + 1
-        : 1
+      const newSirId = Math.max(...data.map(item => Number(item.sir_id)), 0) + 1
+      const newSirReleaseId = Math.max(...data.map(item => Number(item.sir_release_id)), 0) + 1
 
       setAddFormData({
         sir_release_id: newSirReleaseId,
@@ -276,17 +421,12 @@ export function SirReleaseDataTable({
       })
       setValidationErrors({})
     }
-  }, [addDialogOpen, externalFilteredData])
+  }, [addDialogOpen, data])
 
   // Reset to first page when items per page changes
   useEffect(() => {
     setCurrentPage(1)
   }, [itemsPerPage])
-
-  // Reset to first page when external filtered data changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [externalFilteredData])
 
   // Get visible columns
   const visibleColumns = propVisibleColumns || allColumns.filter(col => columnVisibility[col.key])
@@ -302,7 +442,6 @@ export function SirReleaseDataTable({
         const formattedEnd = formatDate(end)
         const newDateRange = `${formattedStart} - ${formattedEnd}`
         setDateRange(newDateRange)
-        handleDateRangeChange(newDateRange)
       }
     }
     setShowDatePicker(false)
@@ -315,18 +454,20 @@ export function SirReleaseDataTable({
     setEndDate("")
     setShowDatePicker(false)
     setCurrentPage(1)
-    handleDateRangeChange("")
+
+    saveDateRangeFilter("")
+    clearDateRangeDetails()
   }
 
-  // Filter data based on DataTable's global search and date range
-  const filteredData = externalFilteredData.filter(item => {
-    // DataTable's global text search
+  // Filter data based on global search and date range
+  const filteredData = data.filter(item => {
+    // Global text search
     const matchesGlobalSearch = !globalFilter ||
       Object.values(item).some(value =>
         String(value).toLowerCase().includes(globalFilter.toLowerCase())
       )
 
-    // DataTable's date range filter
+    // Date range filter
     const matchesDateRange = !dateRange || (() => {
       const rangeParts = dateRange.split(' - ')
       if (rangeParts.length !== 2) return true
@@ -399,6 +540,21 @@ export function SirReleaseDataTable({
     setSelectedRows(newSelected)
   }
 
+  const toggleColumnVisibility = (columnKey: string) => {
+    const newVisibility = {
+      ...columnVisibility,
+      [columnKey]: !columnVisibility[columnKey]
+    }
+    setColumnVisibility(newVisibility)
+  }
+
+  const resetColumnVisibility = () => {
+    const defaultVisibility = allColumns.reduce((acc, col) => ({ ...acc, [col.key]: true }), {})
+    setColumnVisibility(defaultVisibility)
+    setColumnSearchQuery("")
+    toast.success("Column visibility reset to default")
+  }
+
   // Edit SIR functions
   const openEditDialog = (sir: any) => {
     setSirToEdit(sir)
@@ -418,8 +574,11 @@ export function SirReleaseDataTable({
   }
 
   const saveEdit = () => {
-    if (sirToEdit && onEditSIR) {
-      onEditSIR(editFormData);
+    if (sirToEdit) {
+      const updatedData = data.map(item =>
+        item.sir_release_id === sirToEdit.id ? { ...editFormData } : item
+      )
+      setData(updatedData)
       setEditDialogOpen(false)
       setSirToEdit(null)
       toast.success(`Successfully updated SIR ${editFormData.sir_id}`)
@@ -456,9 +615,11 @@ export function SirReleaseDataTable({
     handleAddFormChange(id, value)
   }
 
+  // Validation function
   const validateForm = () => {
     const errors: Record<string, string> = {}
 
+    // Required fields validation
     if (!addFormData.sir_id?.toString().trim()) {
       errors.sir_id = "SIR ID is required"
     }
@@ -483,17 +644,28 @@ export function SirReleaseDataTable({
   }
 
   const saveNewSIR = () => {
+    // Validate form before saving
     if (!validateForm()) {
       toast.error("Please fill in all required fields")
       return
     }
 
-    if (onAddSIR) {
-      onAddSIR(addFormData);
-      setAddDialogOpen(false)
-      toast.success(`Successfully created new SIR ${addFormData.sir_id}`)
-      setCurrentPage(1)
+    // Create new SIR object
+    const newSIR = {
+      sir_release_id: Math.max(...data.map(item => Number(item.sir_release_id)), 0) + 1,
+      ...addFormData
     }
+
+    // Add to data
+    const updatedData = [...data, newSIR]
+    setData(updatedData)
+
+    // Close dialog and show success message
+    setAddDialogOpen(false)
+    toast.success(`Successfully created new SIR ${newSIR.sir_id}`)
+
+    // Reset to first page to show the new SIR
+    setCurrentPage(1)
   }
 
   const cancelAdd = () => {
@@ -514,36 +686,116 @@ export function SirReleaseDataTable({
   }
 
   const confirmBulkDelete = () => {
-    if (onDeleteRows) {
-      onDeleteRows(selectedRows);
-      setSelectedRows(new Set())
-      toast.success(`Successfully deleted ${selectedRows.size} SIR(s)`)
-      setBulkDeleteDialogOpen(false)
-      setCurrentPage(1)
-    }
+    // Remove selected SIRs from data
+    const updatedData = data.filter(item => !selectedRows.has(item.sir_release_id))
+    setData(updatedData)
+
+    // Clear selection
+    setSelectedRows(new Set())
+
+    // Show success toast
+    toast.success(`Successfully deleted ${selectedRows.size} SIR(s)`)
+
+    // Close dialog
+    setBulkDeleteDialogOpen(false)
+
+    // Reset to first page
+    setCurrentPage(1)
   }
 
-  // Export functions - Use parent's export functions if provided
-  const handleExportCSV = () => {
-    if (onExportCSV) {
-      onExportCSV();
-    }
+  // Export functions
+  const exportToCSV = () => {
+    const dataToExport = selectedRows.size > 0
+      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
+      : sortedAndFilteredData
+
+    // Filter data to only include visible columns
+    const filteredDataForExport = dataToExport.map(item => {
+      const filteredItem: any = {}
+      visibleColumns.forEach(col => {
+        filteredItem[col.label] = item[col.key as keyof typeof item]
+      })
+      return filteredItem
+    })
+
+    const csv = Papa.unparse(filteredDataForExport, {
+      header: true
+    })
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `sir-release-export-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success("CSV exported successfully!")
   }
 
-  const handleExportExcel = () => {
-    if (onExportExcel) {
-      onExportExcel();
-    }
+  const exportToExcel = () => {
+    const dataToExport = selectedRows.size > 0
+      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
+      : sortedAndFilteredData
+
+    // Filter data to only include visible columns
+    const filteredDataForExport = dataToExport.map(item => {
+      const filteredItem: any = {}
+      visibleColumns.forEach(col => {
+        filteredItem[col.label] = item[col.key as keyof typeof item]
+      })
+      return filteredItem
+    })
+
+    const worksheet = XLSX.utils.json_to_sheet(filteredDataForExport)
+    const workbook = XLSX.utils.book_new()
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'SIR Releases')
+
+    // Set column widths
+    const cols = visibleColumns.map((col) => ({ wch: Math.max(col.label.length, 15) }))
+    worksheet['!cols'] = cols
+
+    XLSX.writeFile(workbook, `sir-release-export-${new Date().toISOString().split('T')[0]}.xlsx`)
+
+    toast.success("Excel file exported successfully!")
   }
 
-  const handleExportJSON = () => {
-    if (onExportJSON) {
-      onExportJSON();
-    }
+  const exportToJSON = () => {
+    const dataToExport = selectedRows.size > 0
+      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
+      : sortedAndFilteredData
+
+    // Filter data to only include visible columns
+    const filteredDataForExport = dataToExport.map(item => {
+      const filteredItem: any = {}
+      visibleColumns.forEach(col => {
+        filteredItem[col.label] = item[col.key as keyof typeof item]
+      })
+      return filteredItem
+    })
+
+    const json = JSON.stringify(filteredDataForExport, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `sir-release-export-${new Date().toISOString().split('T')[0]}.json`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success("JSON exported successfully!")
   }
 
   // Export single SIR to Excel
   const exportSingleSIR = (sir: any) => {
+    // Filter data to only include visible columns
     const filteredSIR = visibleColumns.reduce((acc, col) => {
       acc[col.label] = sir[col.key as keyof typeof sir];
       return acc;
@@ -551,10 +803,14 @@ export function SirReleaseDataTable({
 
     const worksheet = XLSX.utils.json_to_sheet([filteredSIR])
     const workbook = XLSX.utils.book_new()
+
     XLSX.utils.book_append_sheet(workbook, worksheet, 'SIR Details')
+
+    // Set column widths
     const cols = visibleColumns.map(col => ({ wch: Math.max(col.label.length, 15) }))
     worksheet['!cols'] = cols
     XLSX.writeFile(workbook, `sir-${sir.sir_id}-${new Date().toISOString().split('T')[0]}.xlsx`)
+
     toast.success(`SIR ${sir.sir_id} exported successfully!`)
   }
 
@@ -565,9 +821,14 @@ export function SirReleaseDataTable({
   }
 
   const confirmDelete = () => {
-    if (sirToDelete && onDeleteSIR) {
-      onDeleteSIR(sirToDelete.sir_release_id)
+    if (sirToDelete) {
+      // Remove the SIR from data
+      const updatedData = data.filter(item => item.sir_release_id !== sirToDelete.sir_release_id)
+      setData(updatedData)
+
+      // Show success toast
       toast.success(`Successfully deleted SIR ${sirToDelete.sir_release_id}`)
+      // Close dialog
       setDeleteDialogOpen(false)
       setSirToDelete(null)
     }
@@ -589,49 +850,15 @@ export function SirReleaseDataTable({
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase().replace('_', ' ');
   }
 
-  // Toggle sort order
-  const toggleSortOrder = () => {
-    if (sortOrder === "newest") {
-      setSortOrder("oldest")
-    } else if (sortOrder === "oldest") {
-      setSortOrder(null)
-    } else {
-      setSortOrder("newest")
-    }
-  }
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header - Light Gray Background */}
       <div className="bg-gray-50 border-b border-gray-200 p-6">
         {/* Enhanced Responsive Controls */}
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-          {/* Left Section - Search */}
-          <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:max-w-2xl">
-            {/* Search Input */}
-            <div className="flex-1 min-w-0">
-              <Input
-                placeholder="Search within table..."
-                value={globalFilter}
-                onChange={(e) => handleGlobalFilterChange(e.target.value)}
-                className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 border-gray-300"
-              />
-            </div>
-          </div>
-
-          {/* Right Section - Date Range, Sort, and Delete Button */}
+          {/* Right Section - Date Range and Delete Button */}
           <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
             <div className="flex gap-2 flex-1 md:flex-none">
-              {/* Sort Button */}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={toggleSortOrder}
-                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 gap-2"
-              >
-                {sortOrder === "newest" ? "Newest First" : sortOrder === "oldest" ? "Oldest First" : "Sort by Date"}
-              </Button>
-
               {/* Date Range - Increased width for better date display */}
               <div className="relative flex-1 md:flex-none md:w-56 lg:w-64" ref={datePickerRef}>
                 <div
@@ -691,17 +918,17 @@ export function SirReleaseDataTable({
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Delete Button */}
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32"
-                  onClick={openBulkDeleteDialog}
-                >
-                  - Delete
-                </Button>
-              </div>
+            {/* Delete Button */}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32 lg:-mr-6"
+                onClick={openBulkDeleteDialog}
+              >
+                - Delete
+              </Button>
             </div>
           </div>
         </div>
@@ -931,8 +1158,8 @@ export function SirReleaseDataTable({
       <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="text-sm text-gray-600 text-center sm:text-left">
           Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
-          {(globalFilter || dateRange) && (
-            <span className="ml-2">(filtered from {externalFilteredData.length} records)</span>
+          {globalFilter && (
+            <span className="ml-2">(filtered from {data.length} total records)</span>
           )}
           <span className="ml-2">• {visibleColumns.length} columns visible</span>
         </div>

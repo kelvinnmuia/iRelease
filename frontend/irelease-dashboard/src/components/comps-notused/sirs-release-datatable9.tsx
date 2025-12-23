@@ -11,13 +11,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "./utils/sirs-release-export-utils"
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
+import { allColumns, ColumnConfig } from '../sirs-per-release/sirs-releases-column-visibility';
 
 // Import JSON data
-import sirReleaseData from "../sir-release-data.json"
+import sirReleaseData from "../sirs-per-release/sir-release-data.json"
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{
@@ -38,30 +38,17 @@ interface SirReleaseDataTableProps {
   }>;
 
   onRowSelectionChange?: (selectedIds: Set<number>) => void;
-  visibleColumns?: ColumnConfig[]; // Accept visibleColumns prop
+  visibleColumns?: ColumnConfig[];
   columnVisibility?: Record<string, boolean>;
   toggleColumnVisibility?: (columnKey: string) => void;
   resetColumnVisibility?: () => void;
+  
+  // ADD THESE:
+  globalFilter?: string;
+  dateRange?: string;
+  startDate?: string;
+  endDate?: string;
 }
-
-// Define SIR Release columns
-{/*const allColumns = [
-  { key: "sir_release_id", label: "Sir_Rel_Id", width: "w-32" },
-  { key: "sir_id", label: "Sir_Id", width: "w-42" },
-  { key: "release_version", label: "Release Version", width: "w-32" },
-  { key: "iteration", label: "Iteration", width: "w-28" },
-  { key: "changed_date", label: "Changed Date", width: "w-48" },
-  { key: "bug_severity", label: "Bug Severity", width: "w-48" },
-  { key: "priority", label: "Priority", width: "w-32" },
-  { key: "assigned_to", label: "Assigned To", width: "w-32" },
-  { key: "bug_status", label: "Bug Status", width: "w-32" },
-  { key: "resolution", label: "Resolution", width: "w-32" },
-  { key: "component", label: "Component", width: "w-32" },
-  { key: "op_sys", label: "Op Sys", width: "w-32" },
-  { key: "short_desc", label: "Short Description", width: "w-48" },
-  { key: "cf_sirwith", label: "Cf Sir With", width: "w-32" },
-]*/}
-
 
 // Status configurations
 const bugSeverity: Record<string, { color: string; dot: string }> = {
@@ -269,28 +256,41 @@ const saveItemsPerPage = (itemsPerPage: number) => {
 };
 
 // Main component
-
-// In sirs-releases-datatable.tsx, update the component:
-
 export function SirReleaseDataTable({
   filteredData: externalFilteredData,
   onRowSelectionChange,
-  visibleColumns: propVisibleColumns // Rename prop for clarity
+  visibleColumns: propVisibleColumns,
+  
+  // Use the passed filter props
+  globalFilter: externalGlobalFilter = "",
+  dateRange: externalDateRange = "",
+  startDate: externalStartDate = "",
+  endDate: externalEndDate = "",
 }: SirReleaseDataTableProps = {}) {
   const [data, setData] = useState(externalFilteredData || sirReleaseData)
   const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
-  const [globalFilter, setGlobalFilter] = useState("")
-  const [dateRange, setDateRange] = useState(() => loadDateRangeFilter())
+  
+  // Use the props directly for filters (don't use local state)
+  const globalFilter = externalGlobalFilter;
+  const dateRange = externalDateRange;
+  
+  // Keep local state for date picker UI only
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const [startDate, setStartDate] = useState(() => {
+  
+  // Use props for start/end dates or fall back to localStorage
+  const [localStartDate, setLocalStartDate] = useState(() => {
+    if (externalStartDate) return externalStartDate;
     const details = loadDateRangeDetails();
     return details.startDate;
   });
-  const [endDate, setEndDate] = useState(() => {
+  
+  const [localEndDate, setLocalEndDate] = useState(() => {
+    if (externalEndDate) return externalEndDate;
     const details = loadDateRangeDetails();
     return details.endDate;
   });
+  
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(
     () => loadColumnVisibility()
   )
@@ -327,9 +327,7 @@ export function SirReleaseDataTable({
   useEffect(() => {
     if (externalFilteredData) {
       setData(externalFilteredData);
-      // Reset to first page when filtered data changes
       setCurrentPage(1);
-      // Clear selection when data changes
       setSelectedRows(new Set());
     }
   }, [externalFilteredData]);
@@ -337,7 +335,6 @@ export function SirReleaseDataTable({
   // Notify parent when selection changes
   useEffect(() => {
     if (onRowSelectionChange) {
-      // Convert selectedRows to Set<number>
       const numericSelectedRows = new Set<number>();
       selectedRows.forEach(id => {
         const numId = Number(id);
@@ -375,15 +372,17 @@ export function SirReleaseDataTable({
 
   // Save date range filter to localStorage whenever it changes
   useEffect(() => {
-    saveDateRangeFilter(dateRange);
-  }, [dateRange]);
+    if (!externalDateRange && dateRange) {
+      saveDateRangeFilter(dateRange);
+    }
+  }, [dateRange, externalDateRange]);
 
   // Save date range details to localStorage whenever they change
   useEffect(() => {
-    if (startDate || endDate) {
-      saveDateRangeDetails(startDate, endDate);
+    if (localStartDate || localEndDate) {
+      saveDateRangeDetails(localStartDate, localEndDate);
     }
-  }, [startDate, endDate]);
+  }, [localStartDate, localEndDate]);
 
   // Save items per page to localStorage whenever it changes
   useEffect(() => {
@@ -433,15 +432,16 @@ export function SirReleaseDataTable({
 
   // Apply date range when both dates are selected
   const applyDateRange = () => {
-    if (startDate && endDate) {
-      const start = parseDate(startDate)
-      const end = parseDate(endDate)
+    if (localStartDate && localEndDate) {
+      const start = parseDate(localStartDate)
+      const end = parseDate(localEndDate)
 
       if (start && end) {
         const formattedStart = formatDate(start)
         const formattedEnd = formatDate(end)
-        const newDateRange = `${formattedStart} - ${formattedEnd}`
-        setDateRange(newDateRange)
+        // Note: Since dateRange is now controlled by parent via props,
+        // we can't update it directly here. The parent should handle date range changes.
+        toast.success(`Date range applied: ${formattedStart} - ${formattedEnd}`);
       }
     }
     setShowDatePicker(false)
@@ -449,25 +449,31 @@ export function SirReleaseDataTable({
 
   // Clear date range
   const clearDateRange = () => {
-    setDateRange("")
-    setStartDate("")
-    setEndDate("")
-    setShowDatePicker(false)
-    setCurrentPage(1)
-
-    saveDateRangeFilter("")
-    clearDateRangeDetails()
+    // Note: Since dateRange is controlled by parent, we can't clear it directly
+    // Clear local date picker state only
+    setLocalStartDate("");
+    setLocalEndDate("");
+    setShowDatePicker(false);
+    setCurrentPage(1);
+    
+    // Only clear localStorage if we're not using parent-controlled dates
+    if (!externalDateRange && !externalStartDate && !externalEndDate) {
+      saveDateRangeFilter("");
+      clearDateRangeDetails();
+    }
+    
+    toast.success("Date range cleared");
   }
 
   // Filter data based on global search and date range
   const filteredData = data.filter(item => {
-    // Global text search
+    // Global text search - use the prop value
     const matchesGlobalSearch = !globalFilter ||
       Object.values(item).some(value =>
         String(value).toLowerCase().includes(globalFilter.toLowerCase())
       )
 
-    // Date range filter
+    // Date range filter - use the prop value
     const matchesDateRange = !dateRange || (() => {
       const rangeParts = dateRange.split(' - ')
       if (rangeParts.length !== 2) return true
@@ -703,11 +709,11 @@ export function SirReleaseDataTable({
     setCurrentPage(1)
   }
 
-  // Export functions
+  // Export functions - FIXED to use filteredData which includes all filters
   const exportToCSV = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
-      : sortedAndFilteredData
+      ? filteredData.filter(item => selectedRows.has(item.sir_release_id))
+      : filteredData
 
     // Filter data to only include visible columns
     const filteredDataForExport = dataToExport.map(item => {
@@ -738,8 +744,8 @@ export function SirReleaseDataTable({
 
   const exportToExcel = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
-      : sortedAndFilteredData
+      ? filteredData.filter(item => selectedRows.has(item.sir_release_id))
+      : filteredData
 
     // Filter data to only include visible columns
     const filteredDataForExport = dataToExport.map(item => {
@@ -766,8 +772,8 @@ export function SirReleaseDataTable({
 
   const exportToJSON = () => {
     const dataToExport = selectedRows.size > 0
-      ? sortedAndFilteredData.filter(item => selectedRows.has(item.sir_release_id))
-      : sortedAndFilteredData
+      ? filteredData.filter(item => selectedRows.has(item.sir_release_id))
+      : filteredData
 
     // Filter data to only include visible columns
     const filteredDataForExport = dataToExport.map(item => {
@@ -882,8 +888,8 @@ export function SirReleaseDataTable({
                         <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                         <Input
                           type="date"
-                          value={startDate}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
+                          value={localStartDate}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setLocalStartDate(e.target.value)}
                           className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
                         />
                       </div>
@@ -891,15 +897,15 @@ export function SirReleaseDataTable({
                         <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                         <Input
                           type="date"
-                          value={endDate}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
+                          value={localEndDate}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setLocalEndDate(e.target.value)}
                           className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
                         />
                       </div>
                       <div className="flex gap-2 pt-2">
                         <Button
                           onClick={applyDateRange}
-                          disabled={!startDate || !endDate}
+                          disabled={!localStartDate || !localEndDate}
                           className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50"
                           variant="outline"
                           size="sm"
@@ -936,14 +942,14 @@ export function SirReleaseDataTable({
         {/* Selected rows info */}
         {selectedRows.size > 0 && (
           <div className="mt-4 text-sm text-gray-600">
-            {selectedRows.size} of {sortedAndFilteredData.length} row(s) selected
+            {selectedRows.size} of {filteredData.length} row(s) selected
           </div>
         )}
 
         {/* Filter status */}
         {(globalFilter || dateRange) && (
           <div className="mt-2 text-sm text-gray-500">
-            Showing {sortedAndFilteredData.length} SIR(s)
+            Showing {filteredData.length} SIR(s)
             {globalFilter && ` matching "${globalFilter}"`}
             {dateRange && ` within date range: ${dateRange}`}
           </div>
@@ -979,7 +985,7 @@ export function SirReleaseDataTable({
         </div>
 
         <div className="text-sm text-gray-600">
-          {sortedAndFilteredData.length} record(s) found
+          {filteredData.length} record(s) found
         </div>
       </div>
 

@@ -1,27 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
+import React, { useState, useEffect, useCallback } from 'react'
+import { SirsReleaseFilters } from '../sirs-per-release/sir-release-filters'
 import { SirReleaseHeader } from './sir-release-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards'
-import sirReleaseData from './sir-release-data.json'
-import { SirReleasesChart } from './sirs-releases-chart'
-
-interface SirReleaseData {
-    "sir-release-id": number;
-    "sir-id": number;
-    "release_version": string;
-    "iteration": number;
-    "changeddate": string;
-    "bug_severity": string;
-    "priority": string;
-    "assigned_to": string;
-    "bug_status": string;
-    "resolution": string;
-    "component": string;
-    "op_sys": string;
-    "short_desc": string;
-    "cf_sirwith": string;
-}
+import { MapSirsDialog } from '../sirs-per-release/map-sirs-dialog'
+import { SirsStatCards } from '../sirs-per-release/sirs-stats-cards'
+import { SirReleasesChart } from '../sirs-per-release/sirs-releases-chart'
+import { SirReleaseDataTable } from '../sirs-per-release/sirs-release-datatable/sirs-releases-datatable' // Import the DataTable
+import sirReleaseData from '../sirs-per-release/sir-release-data.json'
+import { SirReleaseData, ColumnConfig } from '../sirs-per-release/sirs-release-datatable/types/sirs-releases-types'
+import { exportToCSV, exportToExcel, exportToJSON } from '../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils'
 
 export function SirsRelease() {
     // State for filters
@@ -39,8 +25,11 @@ export function SirsRelease() {
     const [filteredData, setFilteredData] = useState<SirReleaseData[]>([])
     const [allData, setAllData] = useState<SirReleaseData[]>([])
 
-    // Add this ONE line - state to control dialog visibility
+    // Add state to control dialog visibility
     const [showMapSirsDialog, setShowMapSirsDialog] = useState<boolean>(false)
+
+    // Add state to control tab/view
+    const [activeView, setActiveView] = useState<'overview' | 'datatable'>('overview')
 
     // Load data from JSON on component mount
     useEffect(() => {
@@ -106,7 +95,7 @@ export function SirsRelease() {
                 item["component"].toLowerCase().includes(searchTerm) ||
                 item["assigned_to"].toLowerCase().includes(searchTerm) ||
                 item["bug_status"].toLowerCase().includes(searchTerm) ||
-                item["sir-id"].toString().includes(searchTerm)
+                item["sir_id"].toString().includes(searchTerm)
             )
         }
 
@@ -114,15 +103,18 @@ export function SirsRelease() {
         setTotalFilteredCount(filtered.length)
     }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
 
-    // Update counts whenever filters change
-    const updateCounts = () => {
-        console.log(`Filtered count: ${filteredData.length}`)
-    }
-
     // Placeholder callback functions
-    const handleExportCSV = () => {
-        console.log('Export to CSV clicked');
-    }
+     const handleExportCSV = useCallback(() => {
+        const success = exportToCSV(filteredData, visibleColumns, selectedRows)
+        if (success) {
+            console.log('CSV export successful')
+            // You could add toast notification here
+            // toast.success('CSV exported successfully!')
+        } else {
+            console.error('CSV export failed')
+            // toast.error('Failed to export CSV')
+        }
+    }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportExcel = () => {
         console.log('Export to Excel clicked');
@@ -150,10 +142,25 @@ export function SirsRelease() {
         setShowMapSirsDialog(false);
     }
 
-    // Handle filter changes to update counts
-    React.useEffect(() => {
-        updateCounts();
-    }, [globalFilter, selectedRelease, selectedIteration]);
+    // Format the filtered data for the DataTable
+    const getFormattedDataForDataTable = () => {
+        return filteredData.map(item => ({
+            sir_release_id: item.sir_release_id,
+            sir_id: item.sir_id,
+            release_version: item.release_version,
+            iteration: item.iteration.toString(),
+            changed_date: item.changed_date,
+            bug_severity: item.bug_severity,
+            priority: item.priority,
+            assigned_to: item.assigned_to,
+            bug_status: item.bug_status,
+            resolution: item.resolution,
+            component: item.component,
+            op_sys: item.op_sys,
+            short_desc: item.short_desc,
+            cf_sirwith: item.cf_sirwith
+        }))
+    }
 
     // Check if we have data to show
     const hasDataToShow = selectedRelease && selectedIteration && filteredData.length > 0
@@ -182,6 +189,7 @@ export function SirsRelease() {
                 setGlobalFilter={setGlobalFilter}
                 releaseVersions={releaseVersions}
                 iterations={iterations}
+                isDatatableView={activeView === 'datatable'} // Add this line
                 onExportCSV={handleExportCSV}
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
@@ -253,24 +261,74 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : (
-                <div className="px-4 sm:px-6 pt-4 sm:pt-3 pb-4 sm:pb-6">
-                    {/* Updated heading */}
-                    <h3 className="text-base font-medium text-gray-600 mb-8">
-                        SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
-                    </h3>
-
-                    {/* Cards section */}
-                    <div className="mb-6">
-                        <SirsStatCards sirReleaseData={filteredData} />
+                <div className="flex flex-col">
+                    {/* Tabs for switching between Overview and DataTable */}
+                    <div className="px-4 sm:px-6 pt-1">
+                        <div className="flex space-x-1 border-b border-gray-200">
+                            <button
+                                onClick={() => setActiveView('overview')}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeView === 'overview'
+                                        ? 'text-red-600 border-b-2 border-red-600'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Overview
+                            </button>
+                            <button
+                                onClick={() => setActiveView('datatable')}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeView === 'datatable'
+                                        ? 'text-red-600 border-b-2 border-red-600'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Data Table
+                            </button>
+                        </div>
                     </div>
 
+                    {/* Content based on active view */}
+                    {activeView === 'overview' ? (
+                        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
+                            {/* Updated heading */}
+                            <h3 className="text-base font-medium text-gray-500 mb-8">
+                                SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
+                            </h3>
 
-                    {/* Chart section */}
-                    <SirReleasesChart
-                        sirReleaseData={filteredData}
-                        selectedReleaseName={selectedReleaseName}
-                        selectedIterationName={selectedIterationName}
-                    />
+                            {/* Cards section */}
+                            <div className="mb-6">
+                                <SirsStatCards sirReleaseData={filteredData.map(item => ({
+                                    ...item,
+                                    sir_release_id: Number(item.sir_release_id)
+                                }))} />
+                            </div>
+
+                            {/* Chart section */}
+                            <SirReleasesChart
+                                sirReleaseData={filteredData.map(item => ({
+                                    ...item,
+                                    sir_release_id: Number(item.sir_release_id)
+                                }))}
+                                selectedReleaseName={selectedReleaseName}
+                                selectedIterationName={selectedIterationName}
+                            />
+                        </div>
+                    ) : (
+                        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
+                            {/* DataTable section */}
+                            <div className="mb-2">
+                                <h3 className="text-base font-medium text-gray-500">
+                                    SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName} 
+                                </h3>
+                            </div>
+                            
+                            {/* Render the DataTable with filtered data */}
+                            <SirReleaseDataTable />
+                            {/* Note: The DataTable has its own internal data, 
+                                but you could pass filtered data as a prop if you want */}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

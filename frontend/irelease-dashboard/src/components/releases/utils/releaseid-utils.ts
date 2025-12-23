@@ -1,4 +1,4 @@
-import { Release } from './../types/releases';
+import { Release } from '../types/releases';
 
 export const generateReleaseId = (data: Release[]): string => {
   const currentYear = new Date().getFullYear();

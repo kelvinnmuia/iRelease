@@ -1,7 +1,7 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import { SirReleaseData } from './../types/sirs-releases-types';
-import { ColumnConfig } from './../types/sirs-releases-types';
+import { SirReleaseData } from '../sirs-per-release/sirs-release-datatable/types/sirs-releases-types';
+import { ColumnConfig } from '../sirs-per-release/sirs-release-datatable/types/sirs-releases-types';
 
 // Helper function to transform SirRelease data for export
 const transformSirReleaseForExport = (sir_release_data: SirReleaseData, visibleColumns: ColumnConfig[]) => {

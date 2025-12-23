@@ -11,32 +11,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "./utils/sirs-release-export-utils"
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleSirRelease } from "../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 
 // Import JSON data
-import sirReleaseData from "../sir-release-data.json"
-
-interface SirReleaseDataTableProps {
-  filteredData?: Array<{
-    sir_release_id: number | string;
-    sir_id: number | string;
-    release_version: string;
-    iteration: string;
-    changed_date: string;
-    bug_severity: string;
-    priority: string;
-    assigned_to: string;
-    bug_status: string;
-    resolution: string;
-    component: string;
-    op_sys: string;
-    short_desc: string;
-    cf_sirwith: string;
-  }>;
-  onRowSelectionChange?: (selectedIds: Set<number | string>) => void;
-}
+import sirReleaseData from "../sirs-per-release/sir-release-data.json"
 
 // Define SIR Release columns
 const allColumns = [
@@ -263,10 +243,7 @@ const saveItemsPerPage = (itemsPerPage: number) => {
 };
 
 // Main component
-export function SirReleaseDataTable({ 
-  filteredData: externalFilteredData, 
-  onRowSelectionChange 
-}: SirReleaseDataTableProps = {}) {
+export function SirReleaseDataTable() {
   const [data, setData] = useState(sirReleaseData)
   const [selectedRows, setSelectedRows] = useState<Set<number | string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
@@ -906,7 +883,7 @@ export function SirReleaseDataTable({
 
         {/* Filter status */}
         {(globalFilter || dateRange) && (
-          <div className="mt-2 text-sm text-gray-500">data?: any[]; // Add this prop
+          <div className="mt-2 text-sm text-gray-500">
             Showing {sortedAndFilteredData.length} SIRs
             {globalFilter && ` matching "${globalFilter}"`}
             {dateRange && ` within date range: ${dateRange}`}

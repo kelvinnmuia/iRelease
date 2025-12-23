@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { SirsReleaseFilters } from '../components/sirs-per-release/sir-release-filters'
-import { SirReleaseHeader } from '../components/sirs-per-release/sir-release-header'
+import { SirReleaseHeader } from '../components/comps-notused/sir-release-header'
 import { MapSirsDialog } from '../components/sirs-per-release/map-sirs-dialog' // Import the dialog
 
 export function SirsRelease() {

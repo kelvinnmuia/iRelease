@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sirs-releases-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards'
-import { SirReleasesChart } from './sirs-releases-chart'
-import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable'
-import sirReleaseData from './sir-release-data.json'
-import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
-import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
-import { useColumnVisibility } from './sirs-releases-column-visibility'
-import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils'
+import { SirsReleaseFilters } from '../components/sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../components/sirs-per-release/sirs-releases-header'
+import { MapSirsDialog } from '../components/sirs-per-release/map-sirs-dialog'
+import { SirsStatCards } from '../components/sirs-per-release/sirs-stats-cards'
+import { SirReleasesChart } from '../components/sirs-per-release/sirs-releases-chart'
+import { SirReleaseDataTable } from '../components/sirs-per-release/sirs-release-datatable/sirs-releases-datatable'
+import sirReleaseData from '../components/sirs-per-release/sir-release-data.json'
+import { SirReleaseData, ColumnConfig } from '../components/sirs-per-release/sirs-release-datatable/types/sirs-releases-types'
+import { exportToCSV, exportToExcel, exportToJSON } from '../components/sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils'
+import { useColumnVisibility } from '../components/sirs-per-release/sirs-releases-column-visibility'
+import { parseDate, formatDate, dateMatchesSearch } from '../components/sirs-per-release/sirs-release-datatable/utils/sirs-release-date-utils'
 import { toast } from "sonner"
 
 export function SirsRelease() {
@@ -17,6 +17,7 @@ export function SirsRelease() {
     const [selectedRelease, setSelectedRelease] = useState<string>('')
     const [selectedIteration, setSelectedIteration] = useState<string>('')
     const [globalFilter, setGlobalFilter] = useState<string>('')
+    const [dateRange, setDateRange] = useState<string>('')
 
     // Add these states to track the actual release/iteration names
     const [selectedReleaseName, setSelectedReleaseName] = useState<string>('')
@@ -126,10 +127,29 @@ export function SirsRelease() {
         return filtered
     }, [selectedReleaseName, selectedIterationName, globalFilter, allData])
 
+    // Apply date range filter to the data
+    const filteredDataWithDateRange = useMemo(() => {
+        if (!dateRange) return filteredData
+
+        const rangeParts = dateRange.split(' - ')
+        if (rangeParts.length !== 2) return filteredData
+
+        const [startStr, endStr] = rangeParts
+        const startDate = parseDate(startStr.trim())
+        const endDate = parseDate(endStr.trim())
+
+        if (!startDate || !endDate) return filteredData
+
+        return filteredData.filter(item => {
+            const itemDate = parseDate(item.changed_date)
+            return itemDate && itemDate >= startDate && itemDate <= endDate
+        })
+    }, [filteredData, dateRange])
+
     // Update total filtered count
     useEffect(() => {
-        setTotalFilteredCount(filteredData.length)
-    }, [filteredData])
+        setTotalFilteredCount(filteredDataWithDateRange.length)
+    }, [filteredDataWithDateRange])
 
     // Update selected rows count when selection changes
     useEffect(() => {
@@ -144,33 +164,63 @@ export function SirsRelease() {
         visibleColumns
     } = useColumnVisibility()
 
-    // Export handlers using useCallback - FIXED WITH TOAST
+    // Export handlers - FIXED: Now properly handles selected rows
     const handleExportCSV = useCallback(() => {
-        const success = exportToCSV(filteredData, visibleColumns, selectedRows)
+        // Get the data to export
+        let dataToExport = filteredDataWithDateRange
+        
+        // If there are selected rows, filter to only include selected rows
+        if (selectedRows.size > 0) {
+            dataToExport = filteredDataWithDateRange.filter(item => 
+                selectedRows.has(Number(item.sir_release_id))
+            )
+        }
+        
+        const success = exportToCSV(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("CSV exported successfully!")
         } else {
             toast.error("Failed to export CSV")
         }
-    }, [filteredData, visibleColumns, selectedRows])
+    }, [filteredDataWithDateRange, visibleColumns, selectedRows])
 
     const handleExportExcel = useCallback(() => {
-        const success = exportToExcel(filteredData, visibleColumns, selectedRows)
+        // Get the data to export
+        let dataToExport = filteredDataWithDateRange
+        
+        // If there are selected rows, filter to only include selected rows
+        if (selectedRows.size > 0) {
+            dataToExport = filteredDataWithDateRange.filter(item => 
+                selectedRows.has(Number(item.sir_release_id))
+            )
+        }
+        
+        const success = exportToExcel(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("Excel file exported successfully!")
         } else {
             toast.error("Failed to export Excel file")
         }
-    }, [filteredData, visibleColumns, selectedRows])
+    }, [filteredDataWithDateRange, visibleColumns, selectedRows])
 
     const handleExportJSON = useCallback(() => {
-        const success = exportToJSON(filteredData, visibleColumns, selectedRows)
+        // Get the data to export
+        let dataToExport = filteredDataWithDateRange
+        
+        // If there are selected rows, filter to only include selected rows
+        if (selectedRows.size > 0) {
+            dataToExport = filteredDataWithDateRange.filter(item => 
+                selectedRows.has(Number(item.sir_release_id))
+            )
+        }
+        
+        const success = exportToJSON(dataToExport, visibleColumns, selectedRows)
         if (success) {
             toast.success("JSON exported successfully!")
         } else {
             toast.error("Failed to export JSON")
         }
-    }, [filteredData, visibleColumns, selectedRows])
+    }, [filteredDataWithDateRange, visibleColumns, selectedRows])
 
     const handleMapSirs = useCallback(() => {
         console.log('Map SIRs clicked')
@@ -187,9 +237,42 @@ export function SirsRelease() {
         setSelectedRows(selectedIds)
     }, [])
 
+    // Handle date range change from DataTable
+    const handleDateRangeChange = useCallback((range: string) => {
+        setDateRange(range)
+    }, [])
+
+    // CRUD operations
+    const handleAddSIR = useCallback((sirData: any) => {
+        const newData = [...allData, sirData]
+        setAllData(newData)
+    }, [allData])
+
+    const handleEditSIR = useCallback((sirData: any) => {
+        const updatedData = allData.map(item =>
+            item.sir_release_id === sirData.sir_release_id ? sirData : item
+        )
+        setAllData(updatedData)
+    }, [allData])
+
+    const handleDeleteSIR = useCallback((sirId: number | string) => {
+        const updatedData = allData.filter(item => item.sir_release_id !== sirId)
+        setAllData(updatedData)
+        // Remove from selected rows if it was selected
+        const newSelectedRows = new Set(selectedRows)
+        newSelectedRows.delete(Number(sirId))
+        setSelectedRows(newSelectedRows)
+    }, [allData, selectedRows])
+
+    const handleDeleteRows = useCallback((ids: Set<number | string>) => {
+        const updatedData = allData.filter(item => !ids.has(item.sir_release_id))
+        setAllData(updatedData)
+        setSelectedRows(new Set())
+    }, [allData])
+
     // MEMOIZED: Format the filtered data for the DataTable
     const formattedDataForDataTable = useMemo(() => {
-        return filteredData.map(item => ({
+        return filteredDataWithDateRange.map(item => ({
             sir_release_id: item.sir_release_id,
             sir_id: item.sir_id,
             release_version: item.release_version,
@@ -205,13 +288,13 @@ export function SirsRelease() {
             short_desc: item.short_desc,
             cf_sirwith: item.cf_sirwith
         }))
-    }, [filteredData])
+    }, [filteredDataWithDateRange])
 
     // Check if we have data to show - UPDATED LOGIC
     const hasReleaseAndIteration = selectedRelease && selectedIteration;
-    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredData.length > 0;
+    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredDataWithDateRange.length > 0;
     const hasSearch = !!globalFilter;
-    const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch;
+    const noDataAndNoSearch = hasReleaseAndIteration && filteredDataWithDateRange.length === 0 && !hasSearch;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -223,7 +306,7 @@ export function SirsRelease() {
 
             <SirReleaseHeader
                 selectedRowsCount={selectedRowsCount}
-                totalFilteredCount={filteredData.length}
+                totalFilteredCount={filteredDataWithDateRange.length}
                 globalFilter={globalFilter}
             />
 
@@ -242,8 +325,6 @@ export function SirsRelease() {
                 onExportExcel={handleExportExcel}
                 onExportJSON={handleExportJSON}
                 onMapSirs={handleMapSirs}
-
-                // Add column visibility props
                 columnVisibility={columnVisibility}
                 toggleColumnVisibility={toggleColumnVisibility}
                 resetColumnVisibility={resetColumnVisibility}
@@ -353,7 +434,7 @@ export function SirsRelease() {
 
                             {/* Cards section - Will handle empty state internally */}
                             <div className="mb-6">
-                                <SirsStatCards sirReleaseData={filteredData.map(item => ({
+                                <SirsStatCards sirReleaseData={filteredDataWithDateRange.map(item => ({
                                     ...item,
                                     sir_release_id: Number(item.sir_release_id)
                                 }))} />
@@ -361,7 +442,7 @@ export function SirsRelease() {
 
                             {/* Chart section - Will handle empty state internally */}
                             <SirReleasesChart
-                                sirReleaseData={filteredData.map(item => ({
+                                sirReleaseData={filteredDataWithDateRange.map(item => ({
                                     ...item,
                                     sir_release_id: Number(item.sir_release_id)
                                 }))}
@@ -376,6 +457,7 @@ export function SirsRelease() {
                                 <h3 className="text-base font-medium text-gray-500">
                                     SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
                                     {globalFilter && ` • Matching "${globalFilter}"`}
+                                    {dateRange && ` • Date range: ${dateRange}`}
                                 </h3>
                             </div>
 
@@ -387,6 +469,11 @@ export function SirsRelease() {
                                 columnVisibility={columnVisibility}
                                 toggleColumnVisibility={toggleColumnVisibility}
                                 resetColumnVisibility={resetColumnVisibility}
+                                onDateRangeChange={handleDateRangeChange}
+                                onDeleteRows={handleDeleteRows}
+                                onAddSIR={handleAddSIR}
+                                onEditSIR={handleEditSIR}
+                                onDeleteSIR={handleDeleteSIR}
                             />
                         </div>
                     )}

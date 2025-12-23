@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sirs-releases-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards'
-import { SirReleasesChart } from './sirs-releases-chart'
-import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable'
-import sirReleaseData from './sir-release-data.json'
-import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
-import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
-import { useColumnVisibility } from './sirs-releases-column-visibility'
-import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils';
+import { SirsReleaseFilters } from '../sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../sirs-per-release/sirs-releases-header'
+import { MapSirsDialog } from '../sirs-per-release/map-sirs-dialog'
+import { SirsStatCards } from '../sirs-per-release/sirs-stats-cards'
+import { SirReleasesChart } from '../sirs-per-release/sirs-releases-chart'
+import { SirReleaseDataTable } from '../sirs-per-release/sirs-release-datatable/sirs-releases-datatable'
+import sirReleaseData from '../sirs-per-release/sir-release-data.json'
+import { SirReleaseData, ColumnConfig } from '../sirs-per-release/sirs-release-datatable/types/sirs-releases-types'
+import { exportToCSV, exportToExcel, exportToJSON } from '../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils'
+import { useColumnVisibility } from '../sirs-per-release/sirs-releases-column-visibility'
+import { parseDate, formatDate, dateMatchesSearch } from '../sirs-per-release/sirs-release-datatable/utils/sirs-release-date-utils'
+import { toast } from "sonner"
 
 export function SirsRelease() {
     // State for filters
@@ -26,24 +27,6 @@ export function SirsRelease() {
     const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0)
     const [totalFilteredCount, setTotalFilteredCount] = useState<number>(0)
     const [allData, setAllData] = useState<SirReleaseData[]>([])
-
-    // Add state for visible columns (needed for export)
-    {/*const [tableVisibleColumns, setTableVisibleColumns] = useState<ColumnConfig[]>([
-        { key: 'sir_release_id', label: 'Sir_Rel_Id', width: 'w-35' },
-        { key: 'sir_id', label: 'Sir_Id', width: 'w-40' },
-        { key: 'release_version', label: 'Release Version', width: 'w-32' },
-        { key: 'iteration', label: 'Iteration', width: 'w-28' },
-        { key: 'changed_date', label: 'Changed Date', width: 'w-48' },
-        { key: 'bug_severity', label: 'Bug Severity', width: 'w-48' },
-        { key: 'priority', label: 'Priority', width: 'w-32' },
-        { key: 'assigned_to', label: 'Assigned To', width: 'w-32' },
-        { key: 'bug_status', label: 'Bug Status', width: 'w-32' },
-        { key: 'resolution', label: 'Resolution', width: 'w-32' },
-        { key: 'component', label: 'Component', width: 'w-32' },
-        { key: 'op_sys', label: 'Op Sys', width: 'w-32' },
-        { key: 'short_desc', label: 'Short Description', width: 'w-48' },
-        { key: 'cf_sirwith', label: 'Cf Sir With', width: 'w-32' }
-    ])*/}
 
     // Add state to control dialog visibility
     const [showMapSirsDialog, setShowMapSirsDialog] = useState<boolean>(false)
@@ -161,31 +144,31 @@ export function SirsRelease() {
         visibleColumns
     } = useColumnVisibility()
 
-    // Export handlers using useCallback
+    // Export handlers using useCallback - FIXED WITH TOAST
     const handleExportCSV = useCallback(() => {
         const success = exportToCSV(filteredData, visibleColumns, selectedRows)
         if (success) {
-            console.log('CSV export successful')
+            toast.success("CSV exported successfully!")
         } else {
-            console.error('CSV export failed')
+            toast.error("Failed to export CSV")
         }
     }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportExcel = useCallback(() => {
         const success = exportToExcel(filteredData, visibleColumns, selectedRows)
         if (success) {
-            console.log('Excel export successful')
+            toast.success("Excel file exported successfully!")
         } else {
-            console.error('Excel export failed')
+            toast.error("Failed to export Excel file")
         }
     }, [filteredData, visibleColumns, selectedRows])
 
     const handleExportJSON = useCallback(() => {
         const success = exportToJSON(filteredData, visibleColumns, selectedRows)
         if (success) {
-            console.log('JSON export successful')
+            toast.success("JSON exported successfully!")
         } else {
-            console.error('JSON export failed')
+            toast.error("Failed to export JSON")
         }
     }, [filteredData, visibleColumns, selectedRows])
 
@@ -224,9 +207,11 @@ export function SirsRelease() {
         }))
     }, [filteredData])
 
-    // Check if we have data to show
-    const hasDataToShow = selectedRelease && selectedIteration && filteredData.length > 0
-    const hasFiltersButNoData = selectedRelease && selectedIteration && filteredData.length === 0
+    // Check if we have data to show - UPDATED LOGIC
+    const hasReleaseAndIteration = selectedRelease && selectedIteration;
+    const hasDataAfterReleaseIterationFilter = hasReleaseAndIteration && filteredData.length > 0;
+    const hasSearch = !!globalFilter;
+    const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -264,8 +249,9 @@ export function SirsRelease() {
                 resetColumnVisibility={resetColumnVisibility}
             />
 
-            {/* Conditional Rendering based on data state */}
+            {/* Conditional Rendering based on data state - UPDATED */}
             {!selectedRelease || !selectedIteration ? (
+                // Show when no release/iteration is selected
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -294,7 +280,8 @@ export function SirsRelease() {
                         </div>
                     </div>
                 </div>
-            ) : hasFiltersButNoData ? (
+            ) : noDataAndNoSearch ? (
+                // Show when release/iteration has no data AND no search is active
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
                     <div className="bg-white/60 rounded-xl shadow-sm w-full min-h-[calc(100vh-150px)] flex flex-col items-center justify-center p-8 sm:p-10 md:p-12 text-center">
                         <div className="flex justify-center mb-5 sm:mb-6 relative">
@@ -327,6 +314,9 @@ export function SirsRelease() {
                     </div>
                 </div>
             ) : (
+                // Show tabs/datatable when:
+                // 1. There IS data, OR
+                // 2. User is searching (even with 0 results)
                 <div className="flex flex-col">
                     {/* Tabs for switching between Overview and DataTable */}
                     <div className="px-4 sm:px-6 pt-1">
@@ -358,9 +348,10 @@ export function SirsRelease() {
                             {/* Updated heading */}
                             <h3 className="text-base font-medium text-gray-500 mb-8">
                                 SIRs breakdown for release version {selectedReleaseName} iteration {selectedIterationName}
+                                {globalFilter && ` • Matching "${globalFilter}"`}
                             </h3>
 
-                            {/* Cards section */}
+                            {/* Cards section - Will handle empty state internally */}
                             <div className="mb-6">
                                 <SirsStatCards sirReleaseData={filteredData.map(item => ({
                                     ...item,
@@ -368,7 +359,7 @@ export function SirsRelease() {
                                 }))} />
                             </div>
 
-                            {/* Chart section */}
+                            {/* Chart section - Will handle empty state internally */}
                             <SirReleasesChart
                                 sirReleaseData={filteredData.map(item => ({
                                     ...item,
@@ -384,14 +375,15 @@ export function SirsRelease() {
                             <div className="mb-2">
                                 <h3 className="text-base font-medium text-gray-500">
                                     SIRs Data Table for release version {selectedReleaseName} iteration {selectedIterationName}
+                                    {globalFilter && ` • Matching "${globalFilter}"`}
                                 </h3>
                             </div>
 
-                            {/* Render the DataTable with filtered data */}
+                            {/* Render the DataTable with filtered data - Will show "No results found" if empty */}
                             <SirReleaseDataTable
                                 filteredData={formattedDataForDataTable}
                                 onRowSelectionChange={handleRowSelectionChange}
-                                visibleColumns={visibleColumns} // Pass visibleColumns from hook
+                                visibleColumns={visibleColumns}
                                 columnVisibility={columnVisibility}
                                 toggleColumnVisibility={toggleColumnVisibility}
                                 resetColumnVisibility={resetColumnVisibility}

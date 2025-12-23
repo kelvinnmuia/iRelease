@@ -1,4 +1,4 @@
-import { ColumnConfig, StatusConfig } from './../types/releases';
+import { ColumnConfig, StatusConfig } from '../types/releases';
 
 export const allColumns: ColumnConfig[] = [
   { key: "releaseId", label: "Release ID", width: "w-32" },
