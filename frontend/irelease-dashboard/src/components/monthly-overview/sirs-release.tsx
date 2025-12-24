@@ -13,7 +13,7 @@ import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatab
 import { toast } from "sonner"
 import { transformSirsReleaseData } from './sirs-release-datatable/utils/sirs-release-data-transform'
 
-export function MonthlyOverview() {
+export function SirsRelease() {
     // State for filters
     const [selectedRelease, setSelectedRelease] = useState<string>('')
     const [selectedIteration, setSelectedIteration] = useState<string>('')
@@ -392,11 +392,11 @@ export function MonthlyOverview() {
                             </svg>
                         </div>
                         <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2 sm:mb-2">
-                            No Month Selected
+                            No SIRs Analysis Data
                         </h2>
                         <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                             <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                               Please select a month to display the releases overview and analytics
+                                Please select a release version and iteration to view its SIRs analysis.
                             </p>
                         </div>
                     </div>
