@@ -12,7 +12,7 @@ export const SirReleaseHeader = ({
   return (
     <div className="bg-gray-50 p-6">
       <div className="items-start">
-        <h1 className="text-2xl font-semibold text-gray-900">SIRs Per Release</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Monthly Overview</h1>
       </div>
 
       {/* Selected rows info */}

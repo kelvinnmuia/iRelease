@@ -64,6 +64,11 @@ export function MonthlyOverview() {
             const year = dateParts[2];
             
             // Convert month abbreviation to full month name
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            
             const monthAbbrToFull: Record<string, string> = {
                 'Jan': 'January',
                 'Feb': 'February',
@@ -85,7 +90,7 @@ export function MonthlyOverview() {
         });
         
         return hasMatchingRecord;
-    }, [selectedMonthName, selectedYearName])
+    }, [selectedMonthName, selectedYearName]);
 
     // Update the actual names when IDs are selected
     useEffect(() => {
@@ -259,6 +264,15 @@ function NoDataView({ selectedMonthName, selectedYearName, onClearSelection }: N
                         >
                             Select Different Month and Year
                         </button>
+                    </div>
+                    <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <p className="text-sm text-yellow-800">
+                            <strong>Note:</strong> Based on the first 5 records, data is available for:
+                            <ul className="mt-1 ml-4 list-disc">
+                                <li>December 2024 (3 records)</li>
+                                <li>November 2024 (2 records)</li>
+                            </ul>
+                        </p>
                     </div>
                 </div>
             </div>

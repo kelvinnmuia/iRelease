@@ -1,18 +1,20 @@
-interface SirReleaseHeaderProps {
+interface ReleasesHeaderProps {
   selectedRowsCount: number;
   totalFilteredCount: number;
   globalFilter: string;
+  dateRange: string;
 }
 
-export const SirReleaseHeader = ({
+export const ReleasesHeader = ({
   selectedRowsCount,
   totalFilteredCount,
-  globalFilter
-}: SirReleaseHeaderProps) => {
+  globalFilter,
+  dateRange
+}: ReleasesHeaderProps) => {
   return (
     <div className="bg-gray-50 p-6">
       <div className="items-start">
-        <h1 className="text-2xl font-semibold text-gray-900">SIRs Per Release</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">All Releases</h1>
       </div>
 
       {/* Selected rows info */}
@@ -22,10 +24,12 @@ export const SirReleaseHeader = ({
         </div>
       )}
 
-      {/* Search results - Only show when searching */}
-      {globalFilter && (
+      {/* Filter status */}
+      {(globalFilter || dateRange) && (
         <div className="mt-2 text-sm text-gray-500">
-          Showing {totalFilteredCount} SIR(s) matching "{globalFilter}"
+          Showing {totalFilteredCount} releases
+          {globalFilter && ` matching "${globalFilter}"`}
+          {dateRange && ` within date range: ${dateRange}`}
         </div>
       )}
     </div>

@@ -110,7 +110,7 @@ export const SirsReleaseFilters = ({
                             onSelect={setSelectedRelease}
                             placeholder="Release Version"
                             buttonClassName="w-full md:w-[160px] min-w-[160px]"
-                            searchPlaceholder="Search ..."
+                            searchPlaceholder="Search releases..."
                         />
 
                         {/* Iteration Dropdown */}
