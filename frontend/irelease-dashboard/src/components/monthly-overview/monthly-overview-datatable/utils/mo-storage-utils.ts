@@ -1,5 +1,5 @@
-import { STORAGE_KEYS } from '../constants/releases-constants';
-import { allColumns } from '../constants/releases-constants';
+import { STORAGE_KEYS } from '../constants/mo-releases-constants';
+import { allColumns } from '../constants/mo-releases-constants';
 
 export const loadColumnVisibility = (): Record<string, boolean> => {
   try {

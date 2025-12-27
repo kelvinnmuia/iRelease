@@ -1,67 +1,100 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 
-interface SirReleaseData {
-  "sir_release_id": number;
-  "sir_id": number;
-  "release_version": string;
-  "iteration": number;
-  "changed_date": string;
-  "bug_severity": string;
-  "priority": string;
-  "assigned_to": string;
-  "bug_status": string;
-  "resolution": string;
-  "component": string;
-  "op_sys": string;
-  "short_desc": string;
-  "cf_sirwith": string;
+interface Release {
+  id: number;
+  releaseId: string;
+  systemName: string;
+  systemId: string;
+  releaseVersion: string;
+  iteration: string;
+  releaseDescription: string;
+  functionalityDelivered: string;
+  deliveredDate: string;
+  tdNoticeDate: string;
+  testDeployDate: string;
+  testStartDate: string;
+  testEndDate: string;
+  prodDeployDate: string;
+  testStatus: string;
+  deploymentStatus: string;
+  outstandingIssues: string;
+  comments: string;
+  releaseType: string; // This is what we'll use for Major, Medium, Minor
+  month: string;
+  financialYear: string;
 }
 
-interface SirReleaseChartProps {
-  sirReleaseData: SirReleaseData[];
-  selectedReleaseName: string;
-  selectedIterationName: string;
+interface MoReleasesTypeChartProps {
+  releasesData: Release[];
 }
 
-const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314"]
+const COLORS = ["#d11314", "#767276", "#0c0c0c"] // Major, Medium, Minor
 
-export function SirReleasesChart({ 
-  sirReleaseData, 
-  selectedReleaseName, 
-  selectedIterationName 
-}: SirReleaseChartProps) {
+export function MoReleasesTypeChart({ releasesData }: MoReleasesTypeChartProps) {
   
-  // Count SIRs by severity
-  const severityCounts = {
-    blocker: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "blocker").length,
-    critical: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "critical").length,
-    major: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "major").length,
-    minor: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "minor").length,
+  // Helper function to normalize release type
+  const normalizeReleaseType = (type: string): string | null => {
+    if (!type) return null;
+    
+    const normalized = type.trim().toLowerCase();
+    
+    if (normalized.includes('major')) return 'major';
+    if (normalized.includes('medium')) return 'medium';
+    if (normalized.includes('minor')) return 'minor';
+    
+    return normalized; // Return as-is if not matching
   }
+
+  // Count releases by type with better normalization
+  const allReleases = releasesData || [];
+  
+  const typeCounts = {
+    major: allReleases.filter(item => {
+      const normalizedType = normalizeReleaseType(item.releaseType);
+      return normalizedType === 'major';
+    }).length,
+    medium: allReleases.filter(item => {
+      const normalizedType = normalizeReleaseType(item.releaseType);
+      return normalizedType === 'medium';
+    }).length,
+    minor: allReleases.filter(item => {
+      const normalizedType = normalizeReleaseType(item.releaseType);
+      return normalizedType === 'minor';
+    }).length,
+  }
+
+  // Get count of releases with unrecognized types
+  const otherReleases = allReleases.filter(item => {
+    const normalizedType = normalizeReleaseType(item.releaseType);
+    return normalizedType && !['major', 'medium', 'minor'].includes(normalizedType);
+  }).length;
+
+  // Calculate total releases that we're displaying in the chart
+  const totalDisplayedReleases = typeCounts.major + typeCounts.medium + typeCounts.minor;
+  
+  // Calculate actual total releases (including others if we want to show them)
+  const totalAllReleases = allReleases.length;
 
   // Transform data for the chart with actual counts
   const chartData = [
-    { name: "Blocker", value: severityCounts.blocker },
-    { name: "Critical", value: severityCounts.critical },
-    { name: "Major", value: severityCounts.major },
-    { name: "Minor", value: severityCounts.minor },
-  ].filter(item => item.value > 0); // Only show severities with data
+    { name: "Major", value: typeCounts.major },
+    { name: "Medium", value: typeCounts.medium },
+    { name: "Minor", value: typeCounts.minor },
+  ].filter(item => item.value > 0); // Only show types with data
 
-  const totalSIRs = sirReleaseData.length;
-
-  // Calculate percentages for tooltip and legend
+  // Calculate percentages based on displayed releases, not all releases
   const dataWithPercentages = chartData.map(item => ({
     ...item,
-    percentage: totalSIRs > 0 ? ((item.value / totalSIRs) * 100).toFixed(1) : "0.0"
+    percentage: totalDisplayedReleases > 0 ? ((item.value / totalDisplayedReleases) * 100).toFixed(1) : "0.0"
   }));
 
   // Get screen width for responsive sizing
   const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 640
   
   // Increased inner radius slightly for a more noticeable donut hole
-  const innerRadius = isSmallScreen ? 25 : 40  // Increased from 15/25
-  const outerRadius = isSmallScreen ? 70 : 95  // Same outer radius
+  const innerRadius = isSmallScreen ? 25 : 40
+  const outerRadius = isSmallScreen ? 70 : 95
 
   // Simple centered percentage labels
   const renderCenteredLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -99,15 +132,17 @@ export function SirReleasesChart({
     <Card className="h-full">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg lg:text-xl text-center">
-          SIRs by Severity
+          Releases by Type
         </CardTitle>
-        <CardDescription className="text-center mt-2">
-          Release: {selectedReleaseName} • Iteration: {selectedIterationName}
-        </CardDescription>
+        {otherReleases > 0 && (
+          <p className="text-xs text-gray-500 text-center mt-1">
+            ({otherReleases} releases with other types not shown)
+          </p>
+        )}
       </CardHeader>
 
       <CardContent>
-        {totalSIRs === 0 ? (
+        {totalDisplayedReleases === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <div className="text-gray-400 mb-2">
               <svg 
@@ -124,14 +159,14 @@ export function SirReleasesChart({
                 />
               </svg>
             </div>
-            <p className="text-gray-500 font-medium">No SIRs data available</p>
+            <p className="text-gray-500 font-medium">No releases data available</p>
             <p className="text-gray-400 text-sm mt-1">
-              Select a release and iteration with SIRs data
+              No Major, Medium, or Minor releases found
             </p>
           </div>
         ) : (
           <div className="flex gap-4">
-            {/* Chart section with total applications below */}
+            {/* Chart section with total releases below */}
             <div className="flex flex-col items-center flex-1">
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
@@ -145,7 +180,7 @@ export function SirReleasesChart({
                     dataKey="value"
                     label={renderCenteredLabel}
                     labelLine={false}
-                    isAnimationActive={true} // Keep animation enabled
+                    isAnimationActive={true}
                     animationBegin={0}
                     animationDuration={1500}
                     animationEasing="ease-out"
@@ -164,7 +199,6 @@ export function SirReleasesChart({
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const { name, value } = payload[0]
-                        // find index in data
                         const index = chartData.findIndex((item) => item.name === name)
                         const color = COLORS[index % COLORS.length]
                         const percentage = dataWithPercentages.find(item => item.name === name)?.percentage || "0.0"
@@ -203,14 +237,19 @@ export function SirReleasesChart({
                 </PieChart>
               </ResponsiveContainer>
 
-              {/* Total SIRs */}
+              {/* Total Displayed Releases */}
               <div className="flex flex-col items-center mt-4">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {totalSIRs}
+                  {totalDisplayedReleases}
                 </div>
                 <div className="text-xs md:text-sm text-gray-500">
-                  Total SIRs
+                  Total Releases (Major/Medium/Minor)
                 </div>
+                {totalAllReleases !== totalDisplayedReleases && (
+                  <div className="text-xs text-gray-400 mt-1">
+                    of {totalAllReleases} total releases
+                  </div>
+                )}
               </div>
             </div>
 

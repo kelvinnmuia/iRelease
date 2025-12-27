@@ -4,10 +4,10 @@ import { Search, Calendar, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ColumnVisibilityMenu } from "./column-visibility-menu";
-import { ExportMenu } from "./export-menu";
-import { DateRangePicker } from "./date-range-picker";
-import { SortOrder } from "./types/releases";
+import { ColumnVisibilityMenu } from "./mo-column-visibility-menu";
+import { ExportMenu } from "./mo-export-menu";
+import { DateRangePicker } from "./mo-date-range-picker";
+import { SortOrder } from "./types/mo-releases";
 
 interface ReleasesFiltersProps {
     globalFilter: string;
@@ -99,7 +99,7 @@ export const ReleasesFilters = ({
     return (
         <>
             {/* Enhanced Responsive Controls */}
-            <div className="bg-gray-50 border-b border-gray-200 pt-0 p-6">
+            <div className="bg-gray-50 border-b border-gray-200 pt-0 p-6 -mt-6">
                 <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                     {/* Left Section - Export, Show/Hide, Search */}
                     <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:max-w-2xl">

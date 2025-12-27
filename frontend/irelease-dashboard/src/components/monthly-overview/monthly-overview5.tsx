@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from "sonner"
 import { SearchableDropdown } from './searchable-dropdown'
 // Import the SirsRelease component
-import { SirsRelease } from './sirs-release'
+import { SirsRelease } from './monthly-overview-analytics'
 // Import the releases data
 import releasesData from './releases-data.json'
 

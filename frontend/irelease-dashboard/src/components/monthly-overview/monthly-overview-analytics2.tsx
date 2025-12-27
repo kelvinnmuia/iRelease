@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { SirsStatCards } from './sirs-stats-cards'
-import { SirReleasesChart } from './sirs-releases-chart'
+import { SirsStatCards } from './mo-stats-cards'
+import { SirReleasesChart } from './mo-releases-type-chart'
 import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable'
 import sirReleaseData from './sir-release-data.json'
 import { SirReleaseData } from './sirs-release-datatable/types/sirs-releases-types'
@@ -9,13 +9,13 @@ import { parseDate } from './sirs-release-datatable/utils/sirs-release-date-util
 import { transformSirsReleaseData } from './sirs-release-datatable/utils/sirs-release-data-transform'
 
 // Define the component props
-interface SirsReleaseProps {
+interface MonthlyOverviewAnalyticsProps {
   // You can add props here if needed for filtering by month/year
   month?: string;
   year?: string;
 }
 
-export function SirsRelease({ month, year }: SirsReleaseProps) {
+export function MonthlyOverviewAnalytics({ month, year }: MonthlyOverviewAnalyticsProps) {
     // State for filters - simplified version
     const [globalFilter, setGlobalFilter] = useState<string>('')
     const [dateRange, setDateRange] = useState<string>('')

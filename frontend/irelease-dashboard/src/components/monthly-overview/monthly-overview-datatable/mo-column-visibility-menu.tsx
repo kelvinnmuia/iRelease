@@ -3,7 +3,7 @@ import { Columns3, RefreshCcw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { allColumns } from "./constants/releases-constants";
+import { allColumns } from "./constants/mo-releases-constants";
 
 interface ColumnVisibilityMenuProps {
   columnVisibility: Record<string, boolean>;

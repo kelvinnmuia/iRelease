@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from "sonner"
 import { SearchableDropdown } from './searchable-dropdown'
-// Import the SirsRelease component
-import { SirsRelease } from './monthly-overview-analytics'
+// Import the MonthlyOverviewAnalytics component
+import { MonthlyOverviewAnalytics } from './monthly-overview-analytics'
 // Import the releases data
-import releasesData from './releases-data.json'
+import releasesData from './monthly-overview-datatable/data/mo-releases-data.json'
 
 export function MonthlyOverview() {
     // State for filters
@@ -64,11 +64,6 @@ export function MonthlyOverview() {
             const year = dateParts[2];
             
             // Convert month abbreviation to full month name
-            const monthNames = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            
             const monthAbbrToFull: Record<string, string> = {
                 'Jan': 'January',
                 'Feb': 'February',
@@ -90,7 +85,7 @@ export function MonthlyOverview() {
         });
         
         return hasMatchingRecord;
-    }, [selectedMonthName, selectedYearName]);
+    }, [selectedMonthName, selectedYearName])
 
     // Update the actual names when IDs are selected
     useEffect(() => {
@@ -176,11 +171,14 @@ export function MonthlyOverview() {
                     }}
                 />
             ) : (
-                // Show SirsRelease component when data is available in first 5 records
-                <SirsReleaseView 
-                    selectedMonthName={selectedMonthName}
-                    selectedYearName={selectedYearName}
-                />
+                // Show MonthlyOverviewAnalytics component when data is available in first 5 records
+                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
+                    {/* Render the MonthlyOverviewAnalytics component with month/year props */}
+                    <MonthlyOverviewAnalytics 
+                        month={selectedMonthName}
+                        year={selectedYearName}
+                    />
+                </div>
             )}
         </div>
     )
@@ -252,7 +250,7 @@ function NoDataView({ selectedMonthName, selectedYearName, onClearSelection }: N
                 </h2>
                 <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                     <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                        There are no releases in the first 5 records for this month and year combination.
+                        There are no releases or analytics for this month and year combination.
                     </p>
                     <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                         <button
@@ -262,47 +260,8 @@ function NoDataView({ selectedMonthName, selectedYearName, onClearSelection }: N
                             Select Different Month and Year
                         </button>
                     </div>
-                    <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <p className="text-sm text-yellow-800">
-                            <strong>Note:</strong> Based on the first 5 records, data is available for:
-                            <ul className="mt-1 ml-4 list-disc">
-                                <li>December 2024 (3 records)</li>
-                                <li>November 2024 (2 records)</li>
-                            </ul>
-                        </p>
-                    </div>
                 </div>
             </div>
-        </div>
-    )
-}
-
-// Component to render the SirsRelease component
-interface SirsReleaseViewProps {
-    selectedMonthName: string;
-    selectedYearName: string;
-}
-
-function SirsReleaseView({ selectedMonthName, selectedYearName }: SirsReleaseViewProps) {
-    return (
-        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
-            {/* Note about the SirsRelease component */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-start">
-                    <svg className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                        <p className="text-sm text-blue-800">
-                            <strong>Note:</strong> Displaying SIRs analysis data for <strong>{selectedMonthName} {selectedYearName}</strong>. 
-                            The SirsRelease component is now rendered for months with available data in the first 5 records.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            {/* Render the SirsRelease component */}
-            <SirsRelease />
         </div>
     )
 }

@@ -1,4 +1,4 @@
-import { ColumnConfig, StatusConfig } from '../types/releases';
+import { ColumnConfig, StatusConfig } from '../types/mo-releases';
 
 export const allColumns: ColumnConfig[] = [
   { key: "releaseId", label: "Release ID", width: "w-32" },
@@ -24,11 +24,10 @@ export const allColumns: ColumnConfig[] = [
 ];
 
 export const statusConfig: Record<string, StatusConfig> = {
-  "Pending": { color: "text-gray-600", dot: "bg-yellow-400" },
-  "Active": { color: "text-gray-600", dot: "bg-green-500" },
-  "Closed": { color: "text-gray-600", dot: "bg-slate-500" },
-  "Deleted": { color: "text-gray-600", dot: "bg-red-500" },
+  "In Testing": { color: "text-gray-600", dot: "bg-yellow-400" },
   "Passed": { color: "text-gray-600", dot: "bg-green-500" },
+  "Failed": { color: "text-gray-600", dot: "bg-red-500" },
+  "Not Tested": { color: "text-gray-600", dot: "bg-slate-500" }
 };
 
 export const deploymentStatusConfig: Record<string, StatusConfig> = {
@@ -42,7 +41,7 @@ export const deploymentStatusConfig: Record<string, StatusConfig> = {
   "Scheduled for Deployment": { color: "text-gray-600", dot: "bg-yellow-400" },
 };
 
-export const testStatusOptions = ["Pending", "Active", "Closed", "Deleted", "Passed"];
+export const testStatusOptions = ["In Testing", "Passed", "Failed", "Not Tested"];
 export const deploymentStatusOptions = [
   "Deployed to QA",
   "Deployed to Pre-Prod",
@@ -53,7 +52,7 @@ export const deploymentStatusOptions = [
   "Deployment Failed",
   "Scheduled for Deployment"
 ];
-export const releaseTypeOptions = ["Major", "Minor", "Patch", "Hotfix"];
+export const releaseTypeOptions = ["Major", "Medium", "Minor"];
 export const monthOptions = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"

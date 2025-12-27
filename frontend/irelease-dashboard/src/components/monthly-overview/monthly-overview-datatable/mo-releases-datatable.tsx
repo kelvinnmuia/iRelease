@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Release, SortOrder } from "./types/releases";
-import { allColumns } from "./constants/releases-constants";
+import { Release, SortOrder } from "./types/mo-releases";
+import { allColumns } from "./constants/mo-releases-constants";
 import {
     loadColumnVisibility,
     saveColumnVisibility,
@@ -12,24 +12,32 @@ import {
     clearDateRangeDetails,
     loadItemsPerPage,
     saveItemsPerPage
-} from "./utils/storage-utils";
-import { parseDate, getLatestDate, getEarliestDate, formatDate } from "./utils/date-utils";
-import { exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "./utils/export-utils";
-import { ReleasesHeader } from "./release-header";
-import { ReleasesFilters } from "./releases-filters";
-import { ReleasesTable } from "./releases-table";
-import { ReleasesPagination } from "./releases-pagination";
-import { AddReleaseDialog } from "./add-release-dialog";
-import { EditReleaseDialog } from "./edit-release-dialog";
-import { DeleteDialogs } from "./delete-dialogs";
-import { transformReleasesData } from "./utils/data-transform";
-import releasesData from "./data/releases-data.json";
+} from "./utils/mo-storage-utils";
+import { parseDate, getLatestDate, getEarliestDate, formatDate } from "./utils/mo-date-utils";
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "./utils/mo-export-utils";
+import { ReleasesHeader } from "./mo-release-header";
+import { ReleasesFilters } from "./mo-releases-filters";
+import { ReleasesTable } from "./mo-releases-table";
+import { ReleasesPagination } from "./mo-releases-pagination";
+import { AddReleaseDialog } from "./mo-add-release-dialog";
+import { EditReleaseDialog } from "./mo-edit-release-dialog";
+import { DeleteDialogs } from "./mo-delete-dialogs";
+import { transformMoReleasesData } from "./utils/mo-data-transform";
+import releasesData from "./data/mo-releases-data.json";
+
+// Add interface for component props
+interface MoReleasesDataTableProps {
+    filteredData?: Release[];
+}
 
 // Add type assertion for the JSON import
-const typedReleasesData = transformReleasesData(releasesData as any[]);
-export function ReleasesDataTable() {
-    // State management
-    const [data, setData] = useState<Release[]>(typedReleasesData);
+const typedMoReleasesData = transformMoReleasesData(releasesData as any[]);
+
+export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) {
+    // State management - use filteredData if provided, otherwise use all data
+    const [data, setData] = useState<Release[]>(() => {
+        return filteredData || typedMoReleasesData;
+    });
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
     const [globalFilter, setGlobalFilter] = useState("");
@@ -48,6 +56,20 @@ export function ReleasesDataTable() {
     const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage());
 
+    // Update data when filteredData prop changes
+    useEffect(() => {
+        if (filteredData) {
+            setData(filteredData);
+            // Reset to first page when filtered data changes
+            setCurrentPage(1);
+            // Clear selected rows when data changes
+            setSelectedRows(new Set());
+        } else {
+            // If no filteredData provided, use all data
+            setData(typedMoReleasesData);
+        }
+    }, [filteredData]);
+
     // Save to localStorage whenever state changes
     useEffect(() => saveColumnVisibility(columnVisibility), [columnVisibility]);
     useEffect(() => saveDateRangeFilter(dateRange), [dateRange]);
@@ -58,7 +80,7 @@ export function ReleasesDataTable() {
     useEffect(() => setCurrentPage(1), [itemsPerPage]);
 
     // Filter and sort data
-    const filteredData = data.filter(item => {
+    const filteredDataInternal = data.filter(item => {
         // Global text search
         const matchesGlobalSearch = !globalFilter ||
             Object.values(item).some(value =>
@@ -91,7 +113,7 @@ export function ReleasesDataTable() {
         return matchesGlobalSearch && matchesDateRange;
     });
 
-    const sortedAndFilteredData = [...filteredData].sort((a, b) => {
+    const sortedAndFilteredData = [...filteredDataInternal].sort((a, b) => {
         if (!sortOrder) return 0;
 
         let dateA: Date | null = null;
@@ -175,6 +197,7 @@ export function ReleasesDataTable() {
         setColumnVisibility(defaultVisibility);
         toast.success("Column visibility reset to default");
     }, []);
+
     // Date range handlers
     const applyDateRange = useCallback(() => {
         if (startDate && endDate) {
@@ -245,7 +268,6 @@ export function ReleasesDataTable() {
         toast.success("Excel file exported successfully!");
     }, [sortedAndFilteredData, visibleColumns, selectedRows]);
 
-    // Add this handler function
     const handleExportJSON = useCallback(() => {
         const success = exportToJSON(sortedAndFilteredData, visibleColumns, selectedRows);
         if (success) {
@@ -320,7 +342,7 @@ export function ReleasesDataTable() {
                 visibleColumns={visibleColumns}
                 selectedRows={selectedRows}
                 onToggleRowSelection={toggleRowSelection}
-                onToggleSelectAll={toggleSelectAllOnPage} // Add this line
+                onToggleSelectAll={toggleSelectAllOnPage}
                 onEditRelease={openEditDialog}
                 onDeleteRelease={openDeleteDialog}
                 onExportSingleRelease={handleExportSingleRelease}

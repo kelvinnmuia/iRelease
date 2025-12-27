@@ -1,43 +1,65 @@
-import { useState, ChangeEvent, useEffect } from "react";
+import { toast } from "sonner";
+import { useState, ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./date-picker-input";
-import { Release } from "./types/releases";
+import { DatePickerInput } from "./mo-date-picker-input";
+import { Release } from "./types/mo-releases";
+import { generateReleaseId } from "./utils/mo-releaseid-utils";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/releases-constants";
+} from "./constants/mo-releases-constants";
 
-interface EditReleaseDialogProps {
+interface AddReleaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  release: Release | null;
   onSave: (release: Release) => void;
+  existingData: Release[];
 }
 
-export const EditReleaseDialog = ({
+const initialFormData = {
+  releaseVersion: "",
+  systemName: "",
+  systemId: "",
+  iteration: "",
+  releaseType: "",
+  testStatus: "",
+  deploymentStatus: "",
+  deliveredDate: "",
+  tdNoticeDate: "",
+  testDeployDate: "",
+  testStartDate: "",
+  testEndDate: "",
+  prodDeployDate: "",
+  month: "",
+  financialYear: "",
+  releaseDescription: "",
+  functionalityDelivered: "",
+  outstandingIssues: "",
+  comments: ""
+};
+
+export const AddReleaseDialog = ({
   open,
   onOpenChange,
-  release,
-  onSave
-}: EditReleaseDialogProps) => {
-  const [formData, setFormData] = useState<Partial<Release>>({});
-
-  useEffect(() => {
-    if (release) {
-      setFormData({ ...release });
-    }
-  }, [release]);
+  onSave,
+  existingData
+}: AddReleaseDialogProps) => {
+  const [formData, setFormData] = useState(initialFormData);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
   const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -45,28 +67,57 @@ export const EditReleaseDialog = ({
     handleInputChange(id, value);
   };
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    const requiredFields: (keyof typeof formData)[] = [
+      'releaseVersion', 'systemName', 'systemId', 'iteration', 
+      'releaseType', 'financialYear', 'testStatus', 'deploymentStatus',
+      'deliveredDate', 'releaseDescription'
+    ];
+
+    requiredFields.forEach(field => {
+      if (!formData[field]?.trim()) {
+        const fieldName = field.replace(/([A-Z])/g, ' $1').trim();
+        errors[field] = `${fieldName} is required`;
+      }
+    });
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSave = () => {
-    if (release) {
-      onSave({ ...release, ...formData } as Release);
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields");
+      return;
     }
+
+    const newRelease: Release = {
+      id: Math.max(...existingData.map(item => item.id), 0) + 1,
+      releaseId: generateReleaseId(existingData),
+      ...formData
+    } as Release;
+
+    onSave(newRelease);
+    setFormData(initialFormData);
+    setValidationErrors({});
   };
 
   const handleCancel = () => {
     onOpenChange(false);
-    setFormData({});
+    setFormData(initialFormData);
+    setValidationErrors({});
   };
-
-  if (!release) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-clip mx-auto p-4 sm:p-6">
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="text-xl font-semibold text-gray-900">
-            Edit Release
+            Add New Release
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Update release {release.releaseVersion} details
+            Create a new release with the details below. Fields marked with <span className="text-red-500">*</span> are required.
           </DialogDescription>
         </DialogHeader>
 
@@ -75,83 +126,92 @@ export const EditReleaseDialog = ({
           <div className="space-y-4 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="space-y-2 w-full">
-                <Label htmlFor="releaseId" className="text-sm font-medium text-gray-700">
-                  Release ID
-                </Label>
-                <Input
-                  id="releaseId"
-                  value={formData.releaseId || ''}
-                  disabled
-                  className="w-full bg-gray-100 text-gray-600"
-                  placeholder="Release ID"
-                />
-              </div>
-
-              <div className="space-y-2 w-full">
                 <Label htmlFor="releaseVersion" className="text-sm font-medium text-gray-700">
-                  Release Version
+                  Release Version <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="releaseVersion"
-                  value={formData.releaseVersion || ''}
+                  value={formData.releaseVersion}
                   onChange={(e) => handleInputChange('releaseVersion', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.releaseVersion ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter release version"
                 />
+                {validationErrors.releaseVersion && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.releaseVersion}</p>
+                )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="space-y-2 w-full">
                 <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
-                  System Name
+                  System Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="systemName"
-                  value={formData.systemName || ''}
+                  value={formData.systemName}
                   onChange={(e) => handleInputChange('systemName', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.systemName ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter system name"
                 />
-              </div>
-
-              <div className="space-y-2 w-full">
-                <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
-                  System ID
-                </Label>
-                <Input
-                  id="systemId"
-                  value={formData.systemId || ''}
-                  onChange={(e) => handleInputChange('systemId', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                  placeholder="Enter system ID"
-                />
+                {validationErrors.systemName && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.systemName}</p>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="space-y-2 w-full">
-                <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
-                  Iteration
+                <Label htmlFor="systemId" className="text-sm font-medium text-gray-700">
+                  System ID <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="iteration"
-                  value={formData.iteration || ''}
-                  onChange={(e) => handleInputChange('iteration', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                  placeholder="Enter iteration"
+                  id="systemId"
+                  value={formData.systemId}
+                  onChange={(e) => handleInputChange('systemId', e.target.value)}
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter system ID"
                 />
+                {validationErrors.systemId && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>
+                )}
               </div>
 
               <div className="space-y-2 w-full">
+                <Label htmlFor="iteration" className="text-sm font-medium text-gray-700">
+                  Iteration <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="iteration"
+                  value={formData.iteration}
+                  onChange={(e) => handleInputChange('iteration', e.target.value)}
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.iteration ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter iteration"
+                />
+                {validationErrors.iteration && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.iteration}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="releaseType" className="text-sm font-medium text-gray-700">
-                  Release Type
+                  Release Type <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.releaseType || ''}
+                  value={formData.releaseType}
                   onValueChange={(value) => handleInputChange('releaseType', value)}
                 >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                  <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.releaseType ? 'border-red-500' : 'border-gray-300'
+                  }`}>
                     <SelectValue placeholder="Select release type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -162,6 +222,27 @@ export const EditReleaseDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
+                {validationErrors.releaseType && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.releaseType}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 w-full">
+                <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
+                  Financial Year <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="financialYear"
+                  value={formData.financialYear}
+                  onChange={(e) => handleInputChange('financialYear', e.target.value)}
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.financialYear ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter financial year (e.g., FY2024)"
+                />
+                {validationErrors.financialYear && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.financialYear}</p>
+                )}
               </div>
             </div>
           </div>
@@ -171,13 +252,15 @@ export const EditReleaseDialog = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="space-y-2 w-full">
                 <Label htmlFor="testStatus" className="text-sm font-medium text-gray-700">
-                  Test Status
+                  Test Status <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.testStatus || ''}
+                  value={formData.testStatus}
                   onValueChange={(value) => handleInputChange('testStatus', value)}
                 >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                  <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.testStatus ? 'border-red-500' : 'border-gray-300'
+                  }`}>
                     <SelectValue placeholder="Select test status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -188,17 +271,22 @@ export const EditReleaseDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
+                {validationErrors.testStatus && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.testStatus}</p>
+                )}
               </div>
 
               <div className="space-y-2 w-full">
                 <Label htmlFor="deploymentStatus" className="text-sm font-medium text-gray-700">
-                  Deployment Status
+                  Deployment Status <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.deploymentStatus || ''}
+                  value={formData.deploymentStatus}
                   onValueChange={(value) => handleInputChange('deploymentStatus', value)}
                 >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                  <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.deploymentStatus ? 'border-red-500' : 'border-gray-300'
+                  }`}>
                     <SelectValue placeholder="Select deployment status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,6 +297,9 @@ export const EditReleaseDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
+                {validationErrors.deploymentStatus && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.deploymentStatus}</p>
+                )}
               </div>
             </div>
           </div>
@@ -218,13 +309,16 @@ export const EditReleaseDialog = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="space-y-2 w-full">
                 <Label className="text-sm font-medium text-gray-700">
-                  Date Delivered
+                  Date Delivered <span className="text-red-500">*</span>
                 </Label>
                 <DatePickerInput
-                  value={formData.deliveredDate || ''}
+                  value={formData.deliveredDate}
                   onChange={(value) => handleInputChange('deliveredDate', value)}
                   placeholder="Select delivery date"
                 />
+                {validationErrors.deliveredDate && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.deliveredDate}</p>
+                )}
               </div>
 
               <div className="space-y-2 w-full">
@@ -232,7 +326,7 @@ export const EditReleaseDialog = ({
                   TD Notice Date
                 </Label>
                 <DatePickerInput
-                  value={formData.tdNoticeDate || ''}
+                  value={formData.tdNoticeDate}
                   onChange={(value) => handleInputChange('tdNoticeDate', value)}
                   placeholder="Select TD notice date"
                 />
@@ -245,7 +339,7 @@ export const EditReleaseDialog = ({
                   Test Deploy Date
                 </Label>
                 <DatePickerInput
-                  value={formData.testDeployDate || ''}
+                  value={formData.testDeployDate}
                   onChange={(value) => handleInputChange('testDeployDate', value)}
                   placeholder="Select test deploy date"
                 />
@@ -256,7 +350,7 @@ export const EditReleaseDialog = ({
                   Test Start Date
                 </Label>
                 <DatePickerInput
-                  value={formData.testStartDate || ''}
+                  value={formData.testStartDate}
                   onChange={(value) => handleInputChange('testStartDate', value)}
                   placeholder="Select test start date"
                 />
@@ -269,7 +363,7 @@ export const EditReleaseDialog = ({
                   Test End Date
                 </Label>
                 <DatePickerInput
-                  value={formData.testEndDate || ''}
+                  value={formData.testEndDate}
                   onChange={(value) => handleInputChange('testEndDate', value)}
                   placeholder="Select test end date"
                 />
@@ -280,7 +374,7 @@ export const EditReleaseDialog = ({
                   Prod Deploy Date
                 </Label>
                 <DatePickerInput
-                  value={formData.prodDeployDate || ''}
+                  value={formData.prodDeployDate}
                   onChange={(value) => handleInputChange('prodDeployDate', value)}
                   placeholder="Select production deploy date"
                 />
@@ -290,64 +384,46 @@ export const EditReleaseDialog = ({
 
           {/* Additional Information */}
           <div className="space-y-4 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-              <div className="space-y-2 w-full">
-                <Label htmlFor="month" className="text-sm font-medium text-gray-700">
-                  Month
-                </Label>
-                <Select
-                  value={formData.month || ''}
-                  onValueChange={(value) => handleInputChange('month', value)}
-                >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthOptions.map((month) => (
-                      <SelectItem key={month} value={month}>
-                        {month}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2 w-full">
-                <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
-                  Financial Year
-                </Label>
-                <Select
-                  value={formData.financialYear || ''}
-                  onValueChange={(value) => handleInputChange('financialYear', value)}
-                >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                    <SelectValue placeholder="Select financial year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {financialYearOptions.map((year) => (
-                      <SelectItem key={year} value={year}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2 w-full">
+              <Label htmlFor="month" className="text-sm font-medium text-gray-700">
+                Month
+              </Label>
+              <Select
+                value={formData.month}
+                onValueChange={(value) => handleInputChange('month', value)}
+              >
+                <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Full Width Text Areas */}
             <div className="space-y-4 w-full">
               <div className="space-y-2 w-full">
                 <Label htmlFor="releaseDescription" className="text-sm font-medium text-gray-700">
-                  Release Description
+                  Release Description <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="releaseDescription"
-                  value={formData.releaseDescription || ''}
+                  value={formData.releaseDescription}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all"
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all ${
+                    validationErrors.releaseDescription ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter release description"
                 />
+                {validationErrors.releaseDescription && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.releaseDescription}</p>
+                )}
               </div>
 
               <div className="space-y-2 w-full">
@@ -356,7 +432,7 @@ export const EditReleaseDialog = ({
                 </Label>
                 <Textarea
                   id="functionalityDelivered"
-                  value={formData.functionalityDelivered || ''}
+                  value={formData.functionalityDelivered}
                   onChange={handleTextareaChange}
                   rows={3}
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
@@ -370,7 +446,7 @@ export const EditReleaseDialog = ({
                 </Label>
                 <Textarea
                   id="outstandingIssues"
-                  value={formData.outstandingIssues || ''}
+                  value={formData.outstandingIssues}
                   onChange={handleTextareaChange}
                   rows={4}
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
@@ -384,7 +460,7 @@ export const EditReleaseDialog = ({
                 </Label>
                 <Textarea
                   id="comments"
-                  value={formData.comments || ''}
+                  value={formData.comments}
                   onChange={handleTextareaChange}
                   rows={3}
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
@@ -399,13 +475,13 @@ export const EditReleaseDialog = ({
           <Button
             variant="outline"
             onClick={handleSave}
-            className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full"
+            className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
           >
-            Save Changes
+            Create Release
           </Button>
           <Button
             onClick={handleCancel}
-            className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full"
+            className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
           >
             Discard
           </Button>

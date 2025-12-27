@@ -1,21 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from "sonner"
 import { SearchableDropdown } from './searchable-dropdown'
-// Import the SirsRelease component
-import { SirsRelease } from './sirs-release'
-// Import the releases data
-import releasesData from './releases-data.json'
+import { MonthlyOverviewAnalytics } from './monthly-overview-analytics'
+import releasesData from './monthly-overview-datatable/data/mo-releases-data.json'
+import { transformMoReleasesData } from './monthly-overview-datatable/utils/mo-data-transform'
 
 export function MonthlyOverview() {
-    // State for filters
-    const [selectedMonth, setSelectedMonth] = useState<string>('')
-    const [selectedYear, setSelectedYear] = useState<string>('')
+    // State for filters - load from localStorage if available
+    const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+        return localStorage.getItem('moSelectedMonth') || ''
+    })
+    const [selectedYear, setSelectedYear] = useState<string>(() => {
+        return localStorage.getItem('moSelectedYear') || ''
+    })
 
     // State for tracking actual month/year names
     const [selectedMonthName, setSelectedMonthName] = useState<string>('')
     const [selectedYearName, setSelectedYearName] = useState<string>('')
 
-    // Mock data for months and years (keeping the same as before)
+    // Transform the data once
+    const transformedData = useMemo(() => {
+        return transformMoReleasesData(releasesData as any[]);
+    }, []);
+
+    // Mock data for months and years
     const months = useMemo(() => {
         const monthNames = [
             'January', 'February', 'March', 'April', 'May', 'June',
@@ -32,6 +40,7 @@ export function MonthlyOverview() {
         const currentYear = new Date().getFullYear();
         const yearsArray = [];
         
+        // Start from 2020 and go up to current year + 1 for future planning
         for (let year = 2020; year <= currentYear + 1; year++) {
             yearsArray.push({
                 id: year.toString(),
@@ -42,50 +51,48 @@ export function MonthlyOverview() {
         return yearsArray.sort((a, b) => parseInt(b.id) - parseInt(a.id));
     }, [])
 
-    // Check if selected month has data in the first 5 records
-    const hasData = useMemo(() => {
-        if (!selectedMonthName || !selectedYearName) return false;
+    // Filter data based on selected month/year
+    const filteredData = useMemo(() => {
+        if (!selectedMonthName || !selectedYearName) return [];
         
-        // Get the first 5 records from releases-data.json
-        const firstFiveRecords = releasesData.slice(0, 5);
-        
-        // Check if any record matches the selected month and year
-        const hasMatchingRecord = firstFiveRecords.some(record => {
-            const dateDelivered = record["Date Delivered"];
-            if (!dateDelivered) return false;
+        return transformedData.filter(record => {
+            const recordMonth = record.month; // Use month (lowercase)
+            const recordDeliveredDate = record.deliveredDate; // Use deliveredDate (not dateDelivered)
             
-            // Parse the date to extract month and year
-            // Date format: "12 Dec 2024"
-            const dateParts = dateDelivered.split(' ');
-            if (dateParts.length < 3) return false;
+            // Extract year from delivered date
+            let recordYear = '';
+            if (recordDeliveredDate) {
+                const dateParts = recordDeliveredDate.split(' ');
+                if (dateParts.length >= 3) {
+                    recordYear = dateParts[2];
+                }
+            }
             
-            const day = dateParts[0];
-            const monthAbbr = dateParts[1];
-            const year = dateParts[2];
-            
-            // Convert month abbreviation to full month name
-            const monthAbbrToFull: Record<string, string> = {
-                'Jan': 'January',
-                'Feb': 'February',
-                'Mar': 'March',
-                'Apr': 'April',
-                'May': 'May',
-                'Jun': 'June',
-                'Jul': 'July',
-                'Aug': 'August',
-                'Sep': 'September',
-                'Oct': 'October',
-                'Nov': 'November',
-                'Dec': 'December'
-            };
-            
-            const fullMonthName = monthAbbrToFull[monthAbbr];
-            
-            return fullMonthName === selectedMonthName && year === selectedYearName;
+            return recordMonth === selectedMonthName && recordYear === selectedYearName;
         });
-        
-        return hasMatchingRecord;
-    }, [selectedMonthName, selectedYearName])
+    }, [transformedData, selectedMonthName, selectedYearName]);
+
+    // Check if selected month/year has data
+    const hasData = useMemo(() => {
+        return filteredData.length > 0;
+    }, [filteredData]);
+
+    // Update localStorage when selections change
+    useEffect(() => {
+        if (selectedMonth) {
+            localStorage.setItem('moSelectedMonth', selectedMonth);
+        } else {
+            localStorage.removeItem('moSelectedMonth');
+        }
+    }, [selectedMonth]);
+
+    useEffect(() => {
+        if (selectedYear) {
+            localStorage.setItem('moSelectedYear', selectedYear);
+        } else {
+            localStorage.removeItem('moSelectedYear');
+        }
+    }, [selectedYear]);
 
     // Update the actual names when IDs are selected
     useEffect(() => {
@@ -161,20 +168,23 @@ export function MonthlyOverview() {
                 // Show when no month/year is selected
                 <NoSelectionView />
             ) : !hasData ? (
-                // Show when month and year are selected but no data in first 5 records
+                // Show when month and year are selected but no data
                 <NoDataView 
                     selectedMonthName={selectedMonthName}
                     selectedYearName={selectedYearName}
                     onClearSelection={() => {
                         setSelectedMonth('');
                         setSelectedYear('');
+                        localStorage.removeItem('moSelectedMonth');
+                        localStorage.removeItem('moSelectedYear');
                     }}
                 />
             ) : (
-                // Show SirsRelease component when data is available in first 5 records
+                // Show MonthlyOverviewAnalytics component when data is available
                 <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6">
-                    {/* Render the SirsRelease component with month/year props */}
-                    <SirsRelease 
+                    {/* Pass filtered data and month/year info */}
+                    <MonthlyOverviewAnalytics 
+                        filteredData={filteredData}
                         month={selectedMonthName}
                         year={selectedYearName}
                     />
@@ -250,7 +260,7 @@ function NoDataView({ selectedMonthName, selectedYearName, onClearSelection }: N
                 </h2>
                 <div className="mt-2 sm:mt-2 max-w-lg sm:max-w-xl">
                     <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
-                        There are no releases in the first 5 records for this month and year combination.
+                        There are no releases or analytics for this month and year combination.
                     </p>
                     <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                         <button

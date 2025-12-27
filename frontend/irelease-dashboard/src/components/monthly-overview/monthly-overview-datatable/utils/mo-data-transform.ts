@@ -1,6 +1,6 @@
-import { Release } from "../types/releases";
+import { Release } from "../types/mo-releases";
 
-export function transformReleasesData(jsonData: any[]): Release[] {
+export function transformMoReleasesData(jsonData: any[]): Release[] {
   return jsonData.map((item, index) => ({
     id: index + 1, // Add missing id field
     releaseId: item["Release ID"] || "",
