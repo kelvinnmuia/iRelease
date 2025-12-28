@@ -41,7 +41,7 @@ export const deploymentStatusConfig: Record<string, StatusConfig> = {
   "Scheduled for Deployment": { color: "text-gray-600", dot: "bg-yellow-400" },
 };
 
-export const testStatusOptions = ["In Testing", "Passed", "Failed", "Not Tested"];
+export const testStatusOptions = ["In Testing", "Passed", "Failed"];
 export const deploymentStatusOptions = [
   "Deployed to QA",
   "Deployed to Pre-Prod",

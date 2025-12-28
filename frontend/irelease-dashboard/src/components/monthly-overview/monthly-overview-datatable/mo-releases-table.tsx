@@ -11,7 +11,7 @@ interface ReleasesTableProps {
   visibleColumns: ColumnConfig[];
   selectedRows: Set<number>;
   onToggleRowSelection: (id: number) => void;
-  onToggleSelectAll: () => void; // Add this prop
+  onToggleSelectAll: () => void; 
   onEditRelease: (release: Release) => void;
   onDeleteRelease: (release: Release) => void;
   onExportSingleRelease: (release: Release) => void;
