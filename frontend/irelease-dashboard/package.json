@@ -56,7 +56,8 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.16",
@@ -64,8 +65,9 @@
     "@types/papaparse": "^5.5.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/xlsx": "^0.0.36",
+    "@types/xlsx": "^0.0.35",
     "@vitejs/plugin-react": "^4.7.0",
+    "baseline-browser-mapping": "^2.9.11",
     "postcss": "^8.5",
     "postcss-import": "^16.1.1",
     "tailwindcss": "^4.1.16",

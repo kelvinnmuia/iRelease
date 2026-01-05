@@ -6,6 +6,10 @@ const releasesDetails = [
   { Deployment_Status: "Pre-Production", Total: 424, color: "#767276" },
   { Deployment_Status: "Production", Total: 380, color: "#0c0c0c" },
   { Deployment_Status: "Post-Production", Total: 430, color: "#d11314" },
+  { Deployment_Status: "Rolled back", Total: 20, color: "#7f151b" },
+  { Deployment_Status: "Not Deployed", Total: 150, color: "#4f4c4f" },
+  { Deployment_Status: "Deployment Failed", Total: 100, color: "#050505" },
+  { Deployment_Status: "Scheduled Deployment", Total: 50, color: "#9a0d0e" },
 ]
 
 export function DeploymentStatus() {
@@ -21,7 +25,7 @@ export function DeploymentStatus() {
       </CardHeader>
 
       <CardContent>
-        <div className="h-64 w-full">
+        <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={releasesDetails}
@@ -41,7 +45,7 @@ export function DeploymentStatus() {
                 <LabelList
                   dataKey="Total"
                   position="right"
-                  formatter={(value: number | string) => `${value} releases`}
+                  formatter={(value: number | string) => `${value}`}
                   style={{ fill: "#1e293b", fontWeight: "500" }}
                 />
                 {releasesDetails.map((entry, index) => (

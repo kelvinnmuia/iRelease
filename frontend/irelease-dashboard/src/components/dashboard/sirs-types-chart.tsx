@@ -6,9 +6,13 @@ const data = [
   { name: "Critical", value: 200 },
   { name: "Major", value: 250 },
   { name: "Minor", value: 260 },
+  { name: "Normal", value: 210 },
+  { name: "Enhancement", value: 230 },
+  { name: "Spec", value: 220 },
+  { name: "Setup", value: 270},
 ]
 
-const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314"]
+const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314", "#7f151b", "#4f4c4f", "#050505", "#9a0d0e"]
 
 export function SirsTypeChart() {
   const totalApplications = data.reduce((sum, item) => sum + item.value, 0)

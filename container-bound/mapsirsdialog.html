@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .required::after {
+      content: " *";
+      color: #ef4444;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    body {
+      background: #f8fafc;
+    }
+    
+    .info-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  </style>
+</head>
+<body class="p-0">
+  <div class="max-w-2xl mx-auto bg-white min-h-screen">
+    <!-- Header -->
+    <div class="px-8 py-6 border-b border-gray-200">
+      <h1 class="text-2xl font-semibold text-gray-900">Map Releases SIRs</h1>
+      <p class="text-gray-600 mt-1">Map SIRs from Bugzilla to specific releases and iterations.</p>
+    </div>
+    
+    <!-- Content -->
+    <div class="p-8">
+      <!-- Info Box -->
+      <div class="info-box rounded-lg p-4 mb-8 text-white">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium">How it works</h3>
+            <div class="mt-1 text-sm opacity-90">
+              <p>Enter SIR IDs from release notes. The system will:</p>
+              <ul class="list-disc list-inside mt-1 ml-2">
+                <li>Look up each SIR in the SIRs sheet</li>
+                <li>Generate unique SRL-XXXXX IDs for new mappings</li>
+                <li>Skip duplicates (same SIR + Release + Iteration)</li>
+                <li>Update only changed fields for existing mappings</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Release Version -->
+      <div class="mb-6">
+        <label for="releaseVersion" class="block text-sm font-medium text-gray-700 mb-2 required">
+          Release Version
+        </label>
+        <input 
+          type="text" 
+          id="releaseVersion" 
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+          placeholder="e.g., 24.3.0"
+          required
+        >
+        <p class="mt-1 text-sm text-gray-500">Enter the release version (e.g., 24.3.0, 25.1.0)</p>
+      </div>
+      
+      <!-- Iteration -->
+      <div class="mb-6">
+        <label for="iteration" class="block text-sm font-medium text-gray-700 mb-2 required">
+          Iteration
+        </label>
+        <input 
+          type="text" 
+          id="iteration" 
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+          placeholder="e.g., I1, I2, Final"
+          required
+        >
+        <p class="mt-1 text-sm text-gray-500">Enter the iteration identifier</p>
+      </div>
+      
+      <!-- SIR IDs -->
+      <div class="mb-6">
+        <label for="sirIds" class="block text-sm font-medium text-gray-700 mb-2 required">
+          SIR IDs
+        </label>
+        <textarea 
+          id="sirIds" 
+          rows="6"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+          placeholder="Enter comma-separated SIR IDs from release notes&#10;Example: 128135, 128179, 128234, 128567"
+          required
+        ></textarea>
+        <p class="mt-1 text-sm text-gray-500">
+          Enter comma-separated SIR IDs. Each ID will get a unique SRL-XXXXX identifier.
+        </p>
+      </div>
+      
+      <!-- Example -->
+      <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h4 class="text-sm font-medium text-gray-700 mb-2">Example Input:</h4>
+        <div class="text-sm text-gray-600 space-y-1">
+          <p><strong>Release Version:</strong> 24.3.0</p>
+          <p><strong>Iteration:</strong> I1</p>
+          <p><strong>SIR IDs:</strong> 128135, 128179, 128234</p>
+          <p class="mt-2 text-xs text-gray-500">
+            Will create: SRL-7AGUX for 128135, SRL-CV3FN for 128179, etc.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Status Messages -->
+      <div id="status" class="mb-6">
+        <!-- Success/Error messages will appear here -->
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between space-x-4 pt-8 border-t border-gray-200">
+        <button 
+          id="mapButton" 
+          onclick="mapSIRs()" 
+          disabled
+          class="px-12 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 w-48"
+        >
+          Map Releases SIRs
+        </button>
+        
+        <button 
+          type="button" 
+          onclick="google.script.host.close()" 
+          class="px-12 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 w-48"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const mapButton = document.getElementById('mapButton');
+    const statusDiv = document.getElementById('status');
+    const inputs = ['releaseVersion', 'iteration', 'sirIds'];
+    
+    // Enable button when all required fields are filled
+    inputs.forEach(inputId => {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.addEventListener('input', validateForm);
+        input.addEventListener('change', validateForm);
+      }
+    });
+    
+    function validateForm() {
+      let allFilled = true;
+      
+      inputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input && input.value.trim() === '') {
+          allFilled = false;
+        }
+      });
+      
+      // Validate SIR IDs format (at least one number)
+      const sirIdsInput = document.getElementById('sirIds');
+      if (sirIdsInput && sirIdsInput.value.trim() !== '') {
+        const sirIds = sirIdsInput.value.split(',').filter(id => id.trim() !== '');
+        if (sirIds.length === 0) {
+          allFilled = false;
+        }
+      }
+      
+      mapButton.disabled = !allFilled;
+    }
+    
+    function mapSIRs() {
+      const releaseVersion = document.getElementById('releaseVersion').value.trim();
+      const iteration = document.getElementById('iteration').value.trim();
+      const sirIds = document.getElementById('sirIds').value.trim();
+      
+      if (!releaseVersion || !iteration || !sirIds) {
+        showError('All fields are required');
+        return;
+      }
+      
+      // Show loading state
+      mapButton.disabled = true;
+      mapButton.innerHTML = '<span class="spinner"></span>Mapping...';
+      
+      // Call the Google Apps Script function
+      google.script.run
+        .withSuccessHandler(onMapSuccess)
+        .withFailureHandler(onMapError)
+        .mapSIRsForRelease(releaseVersion, iteration, sirIds);
+    }
+    
+    function onMapSuccess(result) {
+      if (result.success) {
+        showSuccess(result.message);
+        
+        // Auto-close after successful mapping
+        setTimeout(() => {
+          google.script.host.close();
+        }, 8000);
+      } else {
+        showError(result.message);
+        resetButton();
+      }
+    }
+    
+    function onMapError(error) {
+      showError('An error occurred: ' + error.message);
+      resetButton();
+    }
+    
+    function resetButton() {
+      mapButton.disabled = false;
+      mapButton.innerHTML = 'Map Releases SIRs';
+    }
+    
+    function showSuccess(message) {
+      clearStatus();
+      statusDiv.className = 'p-4 rounded-lg bg-green-50 border border-green-200';
+      statusDiv.innerHTML = `
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-green-800">Success!</h3>
+            <div class="mt-1 text-sm text-green-700 whitespace-pre-line">
+              ${message}
+            </div>
+            <div class="mt-2 text-xs text-green-600">
+              <em>The dialog will close in 8 seconds...</em>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function showError(message) {
+      clearStatus();
+      statusDiv.className = 'p-4 rounded-lg bg-red-50 border border-red-200';
+      statusDiv.innerHTML = `
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Error</h3>
+            <div class="mt-1 text-sm text-red-700 whitespace-pre-line">
+              ${message}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function clearStatus() {
+      statusDiv.className = '';
+      statusDiv.innerHTML = '';
+    }
+    
+    // Initial validation
+    validateForm();
+  </script>
+</body>
+</html>

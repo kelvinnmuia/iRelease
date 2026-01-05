@@ -24,7 +24,7 @@ interface SirReleaseChartProps {
   selectedIterationName: string;
 }
 
-const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314"]
+const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314", "#7f151b", "#4f4c4f", "#050505", "#9a0d0e"]
 
 export function SirReleasesChart({ 
   sirReleaseData, 
@@ -38,6 +38,10 @@ export function SirReleasesChart({
     critical: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "critical").length,
     major: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "major").length,
     minor: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "minor").length,
+    normal: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "normal").length,
+    enhancement: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "enhancement").length,
+    spec: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "spec").length,
+    setup: sirReleaseData.filter(item => item.bug_severity.toLowerCase() === "setup").length,
   }
 
   // Transform data for the chart with actual counts
@@ -46,6 +50,10 @@ export function SirReleasesChart({
     { name: "Critical", value: severityCounts.critical },
     { name: "Major", value: severityCounts.major },
     { name: "Minor", value: severityCounts.minor },
+    { name: "Normal", value: severityCounts.normal },
+    { name: "Enhancement", value: severityCounts.enhancement },
+    { name: "Spec", value: severityCounts.spec },
+    { name: "Setup", value: severityCounts.setup },
   ].filter(item => item.value > 0); // Only show severities with data
 
   const totalSIRs = sirReleaseData.length;
