@@ -193,7 +193,7 @@ export function SirReleasesChart({
                               {name}
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
-                              <span style={{ color: "#6b7280" }}>Count:</span>
+                              <span style={{ color: "#6b7280" }}>Total:</span>
                               <span style={{ color: "#1f2937", fontWeight: 500 }}>{value}</span>
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between" }}>

@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Map } from "lucide-react";
 import { SearchableDropdown } from "./searchable-dropdown";
-import { IterationDropdown } from "./iteration-dropdown";
-import { SirsReleaseExportMenu } from "./sirs-release-datatable/sirs-release-export-menu";
+import { IterationDropdown } from "../../trash-can/mo-unused-components/iteration-dropdown";
+import { SirsReleaseExportMenu } from "../../trash-can/sirs-release-datatable/sirs-release-export-menu";
 import { ColumnsDropdown } from "./columns-dropdown";
 import { SearchInput } from "./search-input";
 import { SirsReleasesColumnVisibility } from "./sirs-releases-column-visibility";
