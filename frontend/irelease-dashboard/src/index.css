@@ -122,3 +122,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Force the custom breakpoint */
+@media (min-width: 1921px) {
+  .xl-plus\:block {
+    display: block !important;
+  }
+  
+  .xl-plus\:hidden {
+    display: none !important;
+  }
+  
+  .xl-plus\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  
+  .xl-plus\:col-span-2 {
+    grid-column: span 2 !important;
+  }
+  
+  .xl-plus\:col-span-4 {
+    grid-column: span 4 !important;
+  }
+}
+
+@media (max-width: 1920px) {
+  .xl-plus\:block {
+    display: none !important;
+  }
+  
+  .xl-plus\:hidden {
+    display: block !important;
+  }
+}

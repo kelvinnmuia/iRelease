@@ -25,6 +25,7 @@ import { DeleteDialogs } from "./delete-dialogs";
 import { transformReleasesData } from "./utils/data-transform";
 import releasesData from "./data/releases-data.json";
 
+
 // Add type assertion for the JSON import
 const typedReleasesData = transformReleasesData(releasesData as any[]);
 export function ReleasesDataTable() {
@@ -281,7 +282,6 @@ export function ReleasesDataTable() {
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-             <div className="flex-shrink-0 bg-white">
             <ReleasesHeader
                 selectedRowsCount={selectedRows.size}
                 totalFilteredCount={sortedAndFilteredData.length}
@@ -315,35 +315,27 @@ export function ReleasesDataTable() {
                 onApplyDateRange={applyDateRange}
                 onClearDateRange={clearDateRange}
             />
-            </div>
 
-            {/* Scrollable container ONLY for the table and pagination */}
-            <div className="flex-1 flex flex-col min-h-0 isolate"> {/* Added isolate */}
-                {/* Table with vertical scrolling - NO sticky headers interfering with filters */}
-                <div className="flex-1 overflow-hidden relative">
+            <ReleasesTable
+                data={paginatedData}
+                visibleColumns={visibleColumns}
+                selectedRows={selectedRows}
+                onToggleRowSelection={toggleRowSelection}
+                onToggleSelectAll={toggleSelectAllOnPage} // Add this line
+                onEditRelease={openEditDialog}
+                onDeleteRelease={openDeleteDialog}
+                onExportSingleRelease={handleExportSingleRelease}
+            />
 
-                    <ReleasesTable
-                        data={paginatedData}
-                        visibleColumns={visibleColumns}
-                        selectedRows={selectedRows}
-                        onToggleRowSelection={toggleRowSelection}
-                        onToggleSelectAll={toggleSelectAllOnPage} // Add this line
-                        onEditRelease={openEditDialog}
-                        onDeleteRelease={openDeleteDialog}
-                        onExportSingleRelease={handleExportSingleRelease}
-                    />
-                </div>
-
-                <ReleasesPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={sortedAndFilteredData.length}
-                    startIndex={startIndex}
-                    onPageChange={setCurrentPage}
-                    visibleColumnsCount={visibleColumns.length}
-                />
-            </div>
+            <ReleasesPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={sortedAndFilteredData.length}
+                startIndex={startIndex}
+                onPageChange={setCurrentPage}
+                visibleColumnsCount={visibleColumns.length}
+            />
 
             <AddReleaseDialog
                 open={addDialogOpen}

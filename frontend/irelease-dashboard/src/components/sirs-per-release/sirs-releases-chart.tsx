@@ -229,7 +229,7 @@ export function SirReleasesChart({
             <div className="flex-1 space-y-3 self-center-safe">
               {dataWithPercentages.map((item, index) => (
                 <div key={item.name} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="flex items-center gap-1 flex-1">
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
                       style={{

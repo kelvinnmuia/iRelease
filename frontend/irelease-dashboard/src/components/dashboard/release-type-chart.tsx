@@ -136,17 +136,17 @@ export function ReleaseTypeChart() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-          <CardTitle className="text-lg lg:text-xl text-center md:text-left">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-lg lg:text-xl">
             Release Type by Month
           </CardTitle>
           
-          {/* Searchable Dropdown for Year Selection */}
-          <div className="relative" ref={containerRef}>
+          {/* Searchable Dropdown for Year Selection - ALWAYS positioned to the right */}
+          <div className="relative flex-shrink-0" ref={containerRef}>
             <Button
               size="sm"
               variant="outline"
-              className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full md:w-[160px] h-9"
+              className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-[160px] h-9"
               onClick={handleTriggerClick}
               type="button"
             >
@@ -164,11 +164,15 @@ export function ReleaseTypeChart() {
               </div>
             </Button>
 
-            {/* Custom Dropdown Content */}
+            {/* Custom Dropdown Content - ALWAYS positioned to the right */}
             {isOpen && (
               <div
-                className="absolute z-50 mt-1 w-[190px] bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
-                style={{ top: '100%', right: 0 }}
+                className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
+                style={{ 
+                  width: '190px',
+                  top: '100%',
+                  right: 0
+                }}
               >
                 {/* Search Input */}
                 <div className="p-3 border-b">
@@ -176,7 +180,7 @@ export function ReleaseTypeChart() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
                       ref={searchInputRef}
-                      placeholder="Search years..."
+                      placeholder="Search"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       onKeyDown={handleKeyDown}

@@ -124,7 +124,7 @@ export const ReleasesTable = ({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white" style={{ maxHeight: 'calc(100vh - 280px)' }}>
-      {/* Top horizontal scrollbar */}
+      {/* Top horizontal scrollbar - NOW WITH EXACT TABLE WIDTH */}
       <div 
         ref={topScrollRef}
         className="sticky top-0 z-20 bg-white overflow-x-auto overflow-y-hidden border-b border-gray-200"
@@ -141,10 +141,10 @@ export const ReleasesTable = ({
         }}></div>
       </div>
       
-      {/* Main table container - REMOVED horizontal scrolling here */}
+      {/* Main scrollable table container */}
       <div 
         ref={mainScrollRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden"
+        className="flex-1 overflow-auto"
       >
         <Table ref={tableRef} className="text-sm min-w-full">
           {/* Sticky headers */}

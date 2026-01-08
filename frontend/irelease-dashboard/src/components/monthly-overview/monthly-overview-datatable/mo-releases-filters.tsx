@@ -99,10 +99,10 @@ export const ReleasesFilters = ({
     return (
         <>
             {/* Enhanced Responsive Controls */}
-            <div className="bg-gray-50 border-b border-gray-200 pt-0 p-6 -mt-6">
+            <div className="bg-gray-50 border-b border-gray-200 pb-6 -mt-6">
                 <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                     {/* Left Section - Export, Show/Hide, Search */}
-                    <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:max-w-2xl">
+                    <div className="flex flex-col md:flex-row gap-2 xl:flex-1 xl:max-w-2xl">
                         {/* Export and Show/Hide - Always visible */}
                         <div className="flex gap-2 flex-1 md:flex-none">
                             <ExportMenu
@@ -122,7 +122,7 @@ export const ReleasesFilters = ({
                         {/* Search Input */}
                         <div className="flex-1 min-w-0">
                             <div className="relative max-w-md">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 lg:w-4 text-gray-500 pointer-events-none" />
                                 <Input
                                     placeholder="Search releases..."
                                     value={globalFilter}
@@ -136,7 +136,7 @@ export const ReleasesFilters = ({
                     </div>
 
                     {/* Right Section - Date Range, Ordering, Add/Delete */}
-                    <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
+                    <div className="flex flex-col md:flex-row gap-2 xl:flex-1 xl:justify-end">
                         {/* Date Range and Ordering - Always visible */}
                         <div className="flex gap-2 flex-1 md:flex-none">
                             <DateRangePicker
@@ -182,14 +182,14 @@ export const ReleasesFilters = ({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32"
+                                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 lg:w-28"
                                 onClick={onAddRelease}
                             >
                                 + Add New
                             </Button>
                             <Button
                                 size="sm"
-                                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32"
+                                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32 lg:w-28"
                                 onClick={onBulkDelete}
                             >
                                 - Delete

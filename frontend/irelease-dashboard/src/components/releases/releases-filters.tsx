@@ -136,7 +136,7 @@ export const ReleasesFilters = ({
                     </div>
 
                     {/* Right Section - Date Range, Ordering, Add/Delete */}
-                    <div className="flex flex-col md:flex-row gap-3 xl:flex-1 xl:justify-end">
+                    <div className="flex flex-col md:flex-row gap-2 xl:flex-1 xl:justify-end">
                         {/* Date Range and Ordering - Always visible */}
                         <div className="flex gap-2 flex-1 md:flex-none">
                             <DateRangePicker
@@ -182,14 +182,14 @@ export const ReleasesFilters = ({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32"
+                                className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 lg:w-26"
                                 onClick={onAddRelease}
                             >
                                 + Add New
                             </Button>
                             <Button
                                 size="sm"
-                                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32"
+                                className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32 lg:w-26"
                                 onClick={onBulkDelete}
                             >
                                 - Delete
