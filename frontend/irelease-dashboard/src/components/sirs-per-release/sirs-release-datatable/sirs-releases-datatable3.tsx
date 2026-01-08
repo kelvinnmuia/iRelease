@@ -9,7 +9,7 @@ import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
 import { EditSirsReleaseDialog } from "./edit-sirs-release-dialog";
-import { SirsReleasesTable } from "./sirs-releases-table";
+import { SirsReleasesTable } from "./sirs-releases-table"; // Import the new component
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{
@@ -190,7 +190,7 @@ export function SirReleaseDataTable({
     setSelectedRows(newSelected)
   }
 
-  const toggleSelectAllOnPage = () => {
+  const toggleSelectAll = () => {
     const newSelected = new Set(selectedRows)
 
     if (allCurrentPageSelected) {
@@ -269,7 +269,7 @@ export function SirReleaseDataTable({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header - Light Gray Background */}
+      {/* Header - Light Gray Background - SIMPLIFIED */}
       <div className="bg-gray-50 border-b border-gray-200 p-6">
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
           {/* Right Section - Date Range and Delete Button */}
@@ -375,7 +375,7 @@ export function SirReleaseDataTable({
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-[100px] z-[100]">
+            <DropdownMenuContent className="min-w-[100px]">
               <DropdownMenuItem onClick={() => setItemsPerPage(10)}>
                 10
               </DropdownMenuItem>
@@ -397,122 +397,117 @@ export function SirReleaseDataTable({
         </div>
       </div>
 
-      {/* Scrollable container ONLY for the table - Added isolate */}
-      <div className="flex-1 flex flex-col min-h-0 isolate">
-        {/* Table with vertical scrolling - NO sticky headers interfering with filters */}
-        <div className="flex-1 overflow-hidden relative">
-          <SirsReleasesTable
-            data={paginatedData}
-            visibleColumns={visibleColumns}
-            selectedRows={selectedRows}
-            onToggleRowSelection={toggleRowSelection}
-            onToggleSelectAll={toggleSelectAllOnPage}
-            onEditSIR={openEditDialog}
-            onDeleteSIR={openDeleteDialog}
-            onExportSingleSIR={exportSingleSIR}
-          />
+      {/* Table - Now using the separated component */}
+      <SirsReleasesTable
+        data={paginatedData}
+        visibleColumns={visibleColumns}
+        selectedRows={selectedRows}
+        onToggleRowSelection={toggleRowSelection}
+        onToggleSelectAll={toggleSelectAll}
+        onEditSIR={openEditDialog}
+        onDeleteSIR={openDeleteDialog}
+        onExportSingleSIR={exportSingleSIR}
+      />
+
+      {/* Footer */}
+      <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="text-sm text-gray-600 text-center sm:text-left">
+          Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
+          {dateRange && (
+            <span className="ml-2">(filtered by date range)</span>
+          )}
+          <span className="ml-2">• {visibleColumns.length} columns visible</span>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-gray-600 text-center sm:text-left">
-            Viewing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedAndFilteredData.length)} of {sortedAndFilteredData.length}
-            {dateRange && (
-              <span className="ml-2">(filtered by date range)</span>
-            )}
-            <span className="ml-2">• {visibleColumns.length} columns visible</span>
-          </div>
+        {/* Enhanced Pagination */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="border-gray-300 hover:bg-gray-50 min-w-9 h-9 p-0"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
 
-          {/* Enhanced Pagination */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="border-gray-300 hover:bg-gray-50 min-w-9 h-9 p-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
+          {/* Smart page number rendering */}
+          {(() => {
+            const pages: (number | string)[] = [];
+            const maxVisiblePages = 5;
+            const ellipsis = "...";
 
-            {/* Smart page number rendering */}
-            {(() => {
-              const pages: (number | string)[] = [];
-              const maxVisiblePages = 5;
-              const ellipsis = "...";
+            if (totalPages <= maxVisiblePages) {
+              // Show all pages if total pages is small
+              for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+              }
+            } else {
+              // Always show first page
+              pages.push(1);
 
-              if (totalPages <= maxVisiblePages) {
-                // Show all pages if total pages is small
-                for (let i = 1; i <= totalPages; i++) {
+              if (currentPage <= 3) {
+                // Near the beginning: 1, 2, 3, 4, ..., last
+                for (let i = 2; i <= 4; i++) {
+                  pages.push(i);
+                }
+                pages.push(ellipsis);
+                pages.push(totalPages);
+              } else if (currentPage >= totalPages - 2) {
+                // Near the end: 1, ..., n-3, n-2, n-1, n
+                pages.push(ellipsis);
+                for (let i = totalPages - 3; i <= totalPages; i++) {
                   pages.push(i);
                 }
               } else {
-                // Always show first page
-                pages.push(1);
-
-                if (currentPage <= 3) {
-                  // Near the beginning: 1, 2, 3, 4, ..., last
-                  for (let i = 2; i <= 4; i++) {
-                    pages.push(i);
-                  }
-                  pages.push(ellipsis);
-                  pages.push(totalPages);
-                } else if (currentPage >= totalPages - 2) {
-                  // Near the end: 1, ..., n-3, n-2, n-1, n
-                  pages.push(ellipsis);
-                  for (let i = totalPages - 3; i <= totalPages; i++) {
-                    pages.push(i);
-                  }
-                } else {
-                  // In the middle: 1, ..., current-1, current, current+1, ..., last
-                  pages.push(ellipsis);
-                  for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-                    pages.push(i);
-                  }
-                  pages.push(ellipsis);
-                  pages.push(totalPages);
+                // In the middle: 1, ..., current-1, current, current+1, ..., last
+                pages.push(ellipsis);
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                  pages.push(i);
                 }
+                pages.push(ellipsis);
+                pages.push(totalPages);
+              }
+            }
+
+            return pages.map((page, index) => {
+              if (page === ellipsis) {
+                return (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="min-w-9 h-9 flex items-center justify-center text-gray-500 px-2"
+                  >
+                    {ellipsis}
+                  </span>
+                );
               }
 
-              return pages.map((page, index) => {
-                if (page === ellipsis) {
-                  return (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="min-w-9 h-9 flex items-center justify-center text-gray-500 px-2"
-                    >
-                      {ellipsis}
-                    </span>
-                  );
-                }
+              return (
+                <Button
+                  key={page}
+                  size="sm"
+                  variant={currentPage === page ? "default" : "outline"}
+                  onClick={() => setCurrentPage(page as number)}
+                  className={`min-w-9 h-9 p-0 ${currentPage === page
+                    ? "bg-red-500 text-white hover:bg-red-600 border-red-500"
+                    : "border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  {page}
+                </Button>
+              );
+            });
+          })()}
 
-                return (
-                  <Button
-                    key={page}
-                    size="sm"
-                    variant={currentPage === page ? "default" : "outline"}
-                    onClick={() => setCurrentPage(page as number)}
-                    className={`min-w-9 h-9 p-0 ${currentPage === page
-                      ? "bg-red-500 text-white hover:bg-red-600 border-red-500"
-                      : "border-gray-300 hover:bg-gray-50"
-                      }`}
-                  >
-                    {page}
-                  </Button>
-                );
-              });
-            })()}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="border-gray-300 hover:bg-gray-50 min-w-9 h-9 p-0"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="border-gray-300 hover:bg-gray-50 min-w-9 h-9 p-0"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
