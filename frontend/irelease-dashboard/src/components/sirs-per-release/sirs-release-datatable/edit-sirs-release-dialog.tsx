@@ -33,11 +33,11 @@ interface EditSirsReleaseDialogProps {
 }
 
 // Options for dropdowns (extracted from your datatable)
-const bugSeverityOptions = ["Critical", "Minor", "Major", "Blocker"];
-const bugStatusOptions = ["Open", "In Progress", "Resolved", "Verified", "Closed"];
-const resolutionOptions = ["Unresolved", "Working", "Fixed", "Verified", "Closed"];
-const priorityOptions = ["P1", "P2", "P3", "P4"];
-const componentOptions = ["MV", "MAN", "EXM", "API", "UI", "DB", "ALL"];
+const bugSeverityOptions = ["Critical", "Minor", "Major", "Blocker", "Spec", "Normal", "Enhancement", "Setup"];
+const bugStatusOptions = ["Open", "Resolved","Closed", "Reopened", "New", "Assigned", "Verified"];
+const resolutionOptions = ["Unresolved", "Wontfix", "Fixed", "Verified", "Closed", "Invalid", "Duplicate", "Worksforme", "Deferred", "Unconfirmed"];
+const priorityOptions = ["P1", "P2", "P3", "P4", "P5"];
+const componentOptions = ["MV", "MAN", "EXM", "API", "UI", "DB", "ALL"]; // Keep for reference if needed elsewhere
 const osOptions = ["All", "Linux", "Windows", "MacOS"];
 
 export const EditSirsReleaseDialog = ({
@@ -284,21 +284,14 @@ export const EditSirsReleaseDialog = ({
                 <Label htmlFor="component" className="text-sm font-medium text-gray-700">
                   Component
                 </Label>
-                <Select
+                {/* Changed from Select to Input field */}
+                <Input
+                  id="component"
                   value={formData.component || ''}
-                  onValueChange={(value) => handleInputChange('component', value)}
-                >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                    <SelectValue placeholder="Select component" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {componentOptions.map((component) => (
-                      <SelectItem key={component} value={component}>
-                        {component}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={handleInputElementChange}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
+                  placeholder="Enter component"
+                />
               </div>
             </div>
 

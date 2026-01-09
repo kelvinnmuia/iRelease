@@ -104,7 +104,7 @@ export const IterationDropdown = ({
             <Button
                 size="sm"
                 variant="outline"
-                className={`flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full min-w-[160px] h-8 ${buttonClassName}`}
+                className={`flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-full min-w-[160px] h-9 ${buttonClassName}`}
                 onClick={handleTriggerClick}
                 type="button"
             >

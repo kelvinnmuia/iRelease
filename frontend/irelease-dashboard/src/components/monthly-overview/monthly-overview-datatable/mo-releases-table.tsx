@@ -5,6 +5,7 @@ import { MoreVertical } from "lucide-react";
 import { Release, ColumnConfig } from "./types/mo-releases";
 import { statusConfig, deploymentStatusConfig } from "./constants/mo-releases-constants";
 import { TruncatedText } from "./mo-truncated-text";
+import { useEffect, useRef, useState } from "react";
 
 interface ReleasesTableProps {
   data: Release[];
@@ -33,19 +34,62 @@ export const ReleasesTable = ({
     data.some(item => selectedRows.has(item.id)) && 
     !allCurrentPageSelected;
 
-    const handleSelectAll = () => {
-    onToggleSelectAll(); // Call the parent handler
+  // Refs for scroll synchronization
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+
+  const handleSelectAll = () => {
+    onToggleSelectAll();
   };
 
-  /*const toggleSelectAll = () => {
-    const newSelected = new Set(selectedRows);
+  // Sync horizontal scrolling and get table width
+  useEffect(() => {
+    const mainContainer = mainScrollRef.current;
+    const topScrollbar = topScrollRef.current;
+    const table = tableRef.current;
+
+    if (!mainContainer || !topScrollbar || !table) return;
+
+    // Update table width
+    const updateTableWidth = () => {
+      const width = table.scrollWidth;
+      setTableWidth(width);
+    };
+
+    const handleMainScroll = () => {
+      if (topScrollRef.current) {
+        topScrollRef.current.scrollLeft = mainContainer.scrollLeft;
+      }
+    };
+
+    const handleTopScroll = () => {
+      if (mainScrollRef.current) {
+        mainScrollRef.current.scrollLeft = topScrollbar.scrollLeft;
+      }
+    };
+
+    // Initial update
+    updateTableWidth();
     
-    if (allCurrentPageSelected) {
-      currentPageIds.forEach(id => newSelected.delete(id));
-    } else {
-      currentPageIds.forEach(id => newSelected.add(id));
-    }
-  };*/
+    // Add resize observer to update width when table changes
+    const resizeObserver = new ResizeObserver(updateTableWidth);
+    resizeObserver.observe(table);
+    
+    // Also update on window resize
+    window.addEventListener('resize', updateTableWidth);
+
+    mainContainer.addEventListener('scroll', handleMainScroll);
+    topScrollbar.addEventListener('scroll', handleTopScroll);
+
+    return () => {
+      resizeObserver.disconnect();
+      mainContainer.removeEventListener('scroll', handleMainScroll);
+      topScrollbar.removeEventListener('scroll', handleTopScroll);
+      window.removeEventListener('resize', updateTableWidth);
+    };
+  }, []);
 
   const renderCellContent = (column: ColumnConfig, row: Release) => {
     const value = row[column.key];
@@ -79,98 +123,124 @@ export const ReleasesTable = ({
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-white">
-      <Table className="text-sm">
-        <TableHeader className="bg-white hover:bg-gray-50 transition-colors duration-150 sticky top-0">
-          <TableRow className="border-b border-gray-200 h-12">
-            <TableHead className="w-12 px-4 text-sm font-semibold text-gray-900 h-12">
-              <input
-                type="checkbox"
-                checked={allCurrentPageSelected}
-                ref={(input) => {
-                  if (input) {
-                    input.indeterminate = someCurrentPageSelected;
-                  }
-                }}
-                onChange={handleSelectAll}
-                className="rounded border-gray-300 text-red-400 focus:ring-red-400"
-              />
-            </TableHead>
-            {visibleColumns.map((col) => (
-              <TableHead
-                key={col.key}
-                className={`px-4 text-sm font-semibold text-gray-900 h-12 ${col.width}`}
-              >
-                {col.label}
+    <div className="flex-1 flex flex-col overflow-hidden bg-white" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+      {/* Top horizontal scrollbar */}
+      <div 
+        ref={topScrollRef}
+        className="sticky top-0 z-20 bg-white overflow-x-auto overflow-y-hidden border-b border-gray-200"
+        style={{ 
+          height: '20px',
+          minHeight: '20px'
+        }}
+      >
+        {/* This div has the EXACT width of the table to trigger scrollbar */}
+        <div style={{ 
+          width: `${tableWidth}px`, 
+          height: '1px',
+          minWidth: `${tableWidth}px`
+        }}></div>
+      </div>
+      
+      {/* Main table container */}
+      <div 
+        ref={mainScrollRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden"
+      >
+        <Table ref={tableRef} className="text-sm min-w-full">
+          {/* Sticky headers */}
+          <TableHeader className="sticky top-0 z-10 bg-white">
+            <TableRow className="border-b border-gray-200 h-12 bg-white hover:bg-gray-50 transition-colors duration-150">
+              <TableHead className="w-12 px-4 text-sm font-semibold text-gray-900 h-12">
+                <input
+                  type="checkbox"
+                  checked={allCurrentPageSelected}
+                  ref={(input) => {
+                    if (input) {
+                      input.indeterminate = someCurrentPageSelected;
+                    }
+                  }}
+                  onChange={handleSelectAll}
+                  className="rounded border-gray-300 text-red-400 focus:ring-red-400"
+                />
               </TableHead>
-            ))}
-            <TableHead className="w-12 px-4 text-sm font-semibold text-gray-900 h-12">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="bg-white">
-          {data.length > 0 ? (
-            data.map((row) => (
-              <TableRow
-                key={row.id}
-                className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 h-12"
-              >
-                <TableCell className="px-4 h-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.has(row.id)}
-                    onChange={() => onToggleRowSelection(row.id)}
-                    className="rounded border-gray-300 text-red-400 focus:ring-red-400"
-                  />
-                </TableCell>
-                {visibleColumns.map((col) => (
-                  <TableCell key={col.key} className="px-4 h-12">
-                    {renderCellContent(col, row)}
+              {visibleColumns.map((col) => (
+                <TableHead
+                  key={col.key}
+                  className={`px-4 text-sm font-semibold text-gray-900 h-12 ${col.width}`}
+                >
+                  {col.label}
+                </TableHead>
+              ))}
+              <TableHead className="w-12 px-4 text-sm font-semibold text-gray-900 h-12">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="bg-white">
+            {data.length > 0 ? (
+              data.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 h-12"
+                >
+                  <TableCell className="px-4 h-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(row.id)}
+                      onChange={() => onToggleRowSelection(row.id)}
+                      className="rounded border-gray-300 text-red-400 focus:ring-red-400"
+                    />
                   </TableCell>
-                ))}
-                <TableCell className="px-4 h-12">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-4 h-8 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
-                      >
-                        <MoreVertical className="w-4 h-4 text-gray-400" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => onEditRelease(row)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => onExportSingleRelease(row)}
-                      >
-                        Export
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer text-red-600"
-                        onClick={() => onDeleteRelease(row)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {visibleColumns.map((col) => (
+                    <TableCell key={col.key} className="px-4 h-12">
+                      {renderCellContent(col, row)}
+                    </TableCell>
+                  ))}
+                  <TableCell className="px-4 h-12">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-4 h-8 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-400" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 z-50">
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => onEditRelease(row)}
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => onExportSingleRelease(row)}
+                        >
+                          Export
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer text-red-600"
+                          onClick={() => onDeleteRelease(row)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length + 2} className="h-24 text-center">
+                  No results found.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={visibleColumns.length + 2} className="h-24 text-center">
-                No results found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

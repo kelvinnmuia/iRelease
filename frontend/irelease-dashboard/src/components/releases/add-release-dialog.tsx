@@ -1,3 +1,4 @@
+// add-release-dialog.tsx
 import { toast } from "sonner";
 import { useState, ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +17,7 @@ import {
   monthOptions, 
   financialYearOptions 
 } from "./constants/releases-constants";
+import { SystemsSearch, systemMapping } from "./systems-search";
 
 interface AddReleaseDialogProps {
   open: boolean;
@@ -65,6 +67,22 @@ export const AddReleaseDialog = ({
   const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     handleInputChange(id, value);
+  };
+
+  // Handle system name change - auto-populates system ID
+  const handleSystemNameChange = (systemName: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      systemName,
+      systemId: systemMapping[systemName] || ""
+    }));
+    
+    if (validationErrors.systemName) {
+      setValidationErrors(prev => ({ ...prev, systemName: "" }));
+    }
+    if (validationErrors.systemId) {
+      setValidationErrors(prev => ({ ...prev, systemId: "" }));
+    }
   };
 
   const validateForm = () => {
@@ -147,18 +165,12 @@ export const AddReleaseDialog = ({
                 <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
                   System Name <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="systemName"
+                <SystemsSearch
                   value={formData.systemName}
-                  onChange={(e) => handleInputChange('systemName', e.target.value)}
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
-                    validationErrors.systemName ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter system name"
+                  onChange={handleSystemNameChange}
+                  validationError={validationErrors.systemName}
+                  placeholder="Select system name"
                 />
-                {validationErrors.systemName && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.systemName}</p>
-                )}
               </div>
             </div>
 
@@ -170,11 +182,11 @@ export const AddReleaseDialog = ({
                 <Input
                   id="systemId"
                   value={formData.systemId}
-                  onChange={(e) => handleInputChange('systemId', e.target.value)}
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                  readOnly
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 bg-gray-50 ${
                     validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter system ID"
+                  placeholder="Auto-populated from system name"
                 />
                 {validationErrors.systemId && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>

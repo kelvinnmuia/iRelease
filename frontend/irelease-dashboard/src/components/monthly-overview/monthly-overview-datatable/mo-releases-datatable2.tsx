@@ -303,69 +303,60 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Header and Filters - fixed section */}
-            <div className="flex-shrink-0 bg-white">
-                <ReleasesHeader
-                    selectedRowsCount={selectedRows.size}
-                    totalFilteredCount={sortedAndFilteredData.length}
-                    globalFilter={globalFilter}
-                    dateRange={dateRange}
-                />
+            <ReleasesHeader
+                selectedRowsCount={selectedRows.size}
+                totalFilteredCount={sortedAndFilteredData.length}
+                globalFilter={globalFilter}
+                dateRange={dateRange}
+            />
 
-                <ReleasesFilters
-                    globalFilter={globalFilter}
-                    setGlobalFilter={setGlobalFilter}
-                    dateRange={dateRange}
-                    setDateRange={setDateRange}
-                    startDate={startDate}
-                    setStartDate={setStartDate}
-                    endDate={endDate}
-                    setEndDate={setEndDate}
-                    sortOrder={sortOrder}
-                    setSortOrder={setSortOrder}
-                    columnVisibility={columnVisibility}
-                    toggleColumnVisibility={toggleColumnVisibility}
-                    resetColumnVisibility={resetColumnVisibility}
-                    itemsPerPage={itemsPerPage}
-                    setItemsPerPage={setItemsPerPage}
-                    onAddRelease={() => setAddDialogOpen(true)}
-                    onBulkDelete={openBulkDeleteDialog}
-                    selectedRowsCount={selectedRows.size}
-                    totalFilteredCount={sortedAndFilteredData.length}
-                    exportToCSV={handleExportCSV}
-                    exportToExcel={handleExportExcel}
-                    exportToJSON={handleExportJSON}
-                    onApplyDateRange={applyDateRange}
-                    onClearDateRange={clearDateRange}
-                />
-            </div>
+            <ReleasesFilters
+                globalFilter={globalFilter}
+                setGlobalFilter={setGlobalFilter}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                columnVisibility={columnVisibility}
+                toggleColumnVisibility={toggleColumnVisibility}
+                resetColumnVisibility={resetColumnVisibility}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+                onAddRelease={() => setAddDialogOpen(true)}
+                onBulkDelete={openBulkDeleteDialog}
+                selectedRowsCount={selectedRows.size}
+                totalFilteredCount={sortedAndFilteredData.length}
+                exportToCSV={handleExportCSV}
+                exportToExcel={handleExportExcel}
+                exportToJSON={handleExportJSON}
+                onApplyDateRange={applyDateRange}
+                onClearDateRange={clearDateRange}
+            />
 
-            {/* Scrollable container ONLY for the table and pagination */}
-            <div className="flex-1 flex flex-col min-h-0 isolate">
-                {/* Table with vertical scrolling - NO sticky headers interfering with filters */}
-                <div className="flex-1 overflow-hidden relative">
-                    <ReleasesTable
-                        data={paginatedData}
-                        visibleColumns={visibleColumns}
-                        selectedRows={selectedRows}
-                        onToggleRowSelection={toggleRowSelection}
-                        onToggleSelectAll={toggleSelectAllOnPage}
-                        onEditRelease={openEditDialog}
-                        onDeleteRelease={openDeleteDialog}
-                        onExportSingleRelease={handleExportSingleRelease}
-                    />
-                </div>
+            <ReleasesTable
+                data={paginatedData}
+                visibleColumns={visibleColumns}
+                selectedRows={selectedRows}
+                onToggleRowSelection={toggleRowSelection}
+                onToggleSelectAll={toggleSelectAllOnPage}
+                onEditRelease={openEditDialog}
+                onDeleteRelease={openDeleteDialog}
+                onExportSingleRelease={handleExportSingleRelease}
+            />
 
-                <ReleasesPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={sortedAndFilteredData.length}
-                    startIndex={startIndex}
-                    onPageChange={setCurrentPage}
-                    visibleColumnsCount={visibleColumns.length}
-                />
-            </div>
+            <ReleasesPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={sortedAndFilteredData.length}
+                startIndex={startIndex}
+                onPageChange={setCurrentPage}
+                visibleColumnsCount={visibleColumns.length}
+            />
 
             <AddReleaseDialog
                 open={addDialogOpen}

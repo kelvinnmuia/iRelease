@@ -50,10 +50,10 @@ export const priorityConfig: Record<string, { color: string; bgColor: string }> 
 }
 
 // Options for dropdowns
-export const bugSeverityOptions = ["Critical", "Minor", "Major", "Blocker"]
-export const bugStatusOptions = ["Open", "In Progress", "Resolved", "Verified", "Closed"]
+export const bugSeverityOptions = ["Critical", "Minor", "Major", "Blocker", "Spec", "Normal", "Enhancement", "Spec", "Setup"]
+export const bugStatusOptions = ["Open", "In Progress", "Resolved", "Verified", "Closed", "Reopened", "New"]
 export const resolutionOptions = ["Unresolved", "Working", "Fixed", "Verified", "Closed"]
-export const priorityOptions = ["P1", "P2", "P3", "P4"]
+export const priorityOptions = ["P1", "P2", "P3", "P4", "P5"]
 export const componentOptions = ["MV", "MAN", "EXM", "API", "UI", "DB", "ALL"]
 export const osOptions = ["All", "Linux", "Windows", "MacOS"]
 

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect } from "react";
+import { useState, ChangeEvent, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   monthOptions, 
   financialYearOptions 
 } from "./constants/releases-constants";
+import { Search, ChevronDown } from "lucide-react";
 
 interface EditReleaseDialogProps {
   open: boolean;
@@ -29,12 +30,51 @@ export const EditReleaseDialog = ({
   onSave
 }: EditReleaseDialogProps) => {
   const [formData, setFormData] = useState<Partial<Release>>({});
+  const [isFinancialYearOpen, setIsFinancialYearOpen] = useState(false);
+  const [financialYearSearch, setFinancialYearSearch] = useState("");
+  const [filteredFinancialYears, setFilteredFinancialYears] = useState(financialYearOptions);
+  const financialYearDropdownRef = useRef<HTMLDivElement>(null);
+  const financialYearSearchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (release) {
       setFormData({ ...release });
     }
   }, [release]);
+
+  // Filter financial years based on search
+  useEffect(() => {
+    if (financialYearSearch.trim() === "") {
+      setFilteredFinancialYears(financialYearOptions);
+    } else {
+      const filtered = financialYearOptions.filter(year =>
+        year.toLowerCase().includes(financialYearSearch.toLowerCase())
+      );
+      setFilteredFinancialYears(filtered);
+    }
+  }, [financialYearSearch]);
+
+  // Close financial year dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (financialYearDropdownRef.current && !financialYearDropdownRef.current.contains(event.target as Node)) {
+        setIsFinancialYearOpen(false);
+        setFinancialYearSearch("");
+      }
+    };
+
+    if (isFinancialYearOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      // Focus search input when dropdown opens
+      setTimeout(() => {
+        financialYearSearchRef.current?.focus();
+      }, 100);
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isFinancialYearOpen]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -43,6 +83,17 @@ export const EditReleaseDialog = ({
   const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     handleInputChange(id, value);
+  };
+
+  const handleFinancialYearSelect = (year: string) => {
+    handleInputChange('financialYear', year);
+    setIsFinancialYearOpen(false);
+    setFinancialYearSearch("");
+  };
+
+  const clearFinancialYearSearch = () => {
+    setFinancialYearSearch("");
+    financialYearSearchRef.current?.focus();
   };
 
   const handleSave = () => {
@@ -54,6 +105,8 @@ export const EditReleaseDialog = ({
   const handleCancel = () => {
     onOpenChange(false);
     setFormData({});
+    setFinancialYearSearch("");
+    setIsFinancialYearOpen(false);
   };
 
   if (!release) return null;
@@ -109,9 +162,9 @@ export const EditReleaseDialog = ({
                 <Input
                   id="systemName"
                   value={formData.systemName || ''}
-                  onChange={(e) => handleInputChange('systemName', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                  placeholder="Enter system name"
+                  disabled
+                  className="w-full bg-gray-100 text-gray-600"
+                  placeholder="System Name"
                 />
               </div>
 
@@ -122,9 +175,9 @@ export const EditReleaseDialog = ({
                 <Input
                   id="systemId"
                   value={formData.systemId || ''}
-                  onChange={(e) => handleInputChange('systemId', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                  placeholder="Enter system ID"
+                  disabled
+                  className="w-full bg-gray-100 text-gray-600"
+                  placeholder="System ID"
                 />
               </div>
             </div>
@@ -312,25 +365,73 @@ export const EditReleaseDialog = ({
                 </Select>
               </div>
 
-              <div className="space-y-2 w-full">
+              <div className="space-y-2 w-full" ref={financialYearDropdownRef}>
                 <Label htmlFor="financialYear" className="text-sm font-medium text-gray-700">
                   Financial Year
                 </Label>
-                <Select
-                  value={formData.financialYear || ''}
-                  onValueChange={(value) => handleInputChange('financialYear', value)}
-                >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
-                    <SelectValue placeholder="Select financial year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {financialYearOptions.map((year) => (
-                      <SelectItem key={year} value={year}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* Custom Financial Year Dropdown with Search */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsFinancialYearOpen(!isFinancialYearOpen)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:border-red-400"
+                  >
+                    <span className={`text-sm ${formData.financialYear ? 'text-gray-900' : 'text-gray-500'}`}>
+                      {formData.financialYear || "Select financial year"}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isFinancialYearOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isFinancialYearOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
+                      {/* Search Input */}
+                      <div className="p-2 border-b border-gray-200">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            ref={financialYearSearchRef}
+                            type="text"
+                            placeholder="Search financial years..."
+                            value={financialYearSearch}
+                            onChange={(e) => setFinancialYearSearch(e.target.value)}
+                            className="pl-10 pr-10 w-full text-sm"
+                          />
+                          {financialYearSearch && (
+                            <button
+                              type="button"
+                              onClick={clearFinancialYearSearch}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Scrollable List with Search Results */}
+                      <div className="max-h-48 overflow-y-auto">
+                        {filteredFinancialYears.length > 0 ? (
+                          filteredFinancialYears.map((year) => (
+                            <button
+                              key={year}
+                              type="button"
+                              onClick={() => handleFinancialYearSelect(year)}
+                              className={`w-full px-3 py-2 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100 text-sm ${
+                                formData.financialYear === year ? 'bg-red-50 text-red-600' : 'text-gray-900'
+                              }`}
+                            >
+                              {year}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                            No FY found matching "{financialYearSearch}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
