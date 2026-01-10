@@ -57,7 +57,27 @@ export const monthOptions = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
-export const financialYearOptions = ["FY2023", "FY2024", "FY2025", "FY2026"];
+
+// Dynamic financial year options generator
+export const generateFinancialYearOptions = (): string[] => {
+  const currentYear = new Date().getFullYear();
+  const baseYear = 2023; // Starting year
+  const yearsAhead = 5; // How many years ahead to show from current year
+  
+  const options: string[] = [];
+  
+  // Generate years from baseYear to currentYear + yearsAhead
+  const endYear = Math.max(currentYear + yearsAhead, baseYear);
+  
+  for (let year = baseYear; year <= endYear; year++) {
+    options.push(`FY${year}`);
+  }
+  
+  return options;
+};
+
+// Export the dynamic financial year options
+export const financialYearOptions = generateFinancialYearOptions();
 
 // LocalStorage keys
 export const STORAGE_KEYS = {

@@ -186,7 +186,7 @@ export const AddReleaseDialog = ({
                   className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 bg-gray-50 ${
                     validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Auto-populated from system name"
+                  placeholder="System ID"
                 />
                 {validationErrors.systemId && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>
