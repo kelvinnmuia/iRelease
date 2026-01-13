@@ -3,10 +3,6 @@
  * Handles all CRUD operations for the Releases_Details sheet
  */
 
-// =====================================
-// READ (GET) OPERATIONS ENDPOINTS
-// =====================================
-
 /**
  * Retrieves all releases from Releases_Details sheet
  * Headers are at row 4, data starts at row 5
@@ -59,5 +55,48 @@ function getAllReleases(releaseSheet) {
   } catch (error) {
     console.error(`Error retrieving releases: ${error.message}`);
     throw new Error(`Failed to retrieve releases: ${error.message}`);
+  }
+}
+
+/**
+ * Test function to verify the data structure
+ */
+function testReleaseStructure(releaseSheet) {
+  try {
+    // Get a sample to check structure
+    const lastColumn = releaseSheet.getLastColumn();
+    
+    // Get headers from row 4
+    const headerRange = releaseSheet.getRange(4, 1, 1, lastColumn);
+    const headers = headerRange.getValues()[0];
+    
+    // Get first data row (row 5)
+    const firstDataRow = releaseSheet.getRange(5, 1, 1, lastColumn);
+    const firstData = firstDataRow.getValues()[0];
+    
+    console.log('Headers from row 4:', headers);
+    console.log('First data row (row 5):', firstData);
+    
+    // Create sample object
+    const sampleRelease = {};
+    for (let j = 0; j < headers.length; j++) {
+      if (headers[j]) {
+        sampleRelease[headers[j]] = firstData[j];
+      }
+    }
+    
+    console.log('Sample release object:', JSON.stringify(sampleRelease, null, 2));
+    
+    return {
+      success: true,
+      headerRow: 4,
+      dataStartRow: 5,
+      headers: headers.filter(h => h), // Remove empty headers
+      sample: sampleRelease
+    };
+    
+  } catch (error) {
+    console.error('Test failed:', error.message);
+    return { success: false, error: error.message };
   }
 }

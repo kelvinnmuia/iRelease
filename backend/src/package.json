@@ -6,7 +6,7 @@
   "scripts": {
     "gslogin": "clasp login",
     "gslogout": "clasp logout",
-    "gscreate": "clasp create --title 'irelease-api' --rootDir .",
+    "gscreate": "clasp create --title 'irelease-backend-apis' --rootDir .",
     "gspull": "clasp pull",
     "gspush": "clasp push",
     "gsstart": "clasp push --watch"

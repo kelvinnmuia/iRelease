@@ -46,12 +46,12 @@ function initSpreadsheet() {
 }
 
 // =====================================
-//  READ (GET) ROUTES ENDPOINTS
+// RELEASES GET ROUTES ENDPOINTS
 // =====================================
 
 
 /**
- * Main entry point for READ (GET) requests
+ * Main entry point for releases GET requests
  */
 function doGet(e) {
   try {
@@ -61,23 +61,17 @@ function doGet(e) {
     // Get path from URL
     const path = e.pathInfo || '';
     
-    // Route for releases API requests
+    // Route requests
     if (path === 'releases' || path === 'api/releases') {
       return handleGetReleases(sheets.releaseDetails);
-    }
-
-    // Route for systems API
-    if (path === 'systems' || path === 'api/systems') {
-      return handleGetSystems(sheets.systemsMetadata);
     }
     
     // Default response for root
     return createJsonResponse({
       status: 'ok',
-      message: 'API Server is running',
+      message: 'Releases API is running',
       endpoints: {
-        releases: '/api/releases',
-        systems: '/api/systems'
+        releases: '/api/releases'
       },
     });
     
@@ -97,7 +91,7 @@ function handleGetReleases(releaseSheet) {
     return createJsonResponse({
       success: true,
       count: releases.length,
-      releases: releases,
+      data: releases,
       metadata: {
         header_row: 4,
         data_start_row: 5,
@@ -110,32 +104,6 @@ function handleGetReleases(releaseSheet) {
   } catch (error) {
     console.error('Error in handleGetReleases:', error.message);
     return createErrorResponse(`Failed to retrieve releases: ${error.message}`, 500);
-  }
-}
-
-/**
- * Handle GET requests for all systems
- */
-function handleGetSystems(systemsSheet) {
-  try {
-    const systems = getAllSystems(systemsSheet);
-    
-    return createJsonResponse({
-      success: true,
-      count: systems.length,
-      systems: systems,  // represents the entire systems array
-      metadata: {
-        header_row: 3,
-        data_start_row: 4,
-        sheet_name: systemsSheet.getName(),
-        last_data_row: systemsSheet.getLastRow()
-      },
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Error in handleGetSystems:', error.message);
-    return createErrorResponse(`Failed to retrieve systems: ${error.message}`, 500);
   }
 }
 
