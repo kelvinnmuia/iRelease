@@ -93,40 +93,6 @@ function doGet(e) {
   }
 }
 
-// =====================================
-//  CREATE (POST) ROUTES ENDPOINTS
-// =====================================
-
-/**
- * Main entry point for CREATE (POST) requests
- */
-function doPost(e) {
-  try {
-    // Initialize spreadsheet
-    const { sheets } = initSpreadsheet();
-    
-    // Get path from URL
-    const path = e.pathInfo || '';
-    
-    // Route for releases API requests
-    if (path === 'releases' || path === 'api/releases') {
-      return handlePostReleases(sheets.releaseDetails, e.postData);
-    }
-    
-    // Default response for unsupported POST paths
-    return createErrorResponse('Endpoint not found for POST request', 404);
-    
-  } catch (error) {
-    console.error('Router POST Error:', error.message);
-    return createErrorResponse(error.message, 500);
-  }
-}
-
-// =====================================
-// GET REQUEST HANDLERS
-// =====================================
-
-
 /**
  * Handle GET requests for all releases
  */
@@ -202,34 +168,6 @@ function handleGetSIRsReleases(sirsReleasesSheet) {
   } catch (error) {
     console.error('Error in handleGetSIRsReleases:', error.message);
     return createErrorResponse(`Failed to retrieve SIRs-Releases: ${error.message}`, 500);
-  }
-}
-
-// =====================================
-// POST REQUEST HANDLERS
-// =====================================
-
-/**
- * Handle POST requests to create new releases
- */
-function handlePostReleases(releaseSheet, postData) {
-  try {
-    // Parse the POST data
-    const data = JSON.parse(postData.contents);
-    
-    // Create new release
-    const createdRelease = createNewRelease(releaseSheet, data);
-    
-    return createJsonResponse({
-      success: true,
-      message: 'Release created successfully',
-      release: createdRelease,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Error in handlePostReleases:', error.message);
-    return createErrorResponse(`Failed to create release: ${error.message}`, 500);
   }
 }
 
