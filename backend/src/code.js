@@ -11,7 +11,7 @@ const SPREADSHEET_ID = '1MdDgCq9ArqsGTp4tx51_JEhI6VSU_u9k0D0DwCCGQ7w';
 const SHEET_NAMES = {
   SYSTEMS_METADATA: 'Systems_Metadata',
   RELEASE_DETAILS: 'Releases_Details',
-  SIRS: 'SIRS',
+  SIRS: 'SIRs',
   SIRS_RELEASES: 'SIRs_Releases',
 };
 
@@ -60,15 +60,20 @@ function doGet(e) {
     
     // Get path from URL
     const path = e.pathInfo || '';
+
+    // Route for systems API
+    if (path === 'systems' || path === 'api/systems') {
+      return handleGetSystems(sheets.systemsMetadata);
+    }
     
     // Route for releases API requests
     if (path === 'releases' || path === 'api/releases') {
       return handleGetReleases(sheets.releaseDetails);
     }
 
-    // Route for systems API
-    if (path === 'systems' || path === 'api/systems') {
-      return handleGetSystems(sheets.systemsMetadata);
+    // Route for SIRs API
+    if (path === 'sirs' || path === 'api/sirs') {
+      return handleGetSIRs(sheets.sirs);
     }
 
     // Route for SIRs-Releases API
@@ -81,8 +86,9 @@ function doGet(e) {
       status: 'ok',
       message: 'API Server is running',
       endpoints: {
-        releases: '/api/releases',
         systems: '/api/systems',
+        releases: '/api/releases',
+        sirs: '/api/sirs',
         sirsReleases: '/api/sirs-releases'
       },
     });
@@ -208,6 +214,31 @@ function doDelete(e) {
 // GET REQUEST HANDLERS
 // =====================================
 
+/**
+ * Handle GET requests for all systems
+ */
+function handleGetSystems(systemsSheet) {
+  try {
+    const systems = getAllSystems(systemsSheet);
+    
+    return createJsonResponse({
+      success: true,
+      count: systems.length,
+      systems: systems,  // represents the entire systems array
+      metadata: {
+        header_row: 3,
+        data_start_row: 4,
+        sheet_name: systemsSheet.getName(),
+        last_data_row: systemsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error in handleGetSystems:', error.message);
+    return createErrorResponse(`Failed to retrieve systems: ${error.message}`, 500);
+  }
+}
 
 /**
  * Handle GET requests for all releases
@@ -236,28 +267,28 @@ function handleGetReleases(releaseSheet) {
 }
 
 /**
- * Handle GET requests for all systems
+ * Handle GET requests for all SIRs
  */
-function handleGetSystems(systemsSheet) {
+function handleGetSIRs(sirsSheet) {
   try {
-    const systems = getAllSystems(systemsSheet);
+    const sirs = getAllSIRs(sirsSheet);
     
     return createJsonResponse({
       success: true,
-      count: systems.length,
-      systems: systems,  // represents the entire systems array
+      count: sirs.length,
+      sirs: sirs,
       metadata: {
-        header_row: 3,
-        data_start_row: 4,
-        sheet_name: systemsSheet.getName(),
-        last_data_row: systemsSheet.getLastRow()
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsSheet.getName(),
+        last_data_row: sirsSheet.getLastRow()
       },
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error('Error in handleGetSystems:', error.message);
-    return createErrorResponse(`Failed to retrieve systems: ${error.message}`, 500);
+    console.error('Error in handleGetSIRs:', error.message);
+    return createErrorResponse(`Failed to retrieve SIRs: ${error.message}`, 500);
   }
 }
 
