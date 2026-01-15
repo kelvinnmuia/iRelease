@@ -153,10 +153,21 @@ function doPut(e) {
       
       return handlePutRelease(sheets.releaseDetails, releaseId, e.postData);
     }
+
+     // Route for SIRs-Releases API PUT requests
+    // Check if path matches /api/sirs-releases/SIRREL-XXXXX pattern
+    if (path.startsWith('sirs-releases/') || path.startsWith('api/sirs-releases/')) {
+      // Extract the SIR_Release_id from the path
+      // Example: "api/sirs-releases/SIRREL-XXXXX" -> "SIRREL-XXXXX"
+      const pathParts = path.split('/');
+      const sirReleaseId = pathParts[pathParts.length - 1];
+      
+      return handlePutSIRsRelease(sheets.sirsReleases, sirReleaseId, e.postData);
+    }
     
     // Default response for unsupported PUT paths
     return createErrorResponse('Endpoint not found for PUT request', 404);
-    
+
   } catch (error) {
     console.error('Router PUT Error:', error.message);
     return createErrorResponse(error.message, 500);
@@ -373,6 +384,31 @@ function handlePutRelease(releaseSheet, releaseId, postData) {
     return createErrorResponse(`Failed to update release: ${error.message}`, 500);
   }
 }
+
+/**
+ * Handle PUT requests to update existing SIRs-Releases
+ */
+function handlePutSIRsRelease(sirsReleasesSheet, sirReleaseId, postData) {
+  try {
+    // Parse the PUT data
+    const data = JSON.parse(postData.contents);
+    
+    // Update the SIRs-Release
+    const updatedSIRsRelease = updateSIRsRelease(sirsReleasesSheet, sirReleaseId, data);
+    
+    return createJsonResponse({
+      success: true,
+      message: 'SIRs-Release updated successfully',
+      sir_release: updatedSIRsRelease,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error in handlePutSIRsRelease:', error.message);
+    return createErrorResponse(`Failed to update SIRs-Release: ${error.message}`, 500);
+  }
+}
+
 
 // =====================================
 // DELETE REQUEST HANDLERS
