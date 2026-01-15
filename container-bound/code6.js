@@ -123,42 +123,6 @@ function doPost(e) {
 }
 
 // =====================================
-//  UPDATE (PUT) ROUTES ENDPOINTS
-// =====================================
-
-/**
- * Main entry point for UPDATE (PUT) requests
- */
-function doPut(e) {
-  try {
-    // Initialize spreadsheet
-    const { sheets } = initSpreadsheet();
-    
-    // Get path from URL
-    const path = e.pathInfo || '';
-    
-    // Route for releases API PUT requests
-    // Check if path matches /api/releases/REL-XXXXX pattern
-    if (path.startsWith('releases/') || path.startsWith('api/releases/')) {
-      // Extract the Release_id from the path
-      // Example: "api/releases/REL-BXZ8V" -> "REL-BXZ8V"
-      const pathParts = path.split('/');
-      const releaseId = pathParts[pathParts.length - 1];
-      
-      return handlePutRelease(sheets.releaseDetails, releaseId, e.postData);
-    }
-    
-    // Default response for unsupported PUT paths
-    return createErrorResponse('Endpoint not found for PUT request', 404);
-    
-  } catch (error) {
-    console.error('Router PUT Error:', error.message);
-    return createErrorResponse(error.message, 500);
-  }
-}
-
-
-// =====================================
 // GET REQUEST HANDLERS
 // =====================================
 
@@ -266,34 +230,6 @@ function handlePostReleases(releaseSheet, postData) {
   } catch (error) {
     console.error('Error in handlePostReleases:', error.message);
     return createErrorResponse(`Failed to create release: ${error.message}`, 500);
-  }
-}
-
-// =====================================
-// PUT REQUEST HANDLERS
-// =====================================
-
-/**
- * Handle PUT requests to update existing releases
- */
-function handlePutRelease(releaseSheet, releaseId, postData) {
-  try {
-    // Parse the PUT data
-    const data = JSON.parse(postData.contents);
-    
-    // Update the release
-    const updatedRelease = updateRelease(releaseSheet, releaseId, data);
-    
-    return createJsonResponse({
-      success: true,
-      message: 'Release updated successfully',
-      release: updatedRelease,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Error in handlePutRelease:', error.message);
-    return createErrorResponse(`Failed to update release: ${error.message}`, 500);
   }
 }
 
