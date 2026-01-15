@@ -157,52 +157,6 @@ function doPut(e) {
   }
 }
 
-// =====================================
-//  DELETE ROUTES ENDPOINTS
-// =====================================
-
-/**
- * Main entry point for DELETE requests
- */
-function doDelete(e) {
-  try {
-    // Initialize spreadsheet
-    const { sheets } = initSpreadsheet();
-    
-    // Get path from URL
-    const path = e.pathInfo || '';
-    
-    // Route for bulk releases DELETE (with JSON payload)
-    if (path === 'releases' || path === 'api/releases') {
-      // Check if there's POST data for bulk delete
-      if (e.postData && e.postData.contents) {
-        const data = JSON.parse(e.postData.contents);
-        return handleBulkDeleteReleases(sheets.releaseDetails, data);
-      } else {
-        return createErrorResponse('No data provided for bulk delete', 400);
-      }
-    }
-    
-    // Route for single release DELETE requests
-    // Check if path matches /api/releases/REL-XXXXX pattern
-    if (path.startsWith('releases/') || path.startsWith('api/releases/')) {
-      // Extract the Release_id from the path
-      // Example: "api/releases/REL-BXZ8V" -> "REL-BXZ8V"
-      const pathParts = path.split('/');
-      const releaseId = pathParts[pathParts.length - 1];
-      
-      return handleDeleteRelease(sheets.releaseDetails, releaseId);
-    }
-    
-    // Default response for unsupported DELETE paths
-    return createErrorResponse('Endpoint not found for DELETE request', 404);
-    
-  } catch (error) {
-    console.error('Router DELETE Error:', error.message);
-    return createErrorResponse(error.message, 500);
-  }
-}
-
 
 // =====================================
 // GET REQUEST HANDLERS
@@ -340,58 +294,6 @@ function handlePutRelease(releaseSheet, releaseId, postData) {
   } catch (error) {
     console.error('Error in handlePutRelease:', error.message);
     return createErrorResponse(`Failed to update release: ${error.message}`, 500);
-  }
-}
-
-// =====================================
-// DELETE REQUEST HANDLERS
-// =====================================
-
-/**
- * Handle DELETE requests to remove a single release
- */
-function handleDeleteRelease(releaseSheet, releaseId) {
-  try {
-    console.log(`Deleting release: ${releaseId}`);
-    
-    // Delete the release from sheet
-    const deletedRelease = deleteRelease(releaseSheet, releaseId);
-    
-    return createJsonResponse({
-      success: true,
-      message: 'Release deleted successfully',
-      release: deletedRelease,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Error in handleDeleteRelease:', error.message);
-    return createErrorResponse(`Failed to delete release: ${error.message}`, 500);
-  }
-}
-
-/**
- * Handle DELETE requests to remove multiple releases
- */
-function handleBulkDeleteReleases(releaseSheet, data) {
-  try {
-    console.log(`Bulk deleting releases: ${data.releaseIds}`);
-    
-    // Delete multiple releases from sheet
-    const deleteResults = bulkDeleteReleases(releaseSheet, data.releaseIds);
-    
-    return createJsonResponse({
-      success: true,
-      message: 'Bulk delete completed',
-      deleted_count: deleteResults.deletedCount,
-      deleted_releases: deleteResults.deletedReleases,
-      not_found: deleteResults.notFound,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Error in handleBulkDeleteReleases:', error.message);
-    return createErrorResponse(`Failed to bulk delete releases: ${error.message}`, 500);
   }
 }
 
