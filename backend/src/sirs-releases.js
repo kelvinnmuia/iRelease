@@ -1,6 +1,6 @@
 /**
  * SIRS PER RELEASE REST APIs
- * Handles all CRUD operations for the SIRs_Releases sheet
+ * Handles all the CRUD operations for the SIRs_Releases sheet
  */
 
 // =====================================
