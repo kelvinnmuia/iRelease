@@ -512,7 +512,7 @@ function testPostSimple() {
  */
 function testPutWithId() {
   // Replace with your actual release ID
-  const RELEASE_ID = 'REL-EXXJX'; // Change this to your release ID
+  const RELEASE_ID = 'REL-7C9VC'; // Change this to your release ID
   
   const sheet = SpreadsheetApp.openById('1MdDgCq9ArqsGTp4tx51_JEhI6VSU_u9k0D0DwCCGQ7w')
     .getSheetByName('Releases_Details');
@@ -520,9 +520,9 @@ function testPutWithId() {
   const result = updateRelease(sheet, RELEASE_ID, {
     System_name: "iCMS",
     System_id: "SYS-8QKMU",
-    Release_version: "1.5.7",
+    Release_version: "1.5.8",
     Iteration: 1,
-    Release_description: "Test release description",
+    Release_description: "Test release descriptions",
     Functionality_delivered: "Hot fix for sirs 123455, 123955, 124098, 126945",
     Date_delivered_by_vendor: "10 Jan 2025",
     Notification_date_for_deployment_to_test: "11 Jan 2025",
@@ -531,7 +531,7 @@ function testPutWithId() {
     Date_of_test_completion: "14 Jan 2025",
     Date_deployed_in_production: "14 Jan 2025",
     Test_status: "Passed",
-    Deployment_status: "Deployed to production",
+    Deployment_status: "Deployed to post-production",
     Outstanding_issues: "Dashboard issues fixed",
     Comments: "Test comment two",
     Type_of_release: "Minor",
@@ -547,7 +547,7 @@ function testPutWithId() {
  */
 function testDeleteWithId() {
   // Replace with your actual release ID
-  const RELEASE_ID = 'REL-E42UC'; // Change this to your release ID
+  const RELEASE_ID = 'REL-7C9VC'; // Change this to your release ID
   
   const sheet = SpreadsheetApp.openById('1MdDgCq9ArqsGTp4tx51_JEhI6VSU_u9k0D0DwCCGQ7w')
     .getSheetByName('Releases_Details');
@@ -562,7 +562,7 @@ function testDeleteWithId() {
  */
 function testBulkDeleteWithIds() {
   // Replace with your actual release IDs
-  const RELEASE_IDS = ['REL-BA5FU', 'REL-NRA6B']; // Change these to your release IDs
+  const RELEASE_IDS = ['REL-LYC75', 'REL-Z3EA5']; // Change these to your release IDs
   
   const sheet = SpreadsheetApp.openById('1MdDgCq9ArqsGTp4tx51_JEhI6VSU_u9k0D0DwCCGQ7w')
     .getSheetByName('Releases_Details');
