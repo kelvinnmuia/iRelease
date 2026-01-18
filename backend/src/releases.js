@@ -4,7 +4,7 @@
  */
 
 // =====================================
-// CONFIGURATION SECTIONS
+// CONFIGURATIONS SECTION
 // =====================================
 
 const RELEASE_ID_CONFIG = {
