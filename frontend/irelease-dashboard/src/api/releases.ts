@@ -24,6 +24,15 @@ export interface ReleaseItem {
   [key: string]: any;
 }
 
+// PROCESSING FUNCTION for release type chart
+export interface MonthlyReleaseType {
+  month: string;
+  Major: number;
+  Medium: number;
+  Minor: number;
+}
+
+
 // JSONP fetch function (unchanged)
 function jsonpFetch<T>(url: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -127,4 +136,64 @@ export async function getReleasesStats(): Promise<ReleaseStats> {
 export async function getReleasesBySystem(): Promise<SystemData[]> {
   const releases = await getReleasesData();
   return processForSystem(releases);
+}
+
+export function processForReleaseType(releases: ReleaseItem[], selectedYear: string): MonthlyReleaseType[] {
+  if (!releases || releases.length === 0) {
+    return [];
+  }
+  
+  // Month names for display
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  // Initialize data structure for all months
+  const monthlyData: Record<string, { Major: number; Medium: number; Minor: number }> = {};
+  
+  // Initialize all months with zero counts
+  monthNames.forEach(month => {
+    monthlyData[month] = { Major: 0, Medium: 0, Minor: 0 };
+  });
+  
+  // Process each release
+  releases.forEach((release) => {
+    // Extract date from release - assuming there's a date field
+    // You might need to adjust this based on your actual data structure
+    const releaseDate = release.Release_date || release.Date || release.created_at;
+    
+    if (!releaseDate) return;
+    
+    const date = new Date(releaseDate);
+    
+    // Check if the release is in the selected year
+    const releaseYear = date.getFullYear().toString();
+    if (releaseYear !== selectedYear) return;
+    
+    // Get month (0-11)
+    const monthIndex = date.getMonth();
+    const monthName = monthNames[monthIndex];
+    
+    // Get release type - assuming there's a Type or Release_type field
+    // You might need to adjust this based on your actual data structure
+    const releaseType = (release.Type || release.Release_type || release.release_type || "Unknown").toString().toLowerCase().trim();
+    
+    // Increment the appropriate counter
+    if (monthlyData[monthName]) {
+      if (releaseType.includes('major') || releaseType === 'major') {
+        monthlyData[monthName].Major++;
+      } else if (releaseType.includes('medium') || releaseType === 'medium') {
+        monthlyData[monthName].Medium++;
+      } else if (releaseType.includes('minor') || releaseType === 'minor') {
+        monthlyData[monthName].Minor++;
+      }
+      // If type doesn't match, you could add to "Other" or ignore
+    }
+  });
+  
+  // Convert to array format
+  return monthNames.map(month => ({
+    month,
+    Major: monthlyData[month].Major,
+    Medium: monthlyData[month].Medium,
+    Minor: monthlyData[month].Minor
+  }));
 }
