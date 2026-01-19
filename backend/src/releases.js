@@ -4,7 +4,7 @@
  */
 
 // =====================================
-// CONFIGURATIONS SECTION
+// CONFIGURATION SECTION
 // =====================================
 
 const RELEASE_ID_CONFIG = {
@@ -470,7 +470,7 @@ function testPostSimple() {
     const testData = {
       System_name: "iCMS",
       System_id: "SYS-8QKMU",
-      Release_version: "1.5.7",
+      Release_version: "1.6.6",
       Iteration: 1,
       Release_description: "Test release description",
       Functionality_delivered: "Hot fix for sirs 123455, 123955, 124098, 126945",

@@ -68,7 +68,7 @@ function doGet(e) {
 
     // Route for releases API requests
     if (path === 'releases' || path === 'api/releases') {
-      return handleGetReleases(sheets.releaseDetails);
+      return handleGetReleases(sheets.releaseDetails, e);
     }
 
     // Route for SIRs API
@@ -81,8 +81,8 @@ function doGet(e) {
       return handleGetSIRsReleases(sheets.sirsReleases);
     }
 
-    // Default response for root
-    return createJsonResponse({
+   // Default response for root
+    const defaultData = {
       status: 'ok',
       message: 'API Server is running',
       endpoints: {
@@ -91,12 +91,25 @@ function doGet(e) {
         sirs: '/api/sirs',
         sirsReleases: '/api/sirs-releases'
       },
-    });
+    };
+    
+    return createResponse(defaultData, e);
 
   } catch (error) {
+
     console.error('Router Error:', error.message);
-    return createErrorResponse(error.message, 500);
+    const errorData = {
+      success: false,
+      error: error.message,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+    return createResponse(errorData, e);
   }
+
+    /*console.error('Router Error:', error.message);
+    return createErrorResponse(error.message, 500);
+  }*/
 }
 
 // =====================================
@@ -285,7 +298,7 @@ function handleGetSystems(systemsSheet) {
 /**
  * Handle GET requests for all releases
  */
-function handleGetReleases(releaseSheet) {
+/*function handleGetReleases(releaseSheet) {
   try {
     const releases = getAllReleases(releaseSheet);
 
@@ -305,6 +318,37 @@ function handleGetReleases(releaseSheet) {
   } catch (error) {
     console.error('Error in handleGetReleases:', error.message);
     return createErrorResponse(`Failed to retrieve releases: ${error.message}`, 500);
+  }
+}*/
+
+function handleGetReleases(releaseSheet, e) {
+  try {
+    const releases = getAllReleases(releaseSheet);
+
+    const data = {
+      success: true,
+      count: releases.length,
+      releases: releases,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: releaseSheet.getName(),
+        last_data_row: releaseSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(data, e);
+
+  } catch (error) {
+    console.error('Error in handleGetReleases:', error.message);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve releases: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+    return createResponse(errorData, e);
   }
 }
 
@@ -570,9 +614,9 @@ function handleBulkDeleteSIRsReleases(sirsReleasesSheet, data) {
   }
 }
 
-// =====================================
-// JSONP HELPER FUNCTIONS
-// =====================================
+// ========================================
+// JSONOP / JSON RESPONSE HELPER FUNCTIONS
+// ========================================
 
 /**
  * Create JSONP response if callback parameter is present
@@ -598,12 +642,8 @@ function createResponse(data, e) {
   return output;
 }
 
-// =============================================================
-// JSON RESPONSE HELPER FUNCTIONS - FOR BACKWARD COMPATIBILITY
-// =============================================================
-
 /**
- * Create JSON response
+ * Create JSON response (kept for backward compatibility)
  */
 function createJsonResponse(data) {
   const output = ContentService.createTextOutput(JSON.stringify(data));
@@ -612,7 +652,7 @@ function createJsonResponse(data) {
 }
 
 /**
- * Create error response
+ * Create error response (kept for backward compatibility)
  */
 function createErrorResponse(message, statusCode = 400) {
   return createJsonResponse({
@@ -621,4 +661,25 @@ function createErrorResponse(message, statusCode = 400) {
     statusCode: statusCode,
     timestamp: new Date().toISOString()
   });
-}
+} 
+
+/**
+ * Create JSON response
+ */
+/*function createJsonResponse(data) {
+  const output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+  return output;
+}*/
+
+/**
+ * Create error response
+ */
+/*function createErrorResponse(message, statusCode = 400) {
+  return createJsonResponse({
+    success: false,
+    error: message,
+    statusCode: statusCode,
+    timestamp: new Date().toISOString()
+  });
+}*/
