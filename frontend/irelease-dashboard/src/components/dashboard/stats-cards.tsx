@@ -1,22 +1,7 @@
 import { Card, CardContent } from "../ui/card"
 import { TrendingUp, TrendingDown } from "lucide-react"
 import { useEffect, useState } from "react"
-import { getReleasesStats } from "@/api/releases" // Adjust import path as needed
-
-// Define the structure for stats data
-interface ReleaseStats {
-  allReleases: number
-  inTesting: number
-  passed: number
-  failed: number
-  trends?: {
-    allReleases: string
-    inTesting: string
-    passed: string
-    failed: string
-  }
-}
-
+import { getReleasesData, processForStats, ReleaseStats } from "@/api/releases" // Changed import
 export function StatsCards() {
   const [stats, setStats] = useState<ReleaseStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,8 +11,10 @@ export function StatsCards() {
     const fetchStats = async () => {
       try {
         setLoading(true)
-        const data = await getReleasesStats() // This function should be in your releases.ts API file
-        setStats(data)
+        // CHANGED: Use new pattern - fetch once, process locally
+        const releases = await getReleasesData() // Changed this line
+        const processedStats = processForStats(releases) // Changed this line
+        setStats(processedStats)
         setError(null)
       } catch (err) {
         setError("Failed to load statistics")
