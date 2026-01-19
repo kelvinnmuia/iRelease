@@ -571,8 +571,36 @@ function handleBulkDeleteSIRsReleases(sirsReleasesSheet, data) {
 }
 
 // =====================================
-// JSON RESPONSE HELPER FUNCTIONS
+// JSONP HELPER FUNCTIONS
 // =====================================
+
+/**
+ * Create JSONP response if callback parameter is present
+ * Otherwise returns regular JSON response
+ */
+function createResponse(data, e) {
+  const output = ContentService.createTextOutput('');
+  
+  // Check for JSONP callback parameter
+  const callback = e?.parameter?.callback || e?.parameter?.cb;
+  
+  if (callback) {
+    // JSONP response
+    const jsonp = `${callback}(${JSON.stringify(data)})`;
+    output.setContent(jsonp);
+    output.setMimeType(ContentService.MimeType.JAVASCRIPT); // Important for JSONP
+  } else {
+    // Regular JSON response
+    output.setContent(JSON.stringify(data));
+    output.setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  return output;
+}
+
+// ============================================================
+// JSON RESPONSE HELPER FUNCTIONS - FOR BACKWARD COMPATIBILITY
+// ============================================================
 
 /**
  * Create JSON response
