@@ -4,46 +4,94 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Search, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-
-// Current year's data (2024)
-const data = [
-  { month: "Jan", Major: 100, Medium: 70, Minor: 30 },
-  { month: "Feb", Major: 150, Medium: 120, Minor: 30 },
-  { month: "Mar", Major: 200, Medium: 150, Minor: 50 },
-  { month: "Apr", Major: 180, Medium: 140, Minor: 40 },
-  { month: "May", Major: 220, Medium: 170, Minor: 50 },
-  { month: "Jun", Major: 240, Medium: 190, Minor: 50 },
-  { month: "Jul", Major: 260, Medium: 200, Minor: 60 },
-  { month: "Aug", Major: 300, Medium: 250, Minor: 50 },
-  { month: "Sep", Major: 280, Medium: 230, Minor: 50 },
-  { month: "Oct", Major: 320, Medium: 270, Minor: 50 },
-  { month: "Nov", Major: 350, Medium: 300, Minor: 50 },
-  { month: "Dec", Major: 400, Medium: 350, Minor: 50 },
-]
+import { getReleasesData, processForReleaseType, MonthlyReleaseType } from "@/api/releases"
 
 export function ReleaseTypeChart() {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [searchTerm, setSearchTerm] = useState("")
   const [isOpen, setIsOpen] = useState(false)
+  const [chartData, setChartData] = useState<MonthlyReleaseType[]>([])
+  const [loading, setLoading] = useState(true)
+  const [releases, setReleases] = useState<any[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Generate years array similar to your monthly overview
+  // Fetch releases data once on component mount
+  useEffect(() => {
+    const fetchReleases = async () => {
+      try {
+        setLoading(true)
+        const fetchedReleases = await getReleasesData()
+        setReleases(fetchedReleases)
+      } catch (error) {
+        console.error("Error fetching releases:", error)
+        setReleases([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchReleases()
+  }, [])
+
+  // Generate years array from available release data
   const years = useMemo(() => {
-    const currentYear = new Date().getFullYear()
-    const yearsArray = []
-    
-    // Start from 2020 and go up to current year + 1 for future planning
-    for (let year = 2020; year <= currentYear + 1; year++) {
-      yearsArray.push({
-        id: year.toString(),
-        name: year.toString()
-      })
+    if (!releases || releases.length === 0) {
+      const currentYear = new Date().getFullYear()
+      return [
+        { id: currentYear.toString(), name: currentYear.toString() },
+        { id: (currentYear - 1).toString(), name: (currentYear - 1).toString() },
+        { id: (currentYear - 2).toString(), name: (currentYear - 2).toString() }
+      ]
     }
     
-    return yearsArray.sort((a, b) => parseInt(b.id) - parseInt(a.id))
-  }, [])
+    // Extract unique years from releases
+    const yearSet = new Set<string>()
+    
+    releases.forEach((release) => {
+      // Check multiple date fields for year extraction
+      const dateFields = [
+        'Date_delivered_by_vendor',
+        'Date_deployed_to_test', 
+        'Date_of_test_commencement',
+        'Date_of_test_completion',
+        'Notification_date_for_deployment_to_test',
+        'Date_updated'
+      ]
+      
+      for (const field of dateFields) {
+        const dateStr = release[field]
+        if (dateStr && typeof dateStr === 'string') {
+          try {
+            // Extract year from ISO date string
+            const yearMatch = dateStr.match(/^(\d{4})-/)
+            if (yearMatch) {
+              const year = yearMatch[1]
+              yearSet.add(year)
+              break // Found year, move to next release
+            }
+          } catch (e) {
+            // Continue to next date field
+          }
+        }
+      }
+    })
+    
+    // Always include current year and recent years
+    const currentYear = new Date().getFullYear()
+    yearSet.add(currentYear.toString())
+    yearSet.add((currentYear - 1).toString())
+    yearSet.add((currentYear - 2).toString())
+    
+    // Convert to array and sort descending
+    const yearsArray = Array.from(yearSet)
+      .map(year => ({ id: year, name: year }))
+      .sort((a, b) => parseInt(b.id) - parseInt(a.id))
+    
+    console.log('📋 Available years from data:', yearsArray)
+    return yearsArray
+  }, [releases])
 
   // Filter years based on search term
   const filteredYears = useMemo(() => {
@@ -56,17 +104,31 @@ export function ReleaseTypeChart() {
   // Get selected year name
   const selectedYearItem = years.find(item => item.id === selectedYear)
 
-  // Filter data based on selected year
-  // Currently only 2024 has data, other years return empty array
-  const getDataForYear = (year: string) => {
-    if (year === "2026") {
-      return data
+  // Process data for selected year whenever year or releases change
+  useEffect(() => {
+    if (releases.length > 0) {
+      const processedData = processForReleaseType(releases, selectedYear)
+      setChartData(processedData)
+      
+      // Debug: Check if we have data
+      const hasAnyData = processedData.some(month => 
+        month.Major > 0 || month.Medium > 0 || month.Minor > 0
+      )
+      console.log(`📊 Data for ${selectedYear}:`, {
+        processedData,
+        hasAnyData,
+        monthCount: processedData.length
+      })
+    } else {
+      setChartData([])
     }
-    return [] // Empty array for years without data
-  }
+  }, [releases, selectedYear])
 
-  const chartData = getDataForYear(selectedYear)
-  const hasData = chartData.length > 0
+  const hasData = useMemo(() => {
+    return chartData.length > 0 && chartData.some(month => 
+      month.Major > 0 || month.Medium > 0 || month.Minor > 0
+    )
+  }, [chartData])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -131,6 +193,25 @@ export function ReleaseTypeChart() {
       setIsOpen(false)
       setSearchTerm("")
     }
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-lg lg:text-xl">
+              Release Type by Month
+            </CardTitle>
+            <div className="w-[160px] h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] bg-gray-100 dark:bg-gray-800 rounded animate-pulse"></div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -281,11 +362,20 @@ export function ReleaseTypeChart() {
                   </svg>
                 </div>
                 <p className="text-gray-500 font-medium">
-                  No data available for {selectedYear}
+                  {releases.length === 0 ? "No data available" : `No data available for ${selectedYear}`}
                 </p>
                 <p className="text-gray-400 text-sm mt-1">
-                  Select a different year to view release type analysis
+                  {releases.length === 0 
+                    ? "Unable to fetch release data" 
+                    : "Select a different year to view release type analysis"}
                 </p>
+                {/* Debug info */}
+                {releases.length > 0 && (
+                  <div className="mt-3 text-xs text-gray-500">
+                    <p>Available years: {years.map(y => y.name).join(", ")}</p>
+                    <p>Total releases: {releases.length}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
