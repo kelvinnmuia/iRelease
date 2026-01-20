@@ -4,7 +4,121 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 import { Search, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { getSIRsData, processForSIRsTypes, getAvailableYears, SIRsItem } from "@/api/sirs"
+
+// Define year-based data (2016-2026 have data, 2015 and 2027 are empty)
+const yearData = {
+  "2016": [
+    { name: "Blocker", value: 280 },
+    { name: "Critical", value: 190 },
+    { name: "Major", value: 230 },
+    { name: "Minor", value: 240 },
+    { name: "Normal", value: 200 },
+    { name: "Enhancement", value: 220 },
+    { name: "Spec", value: 210 },
+    { name: "Setup", value: 250 },
+  ],
+  "2017": [
+    { name: "Blocker", value: 290 },
+    { name: "Critical", value: 195 },
+    { name: "Major", value: 235 },
+    { name: "Minor", value: 245 },
+    { name: "Normal", value: 205 },
+    { name: "Enhancement", value: 225 },
+    { name: "Spec", value: 215 },
+    { name: "Setup", value: 255 },
+  ],
+  "2018": [
+    { name: "Blocker", value: 295 },
+    { name: "Critical", value: 198 },
+    { name: "Major", value: 240 },
+    { name: "Minor", value: 250 },
+    { name: "Normal", value: 208 },
+    { name: "Enhancement", value: 228 },
+    { name: "Spec", value: 218 },
+    { name: "Setup", value: 260 },
+  ],
+  "2019": [
+    { name: "Blocker", value: 298 },
+    { name: "Critical", value: 199 },
+    { name: "Major", value: 245 },
+    { name: "Minor", value: 255 },
+    { name: "Normal", value: 209 },
+    { name: "Enhancement", value: 229 },
+    { name: "Spec", value: 219 },
+    { name: "Setup", value: 265 },
+  ],
+  "2020": [
+    { name: "Blocker", value: 299 },
+    { name: "Critical", value: 200 },
+    { name: "Major", value: 248 },
+    { name: "Minor", value: 258 },
+    { name: "Normal", value: 210 },
+    { name: "Enhancement", value: 230 },
+    { name: "Spec", value: 220 },
+    { name: "Setup", value: 268 },
+  ],
+  "2021": [
+    { name: "Blocker", value: 299 },
+    { name: "Critical", value: 200 },
+    { name: "Major", value: 249 },
+    { name: "Minor", value: 259 },
+    { name: "Normal", value: 210 },
+    { name: "Enhancement", value: 230 },
+    { name: "Spec", value: 220 },
+    { name: "Setup", value: 269 },
+  ],
+  "2022": [
+    { name: "Blocker", value: 299 },
+    { name: "Critical", value: 200 },
+    { name: "Major", value: 249 },
+    { name: "Minor", value: 259 },
+    { name: "Normal", value: 210 },
+    { name: "Enhancement", value: 230 },
+    { name: "Spec", value: 220 },
+    { name: "Setup", value: 269 },
+  ],
+  "2023": [
+    { name: "Blocker", value: 299 },
+    { name: "Critical", value: 200 },
+    { name: "Major", value: 249 },
+    { name: "Minor", value: 259 },
+    { name: "Normal", value: 210 },
+    { name: "Enhancement", value: 230 },
+    { name: "Spec", value: 220 },
+    { name: "Setup", value: 269 },
+  ],
+  "2024": [
+    { name: "Blocker", value: 300 },
+    { name: "Critical", value: 200 },
+    { name: "Major", value: 250 },
+    { name: "Minor", value: 260 },
+    { name: "Normal", value: 210 },
+    { name: "Enhancement", value: 230 },
+    { name: "Spec", value: 220 },
+    { name: "Setup", value: 270 },
+  ],
+  "2025": [
+    { name: "Blocker", value: 305 },
+    { name: "Critical", value: 205 },
+    { name: "Major", value: 255 },
+    { name: "Minor", value: 265 },
+    { name: "Normal", value: 215 },
+    { name: "Enhancement", value: 235 },
+    { name: "Spec", value: 225 },
+    { name: "Setup", value: 275 },
+  ],
+  "2026": [
+    { name: "Blocker", value: 310 },
+    { name: "Critical", value: 210 },
+    { name: "Major", value: 260 },
+    { name: "Minor", value: 270 },
+    { name: "Normal", value: 220 },
+    { name: "Enhancement", value: 240 },
+    { name: "Spec", value: 230 },
+    { name: "Setup", value: 280 },
+  ],
+  // 2015 and 2027 will return empty arrays (no data)
+}
 
 const COLORS = ["#ae1f26", "#767276", "#0c0c0c", "#d11314", "#7f151b", "#4f4c4f", "#050505", "#9a0d0e"]
 
@@ -16,77 +130,20 @@ export function SirsTypeChart() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isSmallScreen, setIsSmallScreen] = useState(typeof window !== "undefined" && window.innerWidth < 640)
 
-  // State for API data
-  const [rawSIRsData, setRawSIRsData] = useState<SIRsItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [availableYears, setAvailableYears] = useState<string[]>([])
-
-  // Fetch SIRs data on component mount
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      console.log("🔄 Fetching SIRs data...");
-      const sirsData = await getSIRsData();
-      console.log(`✅ Successfully loaded ${sirsData.length} SIRs records`);
-      
-      setRawSIRsData(sirsData);
-
-      // Extract available years from the data
-      const years = getAvailableYears(sirsData);
-      setAvailableYears(years);
-      console.log("📅 Available years:", years);
-
-      // Select year logic
-      if (years.length > 0) {
-        const currentYear = new Date().getFullYear().toString();
-        if (years.includes(currentYear)) {
-          setSelectedYear(currentYear);
-        } else {
-          setSelectedYear(years[0]);
-        }
-      } else {
-        // If no years, show message
-        console.warn("⚠️ No years found in data");
-      }
-    } catch (error) {
-      console.error("❌ Error in fetchData:", error);
-      // Don't clear data - keep mock data if that's what was returned
-      if (rawSIRsData.length === 0) {
-        // Only show error if we have no data at all
-        setAvailableYears([]);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, []);
-
-  // Generate years array dynamically from available years
+  // Generate years from 2015 to 2027 (auto-increment)
   const years = useMemo(() => {
-    // If we have data years, use those
-    if (availableYears.length > 0) {
-      return availableYears
-        .map(year => ({
-          id: year,
-          name: year
-        }))
-        .sort((a, b) => parseInt(b.id) - parseInt(a.id))
-    }
-
-    // Otherwise, generate default years (2015-2027)
     const yearsArray = []
+    
+    // From 2015 to 2027 as specified
     for (let year = 2015; year <= 2027; year++) {
       yearsArray.push({
         id: year.toString(),
         name: year.toString()
       })
     }
-
+    
     return yearsArray.sort((a, b) => parseInt(b.id) - parseInt(a.id))
-  }, [availableYears])
+  }, [])
 
   // Filter years based on search term
   const filteredYears = useMemo(() => {
@@ -99,16 +156,16 @@ useEffect(() => {
   // Get selected year name
   const selectedYearItem = years.find(item => item.id === selectedYear)
 
-  // Get data for selected year by processing raw data
-  const chartData = useMemo(() => {
-    if (loading || rawSIRsData.length === 0) return []
-    return processForSIRsTypes(rawSIRsData, selectedYear)
-  }, [rawSIRsData, selectedYear, loading])
+  // Get data for selected year
+  const getDataForYear = (year: string) => {
+    return yearData[year as keyof typeof yearData] || [] // Returns empty array for 2015 and 2027
+  }
 
+  const chartData = getDataForYear(selectedYear)
   const hasData = chartData.length > 0
   const totalApplications = hasData ? chartData.reduce((sum, item) => sum + item.value, 0) : 0
 
-  // Get screen width for chart sizing
+  // Get screen width for chart sizing - PRESERVED
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 640)
@@ -176,46 +233,6 @@ useEffect(() => {
     }
   }
 
-  // Loading skeleton
-  if (loading) {
-    return (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-3 animate-pulse">
-            <div>
-              <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded mt-2"></div>
-            </div>
-            <div className="h-9 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 animate-pulse">
-            <div className="flex flex-col items-center flex-1">
-              <div className="w-full h-[200px] bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="flex flex-col items-center mt-2">
-                <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mt-2"></div>
-                <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded mt-1"></div>
-              </div>
-            </div>
-            <div className="hidden md:block w-px bg-gray-200" />
-            <div className="flex-1 space-y-3 self-center-safe">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className="w-3 h-3 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  </div>
-                  <div className="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
@@ -224,11 +241,9 @@ useEffect(() => {
             <CardTitle className="text-lg lg:text-xl">
               SIRs by Severity
             </CardTitle>
-            <CardDescription className="mt-2">
-              SIRs Breakdown by Severity {rawSIRsData.length > 0 ? `(${rawSIRsData.length} total records)` : ''}
-            </CardDescription>
+            <CardDescription className="mt-2">SIRs Breakdown by Severity</CardDescription>
           </div>
-
+          
           {/* Searchable Dropdown for Year Selection */}
           <div className="relative flex-shrink-0" ref={containerRef}>
             <Button
@@ -237,7 +252,6 @@ useEffect(() => {
               className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-[160px] h-9"
               onClick={handleTriggerClick}
               type="button"
-              disabled={rawSIRsData.length === 0}
             >
               <span className="truncate flex-1 text-left">
                 {selectedYearItem?.name || "Select year"}
@@ -257,7 +271,7 @@ useEffect(() => {
             {isOpen && (
               <div
                 className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
-                style={{
+                style={{ 
                   width: '190px',
                   top: '100%',
                   right: 0
@@ -293,8 +307,8 @@ useEffect(() => {
                         key={year.id}
                         onClick={() => handleYearSelect(year.id)}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors ${selectedYear === year.id
-                          ? "bg-red-50 text-red-600 font-medium"
-                          : "text-gray-700"
+                            ? "bg-red-50 text-red-600 font-medium"
+                            : "text-gray-700"
                           }`}
                         type="button"
                       >
@@ -366,9 +380,6 @@ useEffect(() => {
                           >
                             <div style={{ color, fontWeight: 600 }}>{name}</div>
                             <div style={{ color: "#1f2937" }}>{value}</div>
-                            <div style={{ color: "#6b7280", fontSize: "0.75rem", marginTop: "4px" }}>
-                              {((Number(value) / totalApplications) * 100).toFixed(1)}% of total
-                            </div>
                           </div>
                         )
                       }
@@ -384,7 +395,7 @@ useEffect(() => {
                   {totalApplications}
                 </div>
                 <div className="text-xs md:text-sm text-gray-500">
-                  Total SIRs in {selectedYear}
+                  Total SIRs
                 </div>
               </div>
             </div>
@@ -412,48 +423,14 @@ useEffect(() => {
                       {item.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {item.value}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      ({((item.value / totalApplications) * 100).toFixed(1)}%)
-                    </span>
-                  </div>
+                  <span className="text-sm font-semibold text-gray-900 ml-auto">
+                    {item.value}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
-        ) : rawSIRsData.length === 0 ? (
-          // No data at all (API empty or failed)
-          <div className="flex flex-col items-center justify-center h-[200px]">
-            <div className="text-center p-4">
-              <div className="text-gray-400 mb-2">
-                <svg
-                  className="w-12 h-12 mx-auto"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.801 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.801 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-                  />
-                </svg>
-              </div>
-              <p className="text-gray-500 font-medium">
-                No SIRs data available
-              </p>
-              <p className="text-gray-400 text-sm mt-1">
-                Unable to fetch SIRs data from the server
-              </p>
-            </div>
-          </div>
         ) : (
-          // Data exists but not for selected year
           <div className="flex flex-col items-center justify-center h-[200px]">
             <div className="text-center p-4">
               <div className="text-gray-400 mb-2">
@@ -478,10 +455,6 @@ useEffect(() => {
               <p className="text-gray-400 text-sm mt-1">
                 Select a different year to view SIRs type analysis
               </p>
-              <div className="mt-3 text-xs text-gray-500">
-                <p>Available years: {availableYears.join(", ")}</p>
-                <p>Total records: {rawSIRsData.length}</p>
-              </div>
             </div>
           </div>
         )}

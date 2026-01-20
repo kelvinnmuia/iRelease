@@ -54,7 +54,7 @@ function jsonpFetch<T>(url: string): Promise<T> {
     const timeoutId = setTimeout(() => {
       cleanup();
       reject(new Error('JSONP timeout'));
-    }, 120000);
+    }, 60000);
     
     (window as any)[callbackName] = (data: T) => {
       clearTimeout(timeoutId);

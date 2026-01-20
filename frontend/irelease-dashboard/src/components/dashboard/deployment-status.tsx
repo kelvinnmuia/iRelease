@@ -150,7 +150,7 @@ export function DeploymentStatus() {
               />
               <Tooltip 
                 cursor={{ fill: "rgba(0,0,0,0.05)" }}
-                formatter={(value: number) => [`${value} releases`, 'Count']}
+                formatter={(value: number) => [`${value} release(s)`, 'Count']}
                 labelFormatter={(label) => `Status: ${label}`}
               />
               <Bar dataKey="Total" barSize={20}> {/* reduced bar thickness */}
