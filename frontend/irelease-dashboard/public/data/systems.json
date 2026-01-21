@@ -1,0 +1,44 @@
+[
+    {
+      "System_id": "SYS-8QKMU",
+      "System_name": "iCMS",
+      "Description": "Integrated Customs Management System",
+      "Status": "Active",
+      "System_category": "Customs"
+    },
+    {
+      "System_id": "SYS-E7W6Q",
+      "System_name": "eCustoms",
+      "Description": "Customs Mobile App",
+      "Status": "Active",
+      "System_category": "Customs"
+    },
+    {
+      "System_id": "SYS-U2SDY",
+      "System_name": "WIMS",
+      "Description": "Warehouse Integrated Management System",
+      "Status": "Active",
+      "System_category": "Customs"
+    },
+    {
+      "System_id": "SYS-28ACX",
+      "System_name": "iBID",
+      "Description": "Online Auction",
+      "Status": "Active",
+      "System_category": "Customs"
+    },
+    {
+      "System_id": "SYS-6ZUQ4",
+      "System_name": "iSCAN",
+      "Description": "Cargo Scanning System",
+      "Status": "Active",
+      "System_category": "Customs"
+    },
+    {
+      "System_id": "SYS-H8M45",
+      "System_name": "TLIP",
+      "Description": "Trade Logistics Information Pipeline",
+      "Status": "Active",
+      "System_category": "Customs"
+    }
+]
