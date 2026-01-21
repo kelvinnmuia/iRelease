@@ -73,7 +73,7 @@ function doGet(e) {
 
     // Route for SIRs API
     if (path === 'sirs' || path === 'api/sirs') {
-      return handleGetSIRs(sheets.sirs);
+      return handleGetSIRs(sheets.sirs, e);
     }
 
     // Route for SIRs-Releases API
@@ -355,11 +355,11 @@ function handleGetReleases(releaseSheet, e) {
 /**
  * Handle GET requests for all SIRs
  */
-function handleGetSIRs(sirsSheet) {
+function handleGetSIRs(sirsSheet, e) {
   try {
     const sirs = getAllSIRs(sirsSheet);
 
-    return createJsonResponse({
+    /*return createJsonResponse({
       success: true,
       count: sirs.length,
       sirs: sirs,
@@ -370,11 +370,36 @@ function handleGetSIRs(sirsSheet) {
         last_data_row: sirsSheet.getLastRow()
       },
       timestamp: new Date().toISOString()
-    });
+    });*/
+
+    const data = {
+      success: true,
+      count: sirs.length,
+      sirs: sirs,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsSheet.getName(),
+        last_data_row: sirsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(data, e);
 
   } catch (error) {
+    /*console.error('Error in handleGetSIRs:', error.message);
+    return createErrorResponse(`Failed to retrieve SIRs: ${error.message}`, 500);*/
+
     console.error('Error in handleGetSIRs:', error.message);
-    return createErrorResponse(`Failed to retrieve SIRs: ${error.message}`, 500);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve SIRs: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+    return createResponse(errorData, e);
+    
   }
 }
 
