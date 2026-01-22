@@ -1,16 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell } from "recharts"
-import { useEffect, useState } from "react"
-import { ireleaseDB, ReleaseRecord} from "@/db/ireleasedb"
+import { useEffect, useState, useCallback } from "react"
+import { ireleaseDB, dexieEvents, ReleaseRecord } from "@/db/ireleasedb"
 
-// Define interface for deployment status data
 interface DeploymentStatusData {
   Deployment_Status: string;
   Total: number;
   color: string;
 }
 
-// deployment status processing function (copied from your original api/releases.ts)
 function processForDeploymentStatus(releases: ReleaseRecord[]): DeploymentStatusData[] {
   console.log('Processing deployment status data')
   
@@ -99,36 +97,51 @@ export function DeploymentStatus() {
   const [releasesDetails, setReleasesDetails] = useState<DeploymentStatusData[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Function to fetch and process data from Dexie
-  const fetchStatsFromDexie = async () => {
+  // Fetch releases from Dexie
+  const fetchReleases = useCallback(async () => {
     try {
       setLoading(true)
+      console.log('📥 Fetching releases from Dexie for deployment status...')
+      const releases = await ireleaseDB.releases.toArray()
       
-      // Get ALL releases from Dexie
-      const allReleases = await ireleaseDB.releases.toArray()
-      
-      console.log(`📊 Found ${allReleases.length} releases in Dexie for deployment status`)
-      
-      // Process the data using the same function as before
-      const deploymentData = processForDeploymentStatus(allReleases)
+      // Process the data
+      const deploymentData = processForDeploymentStatus(releases)
       setReleasesDetails(deploymentData)
       
+      console.log(`✅ Processed ${releases.length} releases for deployment status`)
     } catch (error) {
-      console.error("Error fetching deployment status from Dexie:", error)
+      console.error("Error fetching deployment status:", error)
       setReleasesDetails([])
     } finally {
       setLoading(false)
     }
-  }
-
-  // Initial fetch on component mount
-  useEffect(() => {
-    fetchStatsFromDexie()
   }, [])
+
+  // Initial fetch and event listener setup
+  useEffect(() => {
+    // Initial fetch on component mount
+    fetchReleases()
+
+    // Listen for data-updated events from Dexie
+    const handleDataUpdated = () => {
+      console.log('📢 Deployment status received data-updated event, refreshing...')
+      fetchReleases()
+    }
+
+    // Subscribe to events
+    dexieEvents.on('data-updated', handleDataUpdated)
+    dexieEvents.on('sync-completed', handleDataUpdated)
+
+    // Cleanup event listeners on unmount
+    return () => {
+      dexieEvents.off('data-updated', handleDataUpdated)
+      dexieEvents.off('sync-completed', handleDataUpdated)
+    }
+  }, [fetchReleases])
 
   const totalReleases = releasesDetails.reduce((sum, i) => sum + i.Total, 0)
 
-  // Loading skeleton - SAME AS BEFORE
+  // Loading skeleton
   if (loading) {
     return (
       <Card className="w-full">
@@ -153,7 +166,7 @@ export function DeploymentStatus() {
     )
   }
 
-  // UPDATED: Empty state - Now matches ReleaseTypeChart design
+  // Empty state
   if (releasesDetails.length === 0) {
     return (
       <Card className="w-full">
@@ -166,28 +179,8 @@ export function DeploymentStatus() {
         <CardContent>
           <div className="h-80 w-full flex items-center justify-center">
             <div className="text-center text-gray-500">
-              <div className="text-gray-400 mb-2">
-                <svg
-                  className="w-12 h-12 mx-auto"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.801 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.801 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-                  />
-                </svg>
-              </div>
-              <p className="text-gray-500 font-medium">
-                No deployment data available
-              </p>
-              <p className="text-gray-400 text-sm mt-1">
-                Fetch data using the 'Fetch Data' button
-              </p>
+              <p className="font-medium">No deployment data available</p>
+              <p className="text-sm mt-2">Add releases to see deployment status breakdown</p>
             </div>
           </div>
           <div className="flex items-baseline justify-center mt-4">
@@ -199,7 +192,6 @@ export function DeploymentStatus() {
     )
   }
 
-  // Main render - SAME AS BEFORE
   return (
     <Card className="w-full">
       <CardHeader>
