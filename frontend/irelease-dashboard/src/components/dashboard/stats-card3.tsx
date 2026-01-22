@@ -1,7 +1,7 @@
 import { Card, CardContent } from "../ui/card"
-import { TrendingUp, TrendingDown, RefreshCw, Download } from "lucide-react"
+import { TrendingUp, TrendingDown, RefreshCw } from "lucide-react"
 import { useState, useEffect } from "react"
-import { ireleaseDB, syncFromAppScript } from "@/db/ireleasedb"
+import { ireleaseDB, syncFromAppScript } from "@/db/ireleasedb" // Make sure you import syncFromAppScript
 
 interface StatCard {
   label: string
@@ -14,8 +14,7 @@ interface StatCard {
 export function StatsCards() {
   const [stats, setStats] = useState<StatCard[]>([])
   const [loading, setLoading] = useState(true)
-  const [fetching, setFetching] = useState(false)
-  const [hasData, setHasData] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   const fetchStatsFromDexie = async () => {
     try {
@@ -25,10 +24,6 @@ export function StatsCards() {
       const allReleases = await ireleaseDB.releases.toArray()
       
       console.log(`📊 Found ${allReleases.length} releases in Dexie`)
-      
-      // Check if we have any data
-      const dataExists = allReleases.length > 0
-      setHasData(dataExists)
       
       // Count releases by status
       let totalReleases = 0
@@ -96,55 +91,31 @@ export function StatsCards() {
     } catch (error) {
       console.error("Error fetching stats from Dexie:", error)
       setStats([])
-      setHasData(false)
     } finally {
       setLoading(false)
     }
   }
 
-  // Handle initial data fetch from AppScript
-  const handleFetchData = async () => {
+  // Handle manual refresh from AppScript
+  const handleRefresh = async () => {
     try {
-      setFetching(true)
-      console.log("📥 Fetching data from AppScript...")
-      
-      // Fetch data from AppScript
-      const result = await syncFromAppScript()
-      
-      if (result.success) {
-        console.log(`✅ Fetched ${result.count} releases`)
-        // Fetch updated stats
-        await fetchStatsFromDexie()
-      } else {
-        console.error("❌ Fetch failed")
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error)
-    } finally {
-      setFetching(false)
-    }
-  }
-
-  // Handle refresh data from AppScript
-  const handleRefreshData = async () => {
-    try {
-      setFetching(true)
+      setRefreshing(true)
       console.log("🔄 Refreshing data from AppScript...")
       
-      // Refresh data from AppScript
+      // Sync data from AppScript
       const result = await syncFromAppScript()
       
       if (result.success) {
-        console.log(`✅ Refreshed ${result.count} releases`)
+        console.log(`✅ Synced ${result.count} releases`)
         // Fetch updated stats
         await fetchStatsFromDexie()
       } else {
-        console.error("❌ Refresh failed")
+        console.error("❌ Sync failed")
       }
     } catch (error) {
       console.error("Error refreshing data:", error)
     } finally {
-      setFetching(false)
+      setRefreshing(false)
     }
   }
 
@@ -173,36 +144,48 @@ export function StatsCards() {
     )
   }
 
+  // Empty state (if no data in Dexie)
+  if (stats.length === 0 || stats.every(stat => stat.value === 0)) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="overflow-hidden col-span-4">
+          <CardContent className="p-6 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-gray-500 dark:text-gray-400">
+                No data available in database.
+              </p>
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'Fetching Data...' : 'Fetch Data from AppScript'}
+              </button>
+              <p className="text-xs text-gray-400">
+                Database might be empty. Click to fetch data.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Render dynamic stats with refresh button
   return (
     <div className="space-y-4">
-      {/* Button Section - Show different buttons based on data state */}
       <div className="flex justify-end">
-        {!hasData ? (
-          // Show Fetch Data button when no data exists
-          <button
-            onClick={handleFetchData}
-            disabled={fetching}
-            className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
-            title="Fetch initial data from AppScript"
-          >
-            <Download className={`w-3 h-3 ${fetching ? 'animate-spin' : ''}`} />
-            {fetching ? 'Fetching...' : 'Fetch Data'}
-          </button>
-        ) : (
-          // Show Refresh Data button when data exists
-          <button
-            onClick={handleRefreshData}
-            disabled={fetching}
-            className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"
-            title="Refresh data from AppScript"
-          >
-            <RefreshCw className={`w-3 h-3 ${fetching ? 'animate-spin' : ''}`} />
-            {fetching ? 'Refreshing...' : 'Refresh Data'}
-          </button>
-        )}
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh Data'}
+        </button>
       </div>
       
-      {/* Stats Cards Grid - Always visible */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {stats.map((stat) => (
           <Card key={stat.label} className="overflow-hidden">

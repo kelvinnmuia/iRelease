@@ -1,132 +1,39 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { Search, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ireleaseDB, dexieEvents, ReleaseRecord } from "@/db/ireleasedb"
-
-// Process function (moved into file)
-function processForReleaseType(releases: ReleaseRecord[], selectedYear: string) {
-  if (!releases || releases.length === 0) return []
-  
-  // Create months array
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ]
-  
-  // Initialize data structure
-  const monthlyData: { month: string; Major: number; Medium: number; Minor: number }[] = months.map(month => ({
-    month,
-    Major: 0,
-    Medium: 0,
-    Minor: 0
-  }))
-  
-  // Process each release
-  releases.forEach(release => {
-    try {
-      // Try to extract month from various date fields
-      const dateFields = [
-        'Date_delivered_by_vendor',
-        'Date_deployed_to_test', 
-        'Date_of_test_commencement',
-        'Date_of_test_completion',
-        'Notification_date_for_deployment_to_test',
-        'Date_updated'
-      ] as const
-      
-      let foundDate: Date | null = null
-      
-      for (const field of dateFields) {
-        const dateStr = release[field]
-        if (dateStr && typeof dateStr === 'string' && dateStr.trim()) {
-          const date = new Date(dateStr)
-          if (!isNaN(date.getTime())) {
-            foundDate = date
-            break
-          }
-        }
-      }
-      
-      if (!foundDate) return
-      
-      // Check if release is in selected year
-      const releaseYear = foundDate.getFullYear().toString()
-      if (releaseYear !== selectedYear) return
-      
-      // Get month index (0-11)
-      const monthIndex = foundDate.getMonth()
-      
-      // Get release type (case-insensitive)
-      const releaseType = (release.Type_of_release || '').toLowerCase()
-      
-      // Categorize release type
-      if (releaseType.includes('major')) {
-        monthlyData[monthIndex].Major++
-      } else if (releaseType.includes('medium')) {
-        monthlyData[monthIndex].Medium++
-      } else if (releaseType.includes('minor')) {
-        monthlyData[monthIndex].Minor++
-      }
-    } catch (error) {
-      console.warn("Error processing release:", release.Release_id, error)
-    }
-  })
-  
-  return monthlyData
-}
+import { getReleasesData, processForReleaseType, MonthlyReleaseType } from "@/api/releases"
 
 export function ReleaseTypeChart() {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [searchTerm, setSearchTerm] = useState("")
   const [isOpen, setIsOpen] = useState(false)
-  const [chartData, setChartData] = useState<{ month: string; Major: number; Medium: number; Minor: number }[]>([])
-  const [releases, setReleases] = useState<ReleaseRecord[]>([])
+  const [chartData, setChartData] = useState<MonthlyReleaseType[]>([])
   const [loading, setLoading] = useState(true)
-  
+  const [releases, setReleases] = useState<any[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Fetch releases from Dexie
-  const fetchReleases = useCallback(async () => {
-    try {
-      setLoading(true)
-      console.log('📥 Fetching releases from Dexie for chart...')
-      const fetchedReleases = await ireleaseDB.releases.toArray()
-      setReleases(fetchedReleases)
-      console.log(`✅ Fetched ${fetchedReleases.length} releases from Dexie`)
-    } catch (error) {
-      console.error("Error fetching releases from Dexie:", error)
-      setReleases([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Initial fetch and event listener setup
+  // Fetch releases data once on component mount
   useEffect(() => {
-    // Initial fetch on component mount
+    const fetchReleases = async () => {
+      try {
+        setLoading(true)
+        const fetchedReleases = await getReleasesData()
+        setReleases(fetchedReleases)
+      } catch (error) {
+        console.error("Error fetching releases:", error)
+        setReleases([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchReleases()
-
-    // Listen for data-updated events from Dexie
-    const handleDataUpdated = () => {
-      console.log('📢 Chart received data-updated event, refreshing...')
-      fetchReleases()
-    }
-
-    // Subscribe to events
-    dexieEvents.on('data-updated', handleDataUpdated)
-    dexieEvents.on('sync-completed', handleDataUpdated)
-
-    // Cleanup event listeners on unmount
-    return () => {
-      dexieEvents.off('data-updated', handleDataUpdated)
-      dexieEvents.off('sync-completed', handleDataUpdated)
-    }
-  }, [fetchReleases])
+  }, [])
 
   // Generate years array from available release data
   const years = useMemo(() => {
@@ -151,7 +58,7 @@ export function ReleaseTypeChart() {
         'Date_of_test_completion',
         'Notification_date_for_deployment_to_test',
         'Date_updated'
-      ] as const
+      ]
       
       for (const field of dateFields) {
         const dateStr = release[field]
@@ -182,7 +89,7 @@ export function ReleaseTypeChart() {
       .map(year => ({ id: year, name: year }))
       .sort((a, b) => parseInt(b.id) - parseInt(a.id))
     
-    console.log('📋 Available years from Dexie data:', yearsArray)
+    console.log('📋 Available years from data:', yearsArray)
     return yearsArray
   }, [releases])
 
@@ -208,9 +115,9 @@ export function ReleaseTypeChart() {
         month.Major > 0 || month.Medium > 0 || month.Minor > 0
       )
       console.log(`📊 Data for ${selectedYear}:`, {
-        processedDataLength: processedData.length,
+        processedData,
         hasAnyData,
-        totalReleases: releases.length
+        monthCount: processedData.length
       })
     } else {
       setChartData([])
@@ -288,11 +195,6 @@ export function ReleaseTypeChart() {
     }
   }
 
-  // Optional: Manual refresh button (can trigger re-fetch from Dexie)
-  const handleManualRefresh = () => {
-    fetchReleases()
-  }
-
   // Loading state
   if (loading) {
     return (
@@ -320,105 +222,92 @@ export function ReleaseTypeChart() {
             Release Type by Month
           </CardTitle>
           
-          <div className="flex items-center gap-2">
-            {/* Optional manual refresh button - can be removed */}
-            {/* <Button
+          {/* Searchable Dropdown for Year Selection - ALWAYS positioned to the right */}
+          <div className="relative flex-shrink-0" ref={containerRef}>
+            <Button
               size="sm"
               variant="outline"
-              onClick={handleManualRefresh}
-              className="h-9"
-              title="Refresh chart data"
+              className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-[160px] h-9"
+              onClick={handleTriggerClick}
+              type="button"
             >
-              Refresh
-            </Button> */}
-          
-            {/* Searchable Dropdown for Year Selection - ALWAYS positioned to the right */}
-            <div className="relative flex-shrink-0" ref={containerRef}>
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center justify-between bg-white border-gray-300 hover:bg-gray-50 w-[160px] h-9"
-                onClick={handleTriggerClick}
-                type="button"
+              <span className="truncate flex-1 text-left">
+                {selectedYearItem?.name || "Select year"}
+              </span>
+              <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                {selectedYear && selectedYear !== new Date().getFullYear().toString() && (
+                  <X
+                    className="w-3 h-3 text-gray-400 hover:text-gray-600"
+                    onClick={handleClearSelection}
+                  />
+                )}
+                <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </div>
+            </Button>
+
+            {/* Custom Dropdown Content - ALWAYS positioned to the right */}
+            {isOpen && (
+              <div
+                className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
+                style={{ 
+                  width: '190px',
+                  top: '100%',
+                  right: 0
+                }}
               >
-                <span className="truncate flex-1 text-left">
-                  {selectedYearItem?.name || "Select year"}
-                </span>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                  {selectedYear && selectedYear !== new Date().getFullYear().toString() && (
-                    <X
-                      className="w-3 h-3 text-gray-400 hover:text-gray-600"
-                      onClick={handleClearSelection}
+                {/* Search Input */}
+                <div className="p-3 border-b">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      ref={searchInputRef}
+                      placeholder="Search"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="w-full pl-9 pr-8 h-8 text-sm border-gray-300 focus:border-red-400 focus:ring-red-400 focus:ring-1"
+                      onClick={(e) => e.stopPropagation()}
                     />
-                  )}
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
-              </Button>
-
-              {/* Custom Dropdown Content - ALWAYS positioned to the right */}
-              {isOpen && (
-                <div
-                  className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
-                  style={{ 
-                    width: '190px',
-                    top: '100%',
-                    right: 0
-                  }}
-                >
-                  {/* Search Input */}
-                  <div className="p-3 border-b">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Input
-                        ref={searchInputRef}
-                        placeholder="Search"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="w-full pl-9 pr-8 h-8 text-sm border-gray-300 focus:border-red-400 focus:ring-red-400 focus:ring-1"
-                        onClick={(e) => e.stopPropagation()}
+                    {searchTerm && (
+                      <X
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        onClick={handleClearSearch}
                       />
-                      {searchTerm && (
-                        <X
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer"
-                          onClick={handleClearSearch}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Filtered Years List */}
-                  <div className="max-h-48 overflow-y-auto">
-                    {filteredYears.length > 0 ? (
-                      filteredYears.map((year) => (
-                        <button
-                          key={year.id}
-                          onClick={() => handleYearSelect(year.id)}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors ${selectedYear === year.id
-                              ? "bg-red-50 text-red-600 font-medium"
-                              : "text-gray-700"
-                            }`}
-                          type="button"
-                        >
-                          <span className="truncate block">{year.name}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-3 py-4 text-center text-sm text-gray-500">
-                        No years found
-                      </div>
                     )}
                   </div>
+                </div>
 
-                  {/* Show count if years are filtered */}
-                  {searchTerm && filteredYears.length > 0 && (
-                    <div className="px-3 py-2 border-t text-xs text-gray-500 bg-gray-50">
-                      {filteredYears.length} of {years.length} years
+                {/* Filtered Years List */}
+                <div className="max-h-48 overflow-y-auto">
+                  {filteredYears.length > 0 ? (
+                    filteredYears.map((year) => (
+                      <button
+                        key={year.id}
+                        onClick={() => handleYearSelect(year.id)}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors ${selectedYear === year.id
+                            ? "bg-red-50 text-red-600 font-medium"
+                            : "text-gray-700"
+                          }`}
+                        type="button"
+                      >
+                        <span className="truncate block">{year.name}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-4 text-center text-sm text-gray-500">
+                      No years found
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+
+                {/* Show count if years are filtered */}
+                {searchTerm && filteredYears.length > 0 && (
+                  <div className="px-3 py-2 border-t text-xs text-gray-500 bg-gray-50">
+                    {filteredYears.length} of {years.length} years
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -477,14 +366,14 @@ export function ReleaseTypeChart() {
                 </p>
                 <p className="text-gray-400 text-sm mt-1">
                   {releases.length === 0 
-                    ? "Fetch data using the 'Fetch Data' button" 
+                    ? "Unable to fetch release data" 
                     : "Select a different year to view release type analysis"}
                 </p>
                 {/* Debug info */}
                 {releases.length > 0 && (
                   <div className="mt-3 text-xs text-gray-500">
                     <p>Available years: {years.map(y => y.name).join(", ")}</p>
-                    <p>Total releases in Dexie: {releases.length}</p>
+                    <p>Total releases: {releases.length}</p>
                   </div>
                 )}
               </div>
