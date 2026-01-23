@@ -34,6 +34,8 @@ export interface ReleaseRecord {
   lastSynced?: number;
 }
 
+
+
 // Simple database with just releases table for now
 export const db = new Dexie("ireleasedb");
 db.version(1).stores({
@@ -44,6 +46,47 @@ db.version(1).stores({
 export const ireleaseDB = db as Dexie & {
   releases: Dexie.Table<ReleaseRecord, number>;
 };
+
+// Event system built into Dexie file
+type DexieEventType = 'data-updated' | 'sync-started' | 'sync-completed' | 'sync-failed'
+
+class DexieEventEmitter {
+  private listeners: Map<DexieEventType, Function[]> = new Map()
+
+  on(event: DexieEventType, callback: Function) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, [])
+    }
+    this.listeners.get(event)!.push(callback)
+  }
+
+  off(event: DexieEventType, callback: Function) {
+    const callbacks = this.listeners.get(event)
+    if (callbacks) {
+      const index = callbacks.indexOf(callback)
+      if (index > -1) {
+        callbacks.splice(index, 1)
+      }
+    }
+  }
+
+  emit(event: DexieEventType, data?: any) {
+    const callbacks = this.listeners.get(event)
+    if (callbacks) {
+      // Clone array to avoid issues if callbacks modify during iteration
+      [...callbacks].forEach(callback => {
+        try {
+          callback(data)
+        } catch (error) {
+          console.error(`Error in ${event} listener:`, error)
+        }
+      })
+    }
+  }
+}
+
+// Export the event emitter
+export const dexieEvents = new DexieEventEmitter()
 
 // Your AppScript URL
 const AppScript_URL = "https://script.google.com/macros/s/AKfycbxA8wFlmM0NMKhNSG-fOWA4tRpV-k9w-sJ9P0KWpSAlKL8qkctT27-kDAvF65Vhw50H/exec/api/releases";
@@ -57,11 +100,19 @@ export async function isDexieEmpty(): Promise<boolean> {
 }
 
 /**
+ * Generate a simple random callback name with 5 characters
+ */
+function generateCallbackName(): string {
+  const random = Math.random().toString(36).substring(2, 7);
+  return `jsonp_callback_${random}`;
+}
+
+/**
  * JSONP function to fetch data from AppScript
  */
 export async function fetchFromAppScript(): Promise<any> {
   return new Promise((resolve, reject) => {
-    const callbackName = `jsonp_callback_${Date.now()}_${Math.random().toString(36).substr(2)}`;
+    const callbackName = generateCallbackName();
     
     const script = document.createElement('script');
     

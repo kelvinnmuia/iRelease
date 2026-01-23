@@ -34,6 +34,8 @@ export interface ReleaseRecord {
   lastSynced?: number;
 }
 
+
+
 // Simple database with just releases table for now
 export const db = new Dexie("ireleasedb");
 db.version(1).stores({
