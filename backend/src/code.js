@@ -63,7 +63,7 @@ function doGet(e) {
 
     // Route for systems API
     if (path === 'systems' || path === 'api/systems') {
-      return handleGetSystems(sheets.systemsMetadata);
+      return handleGetSystems(sheets.systemsMetadata, e);
     }
 
     // Route for releases API requests
@@ -78,7 +78,7 @@ function doGet(e) {
 
     // Route for SIRs-Releases API
     if (path === 'sirs-releases' || path === 'api/sirs-releases') {
-      return handleGetSIRsReleases(sheets.sirsReleases);
+      return handleGetSIRsReleases(sheets.sirsReleases, e);
     }
 
    // Default response for root
@@ -272,11 +272,11 @@ function doDelete(e) {
 /**
  * Handle GET requests for all systems
  */
-function handleGetSystems(systemsSheet) {
+function handleGetSystems(systemsSheet, e) {
   try {
     const systems = getAllSystems(systemsSheet);
 
-    return createJsonResponse({
+    /*return createJsonResponse({
       success: true,
       count: systems.length,
       systems: systems,  // represents the entire systems array
@@ -287,11 +287,36 @@ function handleGetSystems(systemsSheet) {
         last_data_row: systemsSheet.getLastRow()
       },
       timestamp: new Date().toISOString()
-    });
+    });*/
+
+    const data = {
+      success: true,
+      count: systems.length,
+      systems: systems,  // represents the entire systems array
+      metadata: {
+        header_row: 3,
+        data_start_row: 4,
+        sheet_name: systemsSheet.getName(),
+        last_data_row: systemsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    }
+
+    return createResponse(data, e);
 
   } catch (error) {
+    /*console.error('Error in handleGetSystems:', error.message);
+    return createErrorResponse(`Failed to retrieve systems: ${error.message}`, 500);*/
+
     console.error('Error in handleGetSystems:', error.message);
-    return createErrorResponse(`Failed to retrieve systems: ${error.message}`, 500);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve systems: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(errorData, e);
   }
 }
 
@@ -398,6 +423,7 @@ function handleGetSIRs(sirsSheet, e) {
       statusCode: 500,
       timestamp: new Date().toISOString()
     };
+
     return createResponse(errorData, e);
     
   }
@@ -406,11 +432,11 @@ function handleGetSIRs(sirsSheet, e) {
 /**
  * Handle GET requests for all SIRs-Releases
  */
-function handleGetSIRsReleases(sirsReleasesSheet) {
+function handleGetSIRsReleases(sirsReleasesSheet, e) {
   try {
     const sirsReleases = getAllSIRsReleases(sirsReleasesSheet);
 
-    return createJsonResponse({
+    /*return createJsonResponse({
       success: true,
       count: sirsReleases.length,
       sirs_releases: sirsReleases,
@@ -421,11 +447,37 @@ function handleGetSIRsReleases(sirsReleasesSheet) {
         last_data_row: sirsReleasesSheet.getLastRow()
       },
       timestamp: new Date().toISOString()
-    });
+    });*/
+
+    const data = {
+      success: true,
+      count: sirsReleases.length,
+      sirs_releases: sirsReleases,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsReleasesSheet.getName(),
+        last_data_row: sirsReleasesSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    }
+
+    return createResponse(data, e);
 
   } catch (error) {
+    /*console.error('Error in handleGetSIRsReleases:', error.message);
+    return createErrorResponse(`Failed to retrieve SIRs-Releases: ${error.message}`, 500);*/
+
     console.error('Error in handleGetSIRsReleases:', error.message);
-    return createErrorResponse(`Failed to retrieve SIRs-Releases: ${error.message}`, 500);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve SIRs-Releases: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(errorData, e);
+
   }
 }
 

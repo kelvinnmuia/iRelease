@@ -17,7 +17,7 @@ const RELEASE_ID_CONFIG = {
 const TEST_RELEASE_DATA = {
   System_name: "iCMS",
   System_id: "SYS-8QKMU",
-  Release_version: "1.5.7",
+  Release_version: "1.6.9",
   Iteration: 1,
   Release_description: "Test release description",
   Functionality_delivered: "Test functionality",
@@ -470,23 +470,23 @@ function testPostSimple() {
     const testData = {
       System_name: "iCMS",
       System_id: "SYS-8QKMU",
-      Release_version: "1.6.6",
+      Release_version: "1.7.6",
       Iteration: 1,
       Release_description: "Test release description",
       Functionality_delivered: "Hot fix for sirs 123455, 123955, 124098, 126945",
-      Date_delivered_by_vendor: "10 Jan 2026",
-      Notification_date_for_deployment_to_test: "11 Jan 2026",
-      Date_deployed_to_test: "12 Jan 2026",
-      Date_of_test_commencement: "13 Jan 2026",
+      Date_delivered_by_vendor: "10 Jan 2027",
+      Notification_date_for_deployment_to_test: "11 Jan 2027",
+      Date_deployed_to_test: "12 Jan 2027",
+      Date_of_test_commencement: "13 Jan 2027",
       Date_of_test_completion: "14 Jan 2026",
-      Date_deployed_in_production: "14 Jan 2026",
+      Date_deployed_in_production: "14 Jan 2027",
       Test_status: "Passed",
       Deployment_status: "Deployed to production",
       Outstanding_issues: "None",
       Comments: "Test comment",
       Type_of_release: "Minor",
       Month: "January",
-      Financial_year: "FY2026"
+      Financial_year: "FY2027"
     };
 
     console.log('Test data:', testData);
