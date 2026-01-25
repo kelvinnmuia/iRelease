@@ -1,7 +1,7 @@
 import { Card, CardContent } from "../ui/card"
 import { TrendingUp, TrendingDown, RefreshCw, Download } from "lucide-react"
 import { useState, useEffect } from "react"
-import { ireleaseDB, syncAllFromAppScript } from "@/db/ireleasedb"
+import { ireleaseDB, syncFromAppScript } from "@/db/ireleasedb"
 
 interface StatCard {
   label: string
@@ -109,10 +109,10 @@ export function StatsCards() {
       console.log("📥 Fetching data from AppScript...")
       
       // Fetch data from AppScript
-      const result = await syncAllFromAppScript()
+      const result = await syncFromAppScript()
       
       if (result.success) {
-        console.log(`✅ Fetched ${result.releases.count} releases and ${result.sirsReleases.count} SIRs-Releases`)
+        console.log(`✅ Fetched ${result.count} releases`)
         // Fetch updated stats
         await fetchStatsFromDexie()
       } else {
@@ -132,10 +132,10 @@ export function StatsCards() {
       console.log("🔄 Refreshing data from AppScript...")
       
       // Refresh data from AppScript
-      const result = await syncAllFromAppScript()
+      const result = await syncFromAppScript()
       
       if (result.success) {
-        console.log(`✅ Refreshed ${result.releases.count} releases and ${result.sirsReleases.count} SIRs-Releases`)
+        console.log(`✅ Refreshed ${result.count} releases`)
         // Fetch updated stats
         await fetchStatsFromDexie()
       } else {
