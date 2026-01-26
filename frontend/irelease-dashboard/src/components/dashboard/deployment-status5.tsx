@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell } from "recharts"
-import { useEffect, useState, useCallback } from "react"
-import { ireleaseDB, dexieEvents, ReleaseRecord } from "@/db/ireleasedb"
+import { useEffect, useState } from "react"
+import { ireleaseDB, ReleaseRecord} from "@/db/ireleasedb"
 
 // Define interface for deployment status data
 interface DeploymentStatusData {
@@ -100,7 +100,7 @@ export function DeploymentStatus() {
   const [loading, setLoading] = useState(true)
 
   // Function to fetch and process data from Dexie
-  const fetchStatsFromDexie = useCallback(async () => {
+  const fetchStatsFromDexie = async () => {
     try {
       setLoading(true)
       
@@ -119,28 +119,12 @@ export function DeploymentStatus() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchStatsFromDexie()
-
-    // Listen for data-updated events from Dexie
-    const handleDataUpdated = () => {
-      console.log('📢 Deployment chart received data-updated event, refreshing...')
-      fetchStatsFromDexie()
-    }
-
-    // Subscribe to events
-    dexieEvents.on('data-updated', handleDataUpdated)
-    dexieEvents.on('sync-completed', handleDataUpdated)
-
-    // Cleanup event listeners on unmount
-    return () => {
-      dexieEvents.off('data-updated', handleDataUpdated)
-      dexieEvents.off('sync-completed', handleDataUpdated)
-    }
-  }, [fetchStatsFromDexie])
+  }, [])
 
   const totalReleases = releasesDetails.reduce((sum, i) => sum + i.Total, 0)
 

@@ -34,37 +34,10 @@ export function SirsTypeChart() {
   const [loading, setLoading] = useState(false)
   const [releases, setReleases] = useState<ReleaseOption[]>([])
   const [iterations, setIterations] = useState<IterationOption[]>([])
-  const [initialLoadDone, setInitialLoadDone] = useState(false)
   const releaseSearchInputRef = useRef<HTMLInputElement>(null)
   const iterationSearchInputRef = useRef<HTMLInputElement>(null)
   const releaseContainerRef = useRef<HTMLDivElement>(null)
   const iterationContainerRef = useRef<HTMLDivElement>(null)
-
-  // Get the last record from Dexie and auto-select it
-  const getAndSetLastRecord = useCallback(async () => {
-    try {
-      if (initialLoadDone) return; // Only do this on initial load
-      
-      const allSirs = await ireleaseDB.sirsReleases.toArray()
-      
-      if (allSirs.length > 0) {
-        const lastRecord = allSirs[allSirs.length - 1]
-        
-        if (lastRecord.Release_version && lastRecord.Iteration) {
-          console.log(`🎯 Auto-selecting last record: Release=${lastRecord.Release_version}, Iteration=${lastRecord.Iteration}`)
-          
-          // Set release and iteration together
-          setSelectedRelease(lastRecord.Release_version)
-          setSelectedIteration(lastRecord.Iteration)
-        }
-      }
-      
-      setInitialLoadDone(true)
-    } catch (error) {
-      console.error("Error getting last record:", error)
-      setInitialLoadDone(true)
-    }
-  }, [initialLoadDone])
 
   // Fetch available releases
   const fetchReleases = useCallback(async () => {
@@ -83,7 +56,6 @@ export function SirsTypeChart() {
 
       setReleases(releaseOptions)
       console.log(`📊 Loaded ${releaseOptions.length} releases from Dexie`)
-      
     } catch (error) {
       console.error("Error fetching releases:", error)
       setReleases([])
@@ -124,14 +96,13 @@ export function SirsTypeChart() {
 
       setIterations(iterationOptions)
       console.log(`📊 Loaded ${iterationOptions.length} iterations for release ${selectedRelease}`)
-      
     } catch (error) {
       console.error("Error fetching iterations:", error)
       setIterations([])
     }
   }, [selectedRelease])
 
-  // Fetch SIRs data for selected release and iteration
+  // Fetch SIRs data for selected release and iteration - FIXED VERSION
   const fetchSirsData = useCallback(async () => {
     try {
       setLoading(true)
@@ -143,15 +114,27 @@ export function SirsTypeChart() {
 
       console.log(`🔍 Looking for SIRs: Release="${selectedRelease}", Iteration="${selectedIteration}"`)
       
+      // Get all SIRs to debug
       const allSirs = await ireleaseDB.sirsReleases.toArray()
       
-      // Manual filtering - exact match first
-      let filteredSirs = allSirs.filter(sir => 
-        sir.Release_version === selectedRelease && 
-        sir.Iteration === selectedIteration
-      )
+      // Try compound index query first
+      let filteredSirs: SirsReleaseRecord[] = []
+      try {
+        filteredSirs = await ireleaseDB.sirsReleases
+          .where('[Release_version+Iteration]')
+          .equals([selectedRelease, selectedIteration])
+          .toArray()
+        console.log(`✅ Compound query found ${filteredSirs.length} SIRs`)
+      } catch (error) {
+        console.log('⚠️ Compound query failed, using manual filter')
+        // Fallback to manual filtering
+        filteredSirs = allSirs.filter(sir => 
+          sir.Release_version === selectedRelease && 
+          sir.Iteration === selectedIteration
+        )
+      }
       
-      // If empty, try case-insensitive matching
+      // If still empty, try case-insensitive matching
       if (filteredSirs.length === 0) {
         console.log('🔍 Trying case-insensitive matching...')
         filteredSirs = allSirs.filter(sir => 
@@ -162,10 +145,20 @@ export function SirsTypeChart() {
       
       console.log(`📊 Total found: ${filteredSirs.length} SIRs`)
       
+      // Show sample data for debugging
+      if (filteredSirs.length > 0) {
+        console.log('📝 Sample SIRs found:', filteredSirs.slice(0, 3).map(s => ({
+          Sir_Rel_Id: s.Sir_Rel_Id,
+          Bug_severity: s.Bug_severity,
+          Priority: s.Priority
+        })))
+      }
+
       // Count SIRs by severity
       const severityCounts: Record<string, number> = {}
       
       filteredSirs.forEach((sir: SirsReleaseRecord) => {
+        // Use Bug_severity or Priority if Bug_severity is empty
         const severity = sir.Bug_severity || sir.Priority || 'Unknown'
         severityCounts[severity] = (severityCounts[severity] || 0) + 1
       })
@@ -188,22 +181,16 @@ export function SirsTypeChart() {
     }
   }, [selectedRelease, selectedIteration])
 
-  // Initial load: get last record AND fetch releases
+  // Initial data fetch
   useEffect(() => {
-    const initializeData = async () => {
-      await getAndSetLastRecord()
-      await fetchReleases()
-    }
-    initializeData()
-  }, [getAndSetLastRecord, fetchReleases])
+    fetchReleases()
+  }, [fetchReleases])
 
-  // Fetch iterations when release changes (but only if user changed it)
+  // Fetch iterations when release changes
   useEffect(() => {
-    if (selectedRelease) {
-      fetchIterations()
-    } else {
-      setIterations([])
-    }
+    fetchIterations()
+    setSelectedIteration("")
+    setIterationSearchTerm("")
   }, [selectedRelease, fetchIterations])
 
   // Fetch SIRs data when selection changes
@@ -296,7 +283,6 @@ export function SirsTypeChart() {
 
   const handleReleaseSelect = (releaseId: string) => {
     setSelectedRelease(releaseId)
-    setSelectedIteration("") // Clear iteration when release changes
     setIsReleaseOpen(false)
     setReleaseSearchTerm("")
   }
