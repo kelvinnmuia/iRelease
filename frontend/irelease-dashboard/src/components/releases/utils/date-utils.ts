@@ -1,3 +1,11 @@
+
+/**
+ * Parse a date string in the format "DD MMM YYYY" to a Date object.
+ * If the date string is invalid, returns null.
+ *
+ * @param {string} dateStr - the date string to be parsed
+ * @returns {Date|null} - the parsed Date object or null if the date string is invalid
+ */
 export const parseDate = (dateStr: string): Date | null => {
   if (!dateStr) return null;
 
