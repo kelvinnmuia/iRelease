@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from "sonner"
 import { SearchableDropdown } from './searchable-dropdown'
 import { MonthlyOverviewAnalytics } from './monthly-overview-analytics'
+import releasesData from './monthly-overview-datatable/data/mo-releases-data.json'
 import { transformMoReleasesData } from './monthly-overview-datatable/utils/mo-data-transform'
-import { getAllReleases, initializeReleasesDatabase } from "@/db/ireleasedb"
 
 export function MonthlyOverview() {
     // State for filters - load from localStorage if available
@@ -18,29 +18,10 @@ export function MonthlyOverview() {
     const [selectedMonthName, setSelectedMonthName] = useState<string>('')
     const [selectedYearName, setSelectedYearName] = useState<string>('')
 
-    // State for data loading
-    const [loading, setLoading] = useState(true)
-    const [transformedData, setTransformedData] = useState<any[]>([])
-
-    // Load data from Dexie on component mount
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true)
-                await initializeReleasesDatabase()
-                const releases = await getAllReleases()
-                const transformed = transformMoReleasesData(releases)
-                setTransformedData(transformed)
-            } catch (err) {
-                console.error("Error loading data:", err)
-                toast.error("Failed to load releases data")
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        loadData()
-    }, [])
+    // Transform the data once
+    const transformedData = useMemo(() => {
+        return transformMoReleasesData(releasesData as any[]);
+    }, []);
 
     // Mock data for months and years
     const months = useMemo(() => {
@@ -70,19 +51,24 @@ export function MonthlyOverview() {
         return yearsArray.sort((a, b) => parseInt(b.id) - parseInt(a.id));
     }, [])
 
-    // Filter data based on selected month/year - FIXED VERSION
+    // Filter data based on selected month/year
     const filteredData = useMemo(() => {
         if (!selectedMonthName || !selectedYearName) return [];
         
         return transformedData.filter(record => {
-            const recordMonth = record.month;
-            const recordFinancialYear = record.financialYear; // e.g., "FY2025"
+            const recordMonth = record.month; // Use month (lowercase)
+            const recordDeliveredDate = record.deliveredDate; // Use deliveredDate (not dateDelivered)
             
-            // Convert selectedYearName (e.g., "2025") to match financialYear format
-            const financialYearToMatch = `FY${selectedYearName}`;
+            // Extract year from delivered date
+            let recordYear = '';
+            if (recordDeliveredDate) {
+                const dateParts = recordDeliveredDate.split(' ');
+                if (dateParts.length >= 3) {
+                    recordYear = dateParts[2];
+                }
+            }
             
-            return recordMonth === selectedMonthName && 
-                   recordFinancialYear === financialYearToMatch;
+            return recordMonth === selectedMonthName && recordYear === selectedYearName;
         });
     }, [transformedData, selectedMonthName, selectedYearName]);
 
@@ -129,18 +115,6 @@ export function MonthlyOverview() {
 
     // Check if both month and year are selected
     const hasMonthAndYear = selectedMonth && selectedYear;
-
-    // Show loading state
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading monthly overview data...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-gray-50">
