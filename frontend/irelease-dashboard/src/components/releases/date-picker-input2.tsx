@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { parseDate, formatDate, formatISODate } from "./utils/date-utils";
+import { parseDate, formatDate } from "./utils/date-utils";
 
 interface DatePickerInputProps {
   value: string;
@@ -18,9 +18,6 @@ export const DatePickerInput = ({
   const [showPicker, setShowPicker] = useState(false);
   const [tempDate, setTempDate] = useState("");
   const pickerRef = useRef<HTMLDivElement>(null);
-
-  // Convert ISO date to display format
-  const displayValue = formatISODate(value) || value;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,7 +72,7 @@ export const DatePickerInput = ({
         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
         <Input
           placeholder={placeholder}
-          value={displayValue} // changes the ISO date to display format
+          value={value}
           readOnly
           className="w-full pl-10 h-9 border-gray-300 bg-white focus:border-red-400 focus:ring-red-400 cursor-pointer sm:pr-4 focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none"
         />
