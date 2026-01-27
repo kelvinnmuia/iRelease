@@ -1,4 +1,3 @@
-
 /**
  * Parse a date string in the format "DD MMM YYYY" to a Date object.
  * If the date string is invalid, returns null.
