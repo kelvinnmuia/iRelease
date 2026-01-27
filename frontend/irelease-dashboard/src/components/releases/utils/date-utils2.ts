@@ -29,19 +29,6 @@ export const formatDate = (date: Date): string => {
   return `${day} ${month} ${year}`;
 };
 
-export const formatISODate = (isoDateStr: string): string => {
-  if (!isoDateStr) return '';
-  
-  const date = new Date(isoDateStr);
-  if (isNaN(date.getTime())) return isoDateStr; // Return original if invalid
-  
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
-};
-
 export const getLatestDate = (item: any): Date | null => {
   const dateFields = [
     'deliveredDate', 'tdNoticeDate', 'testDeployDate',

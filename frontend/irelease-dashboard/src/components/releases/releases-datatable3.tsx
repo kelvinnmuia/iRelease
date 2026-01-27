@@ -13,7 +13,7 @@ import {
     loadItemsPerPage,
     saveItemsPerPage
 } from "./utils/storage-utils";
-import { parseDate, getLatestDate, getEarliestDate, formatDate, formatISODate } from "./utils/date-utils";
+import { parseDate, getLatestDate, getEarliestDate, formatDate } from "./utils/date-utils";
 import { exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "./utils/export-utils";
 import { ReleasesHeader } from "./release-header";
 import { ReleasesFilters } from "./releases-filters";
@@ -23,12 +23,13 @@ import { AddReleaseDialog } from "./add-release-dialog";
 import { EditReleaseDialog } from "./edit-release-dialog";
 import { DeleteDialogs } from "./delete-dialogs";
 import { transformReleasesData } from "./utils/data-transform";
-import { getAllReleases, initializeReleasesDatabase } from "@/db/ireleasedb";
+import releasesData from "./data/releases-data.json";
 
+// Add type assertion for the JSON import
+const typedReleasesData = transformReleasesData(releasesData as any[]);
 export function ReleasesDataTable() {
     // State management
-    const [data, setData] = useState<Release[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<Release[]>(typedReleasesData);
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
     const [globalFilter, setGlobalFilter] = useState("");
@@ -46,33 +47,6 @@ export function ReleasesDataTable() {
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage());
-
-    // Load data from Dexie on component mount
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                
-                // Initialize the database (will fetch from AppScript if empty)
-                await initializeReleasesDatabase();
-                
-                // Fetch all releases from Dexie
-                const releases = await getAllReleases();
-                
-                // Transform the data to match your Release type
-                const transformedData = transformReleasesData(releases);
-                setData(transformedData);
-                
-            } catch (err) {
-                console.error("Error loading data from Dexie:", err);
-                toast.error("Failed to load releases data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadData();
-    }, []); // Empty dependency array means this runs once on mount
 
     // Save to localStorage whenever state changes
     useEffect(() => saveColumnVisibility(columnVisibility), [columnVisibility]);
@@ -201,7 +175,6 @@ export function ReleasesDataTable() {
         setColumnVisibility(defaultVisibility);
         toast.success("Column visibility reset to default");
     }, []);
-
     // Date range handlers
     const applyDateRange = useCallback(() => {
         if (startDate && endDate) {
@@ -272,6 +245,7 @@ export function ReleasesDataTable() {
         toast.success("Excel file exported successfully!");
     }, [sortedAndFilteredData, visibleColumns, selectedRows]);
 
+    // Add this handler function
     const handleExportJSON = useCallback(() => {
         const success = exportToJSON(sortedAndFilteredData, visibleColumns, selectedRows);
         if (success) {
@@ -304,18 +278,6 @@ export function ReleasesDataTable() {
         setReleaseToEdit(release);
         setEditDialogOpen(true);
     }, []);
-
-    // Show loading state
-    if (loading) {
-        return (
-            <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading releases from database...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -356,15 +318,16 @@ export function ReleasesDataTable() {
             </div>
 
             {/* Scrollable container ONLY for the table and pagination */}
-            <div className="flex-1 flex flex-col min-h-0 isolate">
+            <div className="flex-1 flex flex-col min-h-0 isolate"> {/* Added isolate */}
                 {/* Table with vertical scrolling - NO sticky headers interfering with filters */}
                 <div className="flex-1 overflow-hidden relative">
+
                     <ReleasesTable
                         data={paginatedData}
                         visibleColumns={visibleColumns}
                         selectedRows={selectedRows}
                         onToggleRowSelection={toggleRowSelection}
-                        onToggleSelectAll={toggleSelectAllOnPage}
+                        onToggleSelectAll={toggleSelectAllOnPage} // Add this line
                         onEditRelease={openEditDialog}
                         onDeleteRelease={openDeleteDialog}
                         onExportSingleRelease={handleExportSingleRelease}

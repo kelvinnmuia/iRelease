@@ -1,27 +1,27 @@
 import { Release } from "../types/releases";
 
 export function transformReleasesData(jsonData: any[]): Release[] {
-  return jsonData.map((item, index) => ({
-    id: index + 1, // Add missing id field
-    releaseId: item["Release ID"] || "",
-    systemName: item["System Name"] || "",
-    systemId: item["System ID"] || "",
-    releaseVersion: item["Release Version"] || "",
+  return jsonData.map((item) => ({
+    id: item.id || 0, // Use Dexie's auto-generated ID
+    releaseId: item["Release_id"] || "",
+    systemName: item["System_name"] || "",
+    systemId: item["System_id"] || "",
+    releaseVersion: item["Release_version"] || "",
     iteration: item["Iteration"] || "",
-    releaseDescription: item["Release Description"] || "",
-    functionalityDelivered: item["Functionality Delivered"] || "",
-    deliveredDate: item["Date Delivered"] || "",
-    tdNoticeDate: item["TD Notice Date"] || "",
-    testDeployDate: item["Test Deploy Date"] || "",
-    testStartDate: item["Test Start Date"] || "",
-    testEndDate: item["Test End Date"] || "",
-    prodDeployDate: item["Prod Deploy Date"] || "",
-    testStatus: item["Test Status"] || "",
-    deploymentStatus: item["Deployment Status"] || "",
-    outstandingIssues: item["Outstanding Issues"] || "",
+    releaseDescription: item["Release_description"] || "",
+    functionalityDelivered: item["Functionality_delivered"] || "",
+    deliveredDate: item["Date_delivered_by_vendor"] || "",
+    tdNoticeDate: item["Notification_date_for_deployment_to_test"] || "",
+    testDeployDate: item["Date_deployed_to_test"] || "",
+    testStartDate: item["Date_of_test_commencement"] || "",
+    testEndDate: item["Date_of_test_completion"] || "",
+    prodDeployDate: item["Date_deployed_in_production"] || "",
+    testStatus: item["Test_status"] || "",
+    deploymentStatus: item["Deployment_status"] || "",
+    outstandingIssues: item["Outstanding_issues"] || "",
     comments: item["Comments"] || "",
-    releaseType: item["Release Type"] || "",
+    releaseType: item["Type_of_release"] || "",
     month: item["Month"] || "",
-    financialYear: item["Financial Year"] || ""
+    financialYear: item["Financial_year"] || ""
   }));
 }
