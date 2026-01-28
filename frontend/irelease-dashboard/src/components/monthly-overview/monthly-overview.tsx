@@ -42,6 +42,21 @@ export function MonthlyOverview() {
         loadData()
     }, [])
 
+    // Helper function to extract year from ISO date string
+    const extractYearFromISODate = (isoDateString: string): string | null => {
+        if (!isoDateString) return null;
+        
+        try {
+            const date = new Date(isoDateString);
+            if (isNaN(date.getTime())) return null;
+            
+            return date.getFullYear().toString();
+        } catch (error) {
+            console.error('Error parsing date:', isoDateString, error);
+            return null;
+        }
+    }
+
     // Mock data for months and years
     const months = useMemo(() => {
         const monthNames = [
@@ -56,33 +71,83 @@ export function MonthlyOverview() {
     }, [])
 
     const years = useMemo(() => {
-        const currentYear = new Date().getFullYear();
-        const yearsArray = [];
+        // Extract unique years from the data
+        const yearsFromData = new Set<string>();
         
-        // Start from 2020 and go up to current year + 1 for future planning
-        for (let year = 2020; year <= currentYear + 1; year++) {
-            yearsArray.push({
-                id: year.toString(),
-                name: year.toString()
-            });
+        transformedData.forEach(record => {
+            // Try multiple date fields to find a valid year
+            const dateFields = [
+                record.deliveredDate,
+                record.testStartDate,
+                record.testDeployDate,
+                record.testEndDate,
+                record.prodDeployDate,
+                record.tdNoticeDate
+            ];
+            
+            for (const dateField of dateFields) {
+                if (dateField) {
+                    const year = extractYearFromISODate(dateField);
+                    if (year) {
+                        yearsFromData.add(year);
+                        break; // Found a valid year for this record
+                    }
+                }
+            }
+        });
+        
+        // Convert to array and sort descending
+        const yearsArray = Array.from(yearsFromData)
+            .map(year => ({ id: year, name: year }))
+            .sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        
+        // If no years found in data, provide default years
+        if (yearsArray.length === 0) {
+            const currentYear = new Date().getFullYear();
+            for (let year = 2020; year <= currentYear + 1; year++) {
+                yearsArray.push({ id: year.toString(), name: year.toString() });
+            }
         }
         
-        return yearsArray.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-    }, [])
+        return yearsArray;
+    }, [transformedData])
 
-    // Filter data based on selected month/year - FIXED VERSION
+    // Filter data based on selected month/year
     const filteredData = useMemo(() => {
         if (!selectedMonthName || !selectedYearName) return [];
         
         return transformedData.filter(record => {
             const recordMonth = record.month;
-            const recordFinancialYear = record.financialYear; // e.g., "FY2025"
             
-            // Convert selectedYearName (e.g., "2025") to match financialYear format
-            const financialYearToMatch = `FY${selectedYearName}`;
+            // Extract year from ISO date - check multiple date fields
+            const dateFields = [
+                record.deliveredDate,
+                record.testStartDate,
+                record.testDeployDate,
+                record.testEndDate,
+                record.prodDeployDate,
+                record.tdNoticeDate
+            ];
             
+            let recordYear: string | null = null;
+            
+            // Find the first valid date field with a year
+            for (const dateField of dateFields) {
+                if (dateField) {
+                    const year = extractYearFromISODate(dateField);
+                    if (year) {
+                        recordYear = year;
+                        break;
+                    }
+                }
+            }
+            
+            // If no year found, skip this record
+            if (!recordYear) return false;
+            
+            // Compare month and year
             return recordMonth === selectedMonthName && 
-                   recordFinancialYear === financialYearToMatch;
+                   recordYear === selectedYearName;
         });
     }, [transformedData, selectedMonthName, selectedYearName]);
 

@@ -23,21 +23,17 @@ import { AddReleaseDialog } from "./mo-add-release-dialog";
 import { EditReleaseDialog } from "./mo-edit-release-dialog";
 import { DeleteDialogs } from "./mo-delete-dialogs";
 import { transformMoReleasesData } from "./utils/mo-data-transform";
-import releasesData from "./data/mo-releases-data.json";
+import { getAllReleases, initializeReleasesDatabase } from "@/db/ireleasedb";
 
 // Add interface for component props
 interface MoReleasesDataTableProps {
     filteredData?: Release[];
 }
 
-// Add type assertion for the JSON import
-const typedMoReleasesData = transformMoReleasesData(releasesData as any[]);
-
 export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) {
-    // State management - use filteredData if provided, otherwise use all data
-    const [data, setData] = useState<Release[]>(() => {
-        return filteredData || typedMoReleasesData;
-    });
+    // State management
+    const [data, setData] = useState<Release[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
     const [globalFilter, setGlobalFilter] = useState("");
@@ -56,19 +52,44 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
     const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage());
 
-    // Update data when filteredData prop changes
+    // Load data from Dexie on component mount
     useEffect(() => {
-        if (filteredData) {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                
+                // Initialize the database (will fetch from AppScript if empty)
+                await initializeReleasesDatabase();
+                
+                // Fetch all releases from Dexie
+                const releases = await getAllReleases();
+                
+                // Transform the data to match your Release type
+                const transformedData = transformMoReleasesData(releases);
+                
+                // Use filteredData if provided, otherwise use all data
+                const finalData = filteredData || transformedData;
+                setData(finalData);
+                
+            } catch (err) {
+                console.error("Error loading data from Dexie:", err);
+                toast.error("Failed to load releases data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [filteredData]); // Also reload when filteredData changes
+
+    // Update data when filteredData prop changes (in case it changes after initial load)
+    useEffect(() => {
+        if (filteredData && !loading) {
             setData(filteredData);
-            // Reset to first page when filtered data changes
             setCurrentPage(1);
-            // Clear selected rows when data changes
             setSelectedRows(new Set());
-        } else {
-            // If no filteredData provided, use all data
-            setData(typedMoReleasesData);
         }
-    }, [filteredData]);
+    }, [filteredData, loading]);
 
     // Save to localStorage whenever state changes
     useEffect(() => saveColumnVisibility(columnVisibility), [columnVisibility]);
@@ -300,6 +321,18 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
         setReleaseToEdit(release);
         setEditDialogOpen(true);
     }, []);
+
+    // Show loading state
+    if (loading) {
+        return (
+            <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading releases from database...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
