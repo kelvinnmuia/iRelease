@@ -6,13 +6,14 @@ import { Release, ColumnConfig } from "./types/mo-releases";
 import { statusConfig, deploymentStatusConfig } from "./constants/mo-releases-constants";
 import { TruncatedText } from "./mo-truncated-text";
 import { useEffect, useRef, useState } from "react";
+import { formatISODate } from "./utils/mo-date-utils";
 
 interface ReleasesTableProps {
   data: Release[];
   visibleColumns: ColumnConfig[];
   selectedRows: Set<number>;
   onToggleRowSelection: (id: number) => void;
-  onToggleSelectAll: () => void; 
+  onToggleSelectAll: () => void;
   onEditRelease: (release: Release) => void;
   onDeleteRelease: (release: Release) => void;
   onExportSingleRelease: (release: Release) => void;
@@ -30,8 +31,8 @@ export const ReleasesTable = ({
 }: ReleasesTableProps) => {
   const currentPageIds = new Set(data.map(item => item.id));
   const allCurrentPageSelected = data.length > 0 && data.every(item => selectedRows.has(item.id));
-  const someCurrentPageSelected = data.length > 0 && 
-    data.some(item => selectedRows.has(item.id)) && 
+  const someCurrentPageSelected = data.length > 0 &&
+    data.some(item => selectedRows.has(item.id)) &&
     !allCurrentPageSelected;
 
   // Refs for scroll synchronization
@@ -72,11 +73,11 @@ export const ReleasesTable = ({
 
     // Initial update
     updateTableWidth();
-    
+
     // Add resize observer to update width when table changes
     const resizeObserver = new ResizeObserver(updateTableWidth);
     resizeObserver.observe(table);
-    
+
     // Also update on window resize
     window.addEventListener('resize', updateTableWidth);
 
@@ -114,6 +115,16 @@ export const ReleasesTable = ({
       );
     }
 
+    // Handle date formatting for date fields
+    const dateFields = [
+      'deliveredDate', 'tdNoticeDate', 'testDeployDate',
+      'testStartDate', 'testEndDate', 'prodDeployDate'
+    ];
+
+    if (dateFields.includes(column.key)) {
+      return <span className="text-gray-600">{formatISODate(String(value))}</span>;
+    }
+
     if (['releaseDescription', 'functionalityDelivered', 'comments', 'outstandingIssues'].includes(column.key)) {
       const maxLength = ['comments', 'outstandingIssues'].includes(column.key) ? 25 : 30;
       return <TruncatedText text={String(value)} maxLength={maxLength} />;
@@ -125,24 +136,24 @@ export const ReleasesTable = ({
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white" style={{ maxHeight: 'calc(100vh - 280px)' }}>
       {/* Top horizontal scrollbar */}
-      <div 
+      <div
         ref={topScrollRef}
         className="sticky top-0 z-20 bg-white overflow-x-auto overflow-y-hidden border-b border-gray-200"
-        style={{ 
+        style={{
           height: '20px',
           minHeight: '20px'
         }}
       >
         {/* This div has the EXACT width of the table to trigger scrollbar */}
-        <div style={{ 
-          width: `${tableWidth}px`, 
+        <div style={{
+          width: `${tableWidth}px`,
           height: '1px',
           minWidth: `${tableWidth}px`
         }}></div>
       </div>
-      
+
       {/* Main table container */}
-      <div 
+      <div
         ref={mainScrollRef}
         className="flex-1 overflow-y-auto overflow-x-hidden"
       >
