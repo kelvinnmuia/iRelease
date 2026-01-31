@@ -2,13 +2,48 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Release } from '../types/releases';
 import { ColumnConfig } from '../types/releases';
+import { formatISODate } from './date-utils'; // Import the date formatting function
 
-// Helper function to transform Release data for export
+// Helper function to format date fields for export
+const formatDateForExport = (dateValue: any): string => {
+  if (!dateValue) return '';
+  
+  const dateString = String(dateValue);
+  if (!dateString || dateString.trim() === '') return '';
+  
+  // Check if it's already in the desired format (e.g., "13 Nov 2024")
+  const dateFormatRegex = /^\d{1,2}\s[A-Za-z]{3}\s\d{4}$/;
+  if (dateFormatRegex.test(dateString)) {
+    return dateString;
+  }
+  
+  // Otherwise, try to format it using formatISODate
+  try {
+    return formatISODate(dateString);
+  } catch (error) {
+    console.warn('Could not format date:', dateString, error);
+    return dateString;
+  }
+};
+
+// Helper function to transform Release data for export with proper date formatting
 const transformReleaseForExport = (release: Release, visibleColumns: ColumnConfig[]) => {
   const exportData: Record<string, any> = {};
   
   visibleColumns.forEach(col => {
-    exportData[col.label] = release[col.key];
+    const value = release[col.key];
+    
+    // Check if this is a date field that needs formatting
+    const dateFields = [
+      'deliveredDate', 'tdNoticeDate', 'testDeployDate',
+      'testStartDate', 'testEndDate', 'prodDeployDate'
+    ];
+    
+    if (dateFields.includes(col.key) && value) {
+      exportData[col.label] = formatDateForExport(value);
+    } else {
+      exportData[col.label] = value;
+    }
   });
   
   return exportData;
@@ -79,6 +114,16 @@ export const exportToJSON = (data: Release[], visibleColumns: ColumnConfig[], se
 
 export const exportSingleRelease = (release: Release) => {
   try {
+    // Format date fields for single release export
+    const formatSingleDate = (dateValue: any): string => {
+      if (!dateValue) return '';
+      try {
+        return formatISODate(String(dateValue));
+      } catch (error) {
+        return String(dateValue);
+      }
+    };
+
     const exportData = {
       'Release ID': release.releaseId,
       'System Name': release.systemName,
@@ -87,12 +132,12 @@ export const exportSingleRelease = (release: Release) => {
       'Iteration': release.iteration,
       'Release Description': release.releaseDescription,
       'Functionality Delivered': release.functionalityDelivered,
-      'Date Delivered': release.deliveredDate,
-      'TD Notice Date': release.tdNoticeDate,
-      'Test Deploy Date': release.testDeployDate,
-      'Test Start Date': release.testStartDate,
-      'Test End Date': release.testEndDate,
-      'Prod Deploy Date': release.prodDeployDate,
+      'Date Delivered': formatSingleDate(release.deliveredDate),
+      'TD Notice Date': formatSingleDate(release.tdNoticeDate),
+      'Test Deploy Date': formatSingleDate(release.testDeployDate),
+      'Test Start Date': formatSingleDate(release.testStartDate),
+      'Test End Date': formatSingleDate(release.testEndDate),
+      'Prod Deploy Date': formatSingleDate(release.prodDeployDate),
       'Test Status': release.testStatus,
       'Deployment Status': release.deploymentStatus,
       'Outstanding Issues': release.outstandingIssues,

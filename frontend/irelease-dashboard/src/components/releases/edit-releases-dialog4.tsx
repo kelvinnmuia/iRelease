@@ -5,15 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./mo-date-picker-input";
-import { Release } from "./types/mo-releases";
+import { DatePickerInput } from "./date-picker-input";
+import { Release } from "./types/releases";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/mo-releases-constants";
+} from "./constants/releases-constants";
 import { Search, ChevronDown } from "lucide-react";
 
 interface EditReleaseDialogProps {
@@ -162,9 +162,9 @@ export const EditReleaseDialog = ({
                 <Input
                   id="systemName"
                   value={formData.systemName || ''}
-                  onChange={(e) => handleInputChange('systemName', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                  placeholder="Enter system name"
+                  disabled
+                  className="w-full bg-gray-100 text-gray-600"
+                  placeholder="System Name"
                 />
               </div>
 
@@ -175,9 +175,9 @@ export const EditReleaseDialog = ({
                 <Input
                   id="systemId"
                   value={formData.systemId || ''}
-                  onChange={(e) => handleInputChange('systemId', e.target.value)}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
-                  placeholder="Enter system ID"
+                  disabled
+                  className="w-full bg-gray-100 text-gray-600"
+                  placeholder="System ID"
                 />
               </div>
             </div>
@@ -446,8 +446,7 @@ export const EditReleaseDialog = ({
                   value={formData.releaseDescription || ''}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all"
                   placeholder="Enter release description"
                 />
               </div>
@@ -461,8 +460,7 @@ export const EditReleaseDialog = ({
                   value={formData.functionalityDelivered || ''}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Enter functionality delivered"
                 />
               </div>
@@ -476,8 +474,7 @@ export const EditReleaseDialog = ({
                   value={formData.outstandingIssues || ''}
                   onChange={handleTextareaChange}
                   rows={4}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Describe outstanding issues, bugs, or pending tasks..."
                 />
               </div>
@@ -491,8 +488,7 @@ export const EditReleaseDialog = ({
                   value={formData.comments || ''}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Enter comments"
                 />
               </div>

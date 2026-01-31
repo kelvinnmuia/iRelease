@@ -2,47 +2,15 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { SirReleaseData } from './../types/sirs-releases-types';
 import { ColumnConfig } from './../types/sirs-releases-types';
-import { formatISODate } from './sirs-release-date-utils';
 
-// Helper function to format date fields for export (USED BY BOTH SINGLE AND MULTIPLE EXPORTS)
-const formatDateForExport = (dateValue: any): string => {
-  if (!dateValue) return '';
-  
-  const dateString = String(dateValue);
-  if (!dateString || dateString.trim() === '') return '';
-  
-  // Check if it's already in the desired format (e.g., "13 Nov 2024")
-  const dateFormatRegex = /^\d{1,2}\s[A-Za-z]{3}\s\d{4}$/;
-  if (dateFormatRegex.test(dateString)) {
-    return dateString;
-  }
-  
-  // Otherwise, try to format it using formatISODate
-  try {
-    return formatISODate(dateString);
-  } catch (error) {
-    console.warn('Could not format date:', dateString, error);
-    return dateString;
-  }
-};
-
-// Helper function to transform SirRelease data for export with proper date formatting
+// Helper function to transform SirRelease data for export
 const transformSirReleaseForExport = (sir_release_data: SirReleaseData, visibleColumns: ColumnConfig[]) => {
   const exportData: Record<string, any> = {};
   
   visibleColumns.forEach(col => {
+    // Handle potential undefined values
     const value = sir_release_data[col.key];
-    
-    // Check if this is a date field that needs formatting
-    // For SIRs releases, the main date field is 'changed_date'
-    const dateFields = ['changed_date'];
-    
-    if (dateFields.includes(col.key) && value) {
-      exportData[col.label] = formatDateForExport(value);
-    } else {
-      // Handle potential undefined values
-      exportData[col.label] = value !== undefined ? value : '';
-    }
+    exportData[col.label] = value !== undefined ? value : '';
   });
   
   return exportData;
@@ -50,16 +18,15 @@ const transformSirReleaseForExport = (sir_release_data: SirReleaseData, visibleC
 
 export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
-    const dataToExport = selectedRows.size > 0
-      ? data.filter(item => selectedRows.has(item.id))
-      : data;
-
-    if (dataToExport.length === 0) {
+    // Note: The data parameter should already be filtered to only include selected rows
+    // when the user has made a selection. The parent component handles this filtering.
+    
+    if (data.length === 0) {
       console.warn('No data to export');
       return false;
     }
 
-    const filteredDataForExport = dataToExport.map(sir_release_data => 
+    const filteredDataForExport = data.map(sir_release_data => 
       transformSirReleaseForExport(sir_release_data, visibleColumns)
     );
 
@@ -67,7 +34,7 @@ export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig
       header: true,
       delimiter: ',',
       quotes: true,
-      escapeFormulae: true
+      escapeFormulae: true // Prevent CSV injection
     });
     
     const filename = `SIRs-releases-export-${new Date().toISOString().split('T')[0]}.csv`;
@@ -81,16 +48,15 @@ export const exportToCSV = (data: SirReleaseData[], visibleColumns: ColumnConfig
 
 export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
-    const dataToExport = selectedRows.size > 0
-      ? data.filter(item => selectedRows.has(item.id))
-      : data;
-
-    if (dataToExport.length === 0) {
+    // Note: The data parameter should already be filtered to only include selected rows
+    // when the user has made a selection. The parent component handles this filtering.
+    
+    if (data.length === 0) {
       console.warn('No data to export');
       return false;
     }
 
-    const filteredDataForExport = dataToExport.map(sir_release_data => 
+    const filteredDataForExport = data.map(sir_release_data => 
       transformSirReleaseForExport(sir_release_data, visibleColumns)
     );
 
@@ -98,6 +64,7 @@ export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConf
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'SIR Releases');
 
+    // Set column widths based on column labels and content
     const maxContentLengths: number[] = [];
     filteredDataForExport.forEach(row => {
       Object.values(row).forEach((value, index) => {
@@ -124,16 +91,15 @@ export const exportToExcel = (data: SirReleaseData[], visibleColumns: ColumnConf
 
 export const exportToJSON = (data: SirReleaseData[], visibleColumns: ColumnConfig[], selectedRows: Set<number>) => {
   try {
-    const dataToExport = selectedRows.size > 0
-      ? data.filter(item => selectedRows.has(item.id))
-      : data;
-
-    if (dataToExport.length === 0) {
+    // Note: The data parameter should already be filtered to only include selected rows
+    // when the user has made a selection. The parent component handles this filtering.
+    
+    if (data.length === 0) {
       console.warn('No data to export');
       return false;
     }
 
-    const filteredDataForExport = dataToExport.map(sir_release_data => 
+    const filteredDataForExport = data.map(sir_release_data => 
       transformSirReleaseForExport(sir_release_data, visibleColumns)
     );
 
@@ -149,13 +115,12 @@ export const exportToJSON = (data: SirReleaseData[], visibleColumns: ColumnConfi
 
 export const exportSingleSirRelease = (sir_release_data: SirReleaseData) => {
   try {
-    // Use the SAME date formatting function as bulk exports for consistency
     const exportData = {
       'Sir_Rel_Id': sir_release_data.sir_release_id,
       'Sir_Id': sir_release_data.sir_id,
       'Release Version': sir_release_data.release_version,
       'Iteration': sir_release_data.iteration,
-      'Changed Date': formatDateForExport(sir_release_data.changed_date), // USING SAME FUNCTION
+      'Changed Date': sir_release_data.changed_date,
       'Bug Severity': sir_release_data.bug_severity,
       'Priority': sir_release_data.priority,
       'Assigned To': sir_release_data.assigned_to,
@@ -169,19 +134,20 @@ export const exportSingleSirRelease = (sir_release_data: SirReleaseData) => {
 
     const worksheet = XLSX.utils.json_to_sheet([exportData]);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'SIR Release Details');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Release Details');
 
     const cols = [
-      { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 15 },
-      { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 15 },
-      { wch: 20 }, { wch: 15 }, { wch: 30 }, { wch: 15 }
+      { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 12 },
+      { wch: 30 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 20 },
+      { wch: 18 }, { wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 15 },
     ];
     worksheet['!cols'] = cols;
     
     XLSX.writeFile(workbook, `SIR-release-${sir_release_data.sir_release_id}-${new Date().toISOString().split('T')[0]}.xlsx`);
     return true;
   } catch (error) {
-    console.error('Error exporting single SIR release:', error);
+    console.error('Error exporting single release:', error);
     return false;
   }
 };
@@ -199,6 +165,7 @@ const downloadFile = (content: string, filename: string, mimeType: string) => {
     link.click();
     document.body.removeChild(link);
     
+    // Clean up the URL object
     setTimeout(() => URL.revokeObjectURL(url), 100);
   } catch (error) {
     console.error('Error downloading file:', error);

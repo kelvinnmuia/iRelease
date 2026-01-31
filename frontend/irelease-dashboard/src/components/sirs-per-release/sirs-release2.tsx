@@ -5,13 +5,13 @@ import { MapSirsDialog } from './map-sirs-dialog'
 import { SirsStatCards } from './sirs-stats-cards'
 import { SirReleasesChart } from './sirs-releases-chart'
 import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable'
+import sirReleaseData from './sir-release-data.json'
 import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
 import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
 import { useColumnVisibility } from './sirs-releases-column-visibility'
 import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils'
 import { toast } from "sonner"
 import { transformSirsReleaseData } from './sirs-release-datatable/utils/sirs-release-data-transform'
-import { getAllSirsReleases, SirsReleaseRecord } from '@/db/ireleasedb'
 
 export function SirsRelease() {
     // State for filters
@@ -36,62 +36,12 @@ export function SirsRelease() {
     // Add state to control tab/view
     const [activeView, setActiveView] = useState<'overview' | 'datatable'>('overview')
 
-    // Add loading state
-    const [isLoading, setIsLoading] = useState<boolean>(true)
-
-    // Function to transform Dexie SirsReleaseRecord to SirReleaseData format
-    const transformDexieToSirReleaseData = useCallback((dexieData: SirsReleaseRecord[]): SirReleaseData[] => {
-        return dexieData.map((item, index) => ({
-            id: item.id || index + 1, // Use Dexie id or fallback to index
-            sir_release_id: item.Sir_Rel_Id || '',
-            sir_id: item.Sir_id || 0,
-            release_version: item.Release_version || '',
-            iteration: item.Iteration ? parseInt(item.Iteration) : 0,
-            changed_date: item.Change_date || '',
-            bug_severity: item.Bug_severity || '',
-            priority: item.Priority || '',
-            assigned_to: item.Assigned_to || '',
-            bug_status: item.Bug_status || '',
-            resolution: item.Resolution || '',
-            component: item.Component || '',
-            op_sys: item.Op_sys || '',
-            short_desc: item.Short_desc || '',
-            cf_sirwith: item.Cf_sirwith || ''
-        }))
-    }, [])
-
-    // Load data from Dexie on component mount
+    // Load data from JSON on component mount
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                setIsLoading(true)
-                console.log('📥 Loading SIRs-Releases data from Dexie...')
-                
-                // Fetch data from Dexie
-                const dexieData = await getAllSirsReleases()
-                console.log(`✅ Loaded ${dexieData.length} SIRs-Releases from Dexie`)
-                
-                if (dexieData.length === 0) {
-                    console.log('ℹ️ No SIRs-Releases data found in Dexie')
-                }
-                
-                // Transform to component format
-                const transformedData = transformDexieToSirReleaseData(dexieData)
-                
-                // Apply additional transformation if needed
-                const finalData = transformSirsReleaseData(transformedData)
-                
-                setAllData(finalData)
-            } catch (error) {
-                console.error('❌ Failed to load data from Dexie:', error)
-                toast.error("Failed to load SIRs-Releases data")
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        
-        loadData()
-    }, [transformDexieToSirReleaseData])
+        // Transform the data to include the id field
+        const transformedData = transformSirsReleaseData(sirReleaseData)
+        setAllData(transformedData)
+    }, [])
 
     // Extract unique release versions and iterations from the JSON data
     const releaseVersions = useMemo(() => {
@@ -386,18 +336,6 @@ export function SirsRelease() {
     const hasDateRange = !!dateRange;
     const noDataAndNoSearch = hasReleaseAndIteration && filteredData.length === 0 && !hasSearch && !hasDateRange;
 
-    // Show loading state
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading SIRs-Releases data...</p>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="min-h-screen bg-gray-50">
             <MapSirsDialog
@@ -460,11 +398,6 @@ export function SirsRelease() {
                             <p className="text-gray-600 mx-auto text-sm sm:text-base leading-relaxed">
                                 Please select a release version and iteration to view its SIRs analysis.
                             </p>
-                            {allData.length === 0 && (
-                                <p className="text-gray-500 text-sm mt-2">
-                                    No SIRs-Releases data found in local database.
-                                </p>
-                            )}
                         </div>
                     </div>
                 </div>

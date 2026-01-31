@@ -1,14 +1,5 @@
 // Improved date utility that handles leading zeros and various formats
-// Updated to match date-utils.ts structure while preserving SIRs-specific functionality
 
-/**
- * Parse a date string in various formats to a Date object.
- * Supports ISO with time, "DD MMM YYYY", "MMM DD, YYYY", and ISO date formats.
- * If the date string is invalid, returns null.
- *
- * @param {string} dateStr - the date string to be parsed
- * @returns {Date|null} - the parsed Date object or null if the date string is invalid
- */
 export const parseDate = (dateStr: string): Date | null => {
   if (!dateStr) return null;
 
@@ -51,7 +42,7 @@ export const parseDate = (dateStr: string): Date | null => {
 
   const parts = normalizedStr.split(' ');
 
-  // "08 Sep 2025" | "8 Sep 2025" format (matches date-utils.ts)
+  // "08 Sep 2025" | "8 Sep 2025"
   if (parts.length === 3 && !parts[1].endsWith(',')) {
     const day = parseInt(parts[0].replace(/^0+/, ''), 10);
     const month = monthMap[parts[1].toLowerCase()];
@@ -62,7 +53,7 @@ export const parseDate = (dateStr: string): Date | null => {
     }
   }
 
-  // "Sep 08, 2025" format
+  // "Sep 08, 2025"
   if (parts.length === 3 && parts[1].endsWith(',')) {
     const month = monthMap[parts[0].toLowerCase()];
     const day = parseInt(parts[1].replace(',', '').replace(/^0+/, ''), 10);
@@ -85,18 +76,11 @@ export const parseDate = (dateStr: string): Date | null => {
     }
   }
 
-  // Fallback - try standard Date parsing
+  // Fallback
   const date = new Date(normalizedStr);
   return isNaN(date.getTime()) ? null : date;
 };
 
-/**
- * Format a Date object to "DD MMM YYYY HH:MM" format.
- * This is specific to SIRs releases and includes time.
- *
- * @param {Date} date - the Date object to format
- * @returns {string} - formatted date string
- */
 export const formatDate = (date: Date): string => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const day = date.getDate().toString().padStart(2, '0');
@@ -108,13 +92,6 @@ export const formatDate = (date: Date): string => {
   return `${day} ${month} ${year} ${hours}:${minutes}`;
 };
 
-/**
- * Format a Date object to "DD MMM YYYY" format (without time).
- * Matches the formatDate function in date-utils.ts.
- *
- * @param {Date} date - the Date object to format
- * @returns {string} - formatted date string without time
- */
 export const formatDateWithoutTime = (date: Date): string => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const day = date.getDate();
@@ -123,37 +100,11 @@ export const formatDateWithoutTime = (date: Date): string => {
   return `${day} ${month} ${year}`;
 };
 
-/**
- * Format an ISO date string to "DD MMM YYYY" format.
- * Matches the formatISODate function in date-utils.ts exactly.
- *
- * @param {string} isoDateStr - ISO date string
- * @returns {string} - formatted date string
- */
-export const formatISODate = (isoDateStr: string): string => {
-  if (!isoDateStr) return '';
-  
-  const date = new Date(isoDateStr);
-  if (isNaN(date.getTime())) return isoDateStr; // Return original if invalid
-  
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
-};
-
-/**
- * Convert an ISO date string to a readable date format.
- * This is specific to SIRs releases.
- *
- * @param {string} dateStr - ISO date string
- * @returns {string} - readable date string
- */
 export const isoToReadableDate = (dateStr: string): string => {
   if (!dateStr) return dateStr;
 
-  const isoPattern = /^\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?$/;
+  const isoPattern =
+    /^\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?$/;
 
   if (!isoPattern.test(dateStr.trim())) {
     return dateStr;
@@ -165,15 +116,7 @@ export const isoToReadableDate = (dateStr: string): string => {
   return formatDateWithoutTime(parsed);
 };
 
-/**
- * SIMPLIFIED AND CORRECTED VERSION of dateMatchesSearch
- * Check if a date string matches a search term.
- * This is specific to SIRs releases search functionality.
- *
- * @param {string} dateStr - date string to search in
- * @param {string} searchTerm - search term to match
- * @returns {boolean} - true if date matches search
- */
+// SIMPLIFIED AND CORRECTED VERSION of dateMatchesSearch
 export const dateMatchesSearch = (dateStr: string, searchTerm: string): boolean => {
   if (!dateStr || !searchTerm) return false;
 
@@ -257,14 +200,7 @@ export const dateMatchesSearch = (dateStr: string, searchTerm: string): boolean 
   return false;
 };
 
-/**
- * Debug helper for testing date search functionality.
- * This is specific to SIRs releases.
- *
- * @param {string} dateStr - date string to test
- * @param {string} searchTerm - search term to test
- * @returns {object} - debug information
- */
+// Debug helper
 export const testDateSearch = (dateStr: string, searchTerm: string) => {
   const parsed = parseDate(dateStr);
   
@@ -284,46 +220,4 @@ export const testDateSearch = (dateStr: string, searchTerm: string) => {
     monthShort,
     matches: dateMatchesSearch(dateStr, searchTerm),
   };
-};
-
-/**
- * Get the latest date from an item with multiple date fields.
- * This function matches the one in date-utils.ts.
- *
- * @param {any} item - item containing date fields
- * @returns {Date|null} - latest date or null if no valid dates
- */
-export const getLatestDate = (item: any): Date | null => {
-  const dateFields = [
-    'deliveredDate', 'tdNoticeDate', 'testDeployDate',
-    'testStartDate', 'testEndDate', 'prodDeployDate'
-  ];
-
-  const dates = dateFields
-    .map(field => parseDate(item[field]))
-    .filter(date => date !== null) as Date[];
-
-  if (dates.length === 0) return null;
-  return new Date(Math.max(...dates.map(d => d.getTime())));
-};
-
-/**
- * Get the earliest date from an item with multiple date fields.
- * This function matches the one in date-utils.ts.
- *
- * @param {any} item - item containing date fields
- * @returns {Date|null} - earliest date or null if no valid dates
- */
-export const getEarliestDate = (item: any): Date | null => {
-  const dateFields = [
-    'deliveredDate', 'tdNoticeDate', 'testDeployDate',
-    'testStartDate', 'testEndDate', 'prodDeployDate'
-  ];
-
-  const dates = dateFields
-    .map(field => parseDate(item[field]))
-    .filter(date => date !== null) as Date[];
-
-  if (dates.length === 0) return null;
-  return new Date(Math.min(...dates.map(d => d.getTime())));
 };

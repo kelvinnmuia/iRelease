@@ -428,10 +428,9 @@ export const AddReleaseDialog = ({
                   value={formData.releaseDescription}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto ${
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all ${
                     validationErrors.releaseDescription ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter release description"
                 />
                 {validationErrors.releaseDescription && (
@@ -448,8 +447,7 @@ export const AddReleaseDialog = ({
                   value={formData.functionalityDelivered}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Enter functionality delivered"
                 />
               </div>
@@ -463,8 +461,7 @@ export const AddReleaseDialog = ({
                   value={formData.outstandingIssues}
                   onChange={handleTextareaChange}
                   rows={4}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Describe outstanding issues, bugs, or pending tasks..."
                 />
               </div>
@@ -478,8 +475,7 @@ export const AddReleaseDialog = ({
                   value={formData.comments}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Enter comments"
                 />
               </div>

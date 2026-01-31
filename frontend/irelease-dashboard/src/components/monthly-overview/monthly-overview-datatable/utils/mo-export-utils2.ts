@@ -3,72 +3,12 @@ import * as XLSX from 'xlsx';
 import { Release } from '../types/mo-releases';
 import { ColumnConfig } from '../types/mo-releases';
 
-// Helper function to format date fields for export
-const formatDateForExport = (dateValue: any): string => {
-  if (!dateValue) return '';
-  
-  const dateString = String(dateValue);
-  if (!dateString || dateString.trim() === '') return '';
-  
-  // Check if it's already in the desired format (e.g., "13 Nov 2024")
-  const dateFormatRegex = /^\d{1,2}\s[A-Za-z]{3}\s\d{4}$/;
-  if (dateFormatRegex.test(dateString)) {
-    return dateString;
-  }
-  
-  // Otherwise, try to parse and format it
-  try {
-    let date: Date;
-    
-    // Try to parse as ISO string first
-    date = new Date(dateString);
-    
-    if (isNaN(date.getTime())) {
-      // Try alternative parsing for different date formats
-      const parts = dateString.split(/[-/T\s:]/);
-      if (parts.length >= 3) {
-        const year = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1;
-        const day = parseInt(parts[2]);
-        date = new Date(year, month, day);
-      }
-      
-      if (isNaN(date.getTime())) {
-        return dateString; // Return original if can't parse
-      }
-    }
-    
-    // Format as "13 Nov 2024"
-    const day = date.getDate();
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-    
-    return `${day} ${month} ${year}`;
-  } catch (error) {
-    console.warn('Could not format date:', dateString, error);
-    return dateString;
-  }
-};
-
-// Helper function to transform Release data for export with proper date formatting
+// Helper function to transform Release data for export
 const transformReleaseForExport = (release: Release, visibleColumns: ColumnConfig[]) => {
   const exportData: Record<string, any> = {};
   
   visibleColumns.forEach(col => {
-    const value = release[col.key];
-    
-    // Check if this is a date field that needs formatting
-    const dateFields = [
-      'deliveredDate', 'tdNoticeDate', 'testDeployDate',
-      'testStartDate', 'testEndDate', 'prodDeployDate'
-    ];
-    
-    if (dateFields.includes(col.key) && value) {
-      exportData[col.label] = formatDateForExport(value);
-    } else {
-      exportData[col.label] = value;
-    }
+    exportData[col.label] = release[col.key];
   });
   
   return exportData;
@@ -139,16 +79,6 @@ export const exportToJSON = (data: Release[], visibleColumns: ColumnConfig[], se
 
 export const exportSingleRelease = (release: Release) => {
   try {
-    // Format date fields for single release export
-    const formatSingleDate = (dateValue: any): string => {
-      if (!dateValue) return '';
-      try {
-        return formatDateForExport(dateValue);
-      } catch (error) {
-        return String(dateValue);
-      }
-    };
-
     const exportData = {
       'Release ID': release.releaseId,
       'System Name': release.systemName,
@@ -157,12 +87,12 @@ export const exportSingleRelease = (release: Release) => {
       'Iteration': release.iteration,
       'Release Description': release.releaseDescription,
       'Functionality Delivered': release.functionalityDelivered,
-      'Date Delivered': formatSingleDate(release.deliveredDate),
-      'TD Notice Date': formatSingleDate(release.tdNoticeDate),
-      'Test Deploy Date': formatSingleDate(release.testDeployDate),
-      'Test Start Date': formatSingleDate(release.testStartDate),
-      'Test End Date': formatSingleDate(release.testEndDate),
-      'Prod Deploy Date': formatSingleDate(release.prodDeployDate),
+      'Date Delivered': release.deliveredDate,
+      'TD Notice Date': release.tdNoticeDate,
+      'Test Deploy Date': release.testDeployDate,
+      'Test Start Date': release.testStartDate,
+      'Test End Date': release.testEndDate,
+      'Prod Deploy Date': release.prodDeployDate,
       'Test Status': release.testStatus,
       'Deployment Status': release.deploymentStatus,
       'Outstanding Issues': release.outstandingIssues,
