@@ -8,6 +8,7 @@ interface SystemsSearchProps {
   onChange: (systemName: string) => void;
   validationError?: string;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 // Static mapping for system names to system IDs
@@ -33,7 +34,8 @@ export const SystemsSearch = ({
   value,
   onChange,
   validationError,
-  placeholder = "Select system name"
+  placeholder = "Select system name",
+  disabled = false
 }: SystemsSearchProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

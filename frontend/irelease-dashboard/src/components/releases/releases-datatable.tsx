@@ -231,7 +231,7 @@ export function ReleasesDataTable() {
         setData(prev => [...prev, newRelease]);
         setAddDialogOpen(false);
         setCurrentPage(1);
-        toast.success(`Successfully created new release ${newRelease.releaseId}`);
+        // toast.success(`Successfully created new release ${newRelease.releaseId}`);
     }, []);
 
     const handleEditRelease = useCallback((updatedRelease: Release) => {

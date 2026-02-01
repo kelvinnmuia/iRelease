@@ -8,12 +8,14 @@ interface DatePickerInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export const DatePickerInput = ({
   value,
   onChange,
-  placeholder = "Select date"
+  placeholder = "Select date",
+  disabled = false
 }: DatePickerInputProps) => {
   const [showPicker, setShowPicker] = useState(false);
   const [tempDate, setTempDate] = useState("");
