@@ -61,6 +61,163 @@ function doGet(e) {
     // Get path from URL
     const path = e.pathInfo || '';
 
+    // ============================================
+    // POST HANDLER: Handle JSONP "POST" as GET
+    // ============================================
+    // Check if this is a JSONP POST request for releases
+    if ((path === 'releases' || path === 'api/releases') &&
+      e.parameter._method === 'POST') {
+
+      console.log('JSONP POST (simulated) request for releases');
+
+      // Parse data from _data URL parameter
+      const encodedData = e.parameter._data;
+      if (!encodedData) {
+        return createResponse({
+          success: false,
+          error: 'Missing data',
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+
+      try {
+        const releaseData = JSON.parse(decodeURIComponent(encodedData));
+        console.log('Release data:', releaseData);
+
+        // Create the release (calls your existing createNewRelease function)
+        const createdRelease = createNewRelease(sheets.releaseDetails, releaseData);
+
+        // FIX: Get the release ID properly to avoid "undefined" in message
+        const releaseId = createdRelease.Release_id ||
+          createdRelease.Release_ID ||
+          createdRelease.release_id ||
+          createdRelease.releaseId ||
+          createdRelease.id;
+
+        // FIX: Create proper message with release ID or generic message
+        let successMessage;
+        if (releaseId) {
+          successMessage = `Release ${releaseId} created successfully`;
+        } else {
+          successMessage = 'Release created successfully';
+        }
+
+        // Return success response
+        return createResponse({
+          success: true,
+          message: successMessage,
+          release: createdRelease,
+          timestamp: new Date().toISOString()
+        }, e);
+
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        return createResponse({
+          success: false,
+          error: 'Invalid JSON data: ' + parseError.message,
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+    }
+    // ============================================
+    // END JSONP POST HANDLER
+    // ============================================
+
+    // ============================================
+    // PUT HANDLER: Handle JSONP "PUT" as GET (for updates)
+    // ============================================
+    // Check if this is a JSONP PUT request for updating releases
+    // Pattern: /api/releases/REL-XXXXX?_method=PUT
+    if ((path.startsWith('releases/') || path.startsWith('api/releases/')) &&
+      e.parameter._method === 'PUT') {
+
+      console.log('JSONP PUT (simulated) request for updating release');
+
+      // Extract release ID from path
+      const pathParts = path.split('/');
+      const releaseId = pathParts[pathParts.length - 1];
+
+      console.log(`Updating release: ${releaseId}`);
+
+      // Parse data from _data URL parameter
+      const encodedData = e.parameter._data;
+      if (!encodedData) {
+        return createResponse({
+          success: false,
+          error: 'Missing data',
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+
+      try {
+        const releaseData = JSON.parse(decodeURIComponent(encodedData));
+        console.log('Update data:', releaseData);
+
+        // Update the release (calls your existing updateRelease function)
+        const updatedRelease = updateRelease(sheets.releaseDetails, releaseId, releaseData);
+
+        // Return success response
+        return createResponse({
+          success: true,
+          message: `Release ${releaseId} updated successfully`,
+          release: updatedRelease,
+          timestamp: new Date().toISOString()
+        }, e);
+
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        return createResponse({
+          success: false,
+          error: 'Invalid JSON data: ' + parseError.message,
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+    }
+    // ============================================
+    // END JSONP PUT HANDLER
+    // ============================================
+
+    // ============================================
+    // DELETE HANDLER: Handle JSONP "DELETE" as GET
+    // ============================================
+    // Check if this is a JSONP DELETE request for deleting releases
+    // Pattern: /api/releases/REL-XXXXX?_method=DELETE
+    if ((path.startsWith('releases/') || path.startsWith('api/releases/')) &&
+      e.parameter._method === 'DELETE') {
+
+      console.log('JSONP DELETE (simulated) request for deleting release');
+
+      // Extract release ID from path
+      const pathParts = path.split('/');
+      const releaseId = pathParts[pathParts.length - 1];
+
+      console.log(`Deleting release: ${releaseId}`);
+
+      try {
+        // Delete the release (calls your existing deleteRelease function)
+        const deletedRelease = deleteRelease(sheets.releaseDetails, releaseId);
+
+        // Return success response
+        return createResponse({
+          success: true,
+          message: `Release ${releaseId} deleted successfully`,
+          release: deletedRelease,
+          timestamp: new Date().toISOString()
+        }, e);
+
+      } catch (error) {
+        console.error('Delete error:', error);
+        return createResponse({
+          success: false,
+          error: 'Failed to delete release: ' + error.message,
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+    }
+    // ============================================
+    // END JSONP DELETE HANDLER
+    // ============================================
+
     // Route for systems API
     if (path === 'systems' || path === 'api/systems') {
       return handleGetSystems(sheets.systemsMetadata, e);
@@ -81,7 +238,7 @@ function doGet(e) {
       return handleGetSIRsReleases(sheets.sirsReleases, e);
     }
 
-   // Default response for root
+    // Default response for root
     const defaultData = {
       status: 'ok',
       message: 'API Server is running',
@@ -92,7 +249,7 @@ function doGet(e) {
         sirsReleases: '/api/sirs-releases'
       },
     };
-    
+
     return createResponse(defaultData, e);
 
   } catch (error) {
@@ -107,9 +264,9 @@ function doGet(e) {
     return createResponse(errorData, e);
   }
 
-    /*console.error('Router Error:', error.message);
-    return createErrorResponse(error.message, 500);
-  }*/
+  /*console.error('Router Error:', error.message);
+  return createErrorResponse(error.message, 500);
+}*/
 }
 
 // =====================================
@@ -132,7 +289,7 @@ function doPost(e) {
       return handlePostReleases(sheets.releaseDetails, e.postData);
     }
 
-     // Route for map-sirs API requests
+    // Route for map-sirs API requests
     if (path === 'map-sirs' || path === 'api/map-sirs') {
       // Need both SIRs sheet (source) and SIRs_Releases sheet (target)
       if (!sheets.sirs || !sheets.sirsReleases) {
@@ -244,7 +401,7 @@ function doDelete(e) {
       return handleDeleteSIRsRelease(sheets.sirsReleases, sirReleaseId);
     }
 
-     // Route for bulk SIRs-Releases DELETE (with JSON payload)
+    // Route for bulk SIRs-Releases DELETE (with JSON payload)
     if (path === 'sirs-releases' || path === 'api/sirs-releases') {
       // Check if there's POST data for bulk delete
       if (e.postData && e.postData.contents) {
@@ -425,7 +582,7 @@ function handleGetSIRs(sirsSheet, e) {
     };
 
     return createResponse(errorData, e);
-    
+
   }
 }
 
@@ -516,22 +673,22 @@ function handleMapSIRs(sirsSheet, sirsReleasesSheet, postData) {
   try {
     // Parse the POST data
     const data = JSON.parse(postData.contents);
-    
+
     // Validate required fields
     if (!data.releaseVersion || !data.iteration || !data.sirIds) {
       throw new Error('Missing required fields: releaseVersion, iteration, and sirIds are required');
     }
-    
+
     // Call the helper function to map SIRs
     const result = mapSIRsForRelease(sirsSheet, sirsReleasesSheet, data.releaseVersion, data.iteration, data.sirIds);
-    
+
     return createJsonResponse({
       success: true,
       message: 'SIRs mapped successfully',
       result: result,
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     console.error('Error in handleMapSIRs:', error.message);
     return createErrorResponse(`Failed to map SIRs: ${error.message}`, 500);
@@ -649,17 +806,17 @@ function handleBulkDeleteReleases(releaseSheet, data) {
 function handleDeleteSIRsRelease(sirsReleasesSheet, sirReleaseId) {
   try {
     console.log(`Deleting SIRs-Release: ${sirReleaseId}`);
-    
+
     // Delete the SIRs-Release from sheet
     const deletedSIRsRelease = deleteSIRsRelease(sirsReleasesSheet, sirReleaseId);
-    
+
     return createJsonResponse({
       success: true,
       message: 'SIRs-Release deleted successfully',
       sir_release: deletedSIRsRelease,
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     console.error('Error in handleDeleteSIRsRelease:', error.message);
     return createErrorResponse(`Failed to delete SIRs-Release: ${error.message}`, 500);
@@ -672,10 +829,10 @@ function handleDeleteSIRsRelease(sirsReleasesSheet, sirReleaseId) {
 function handleBulkDeleteSIRsReleases(sirsReleasesSheet, data) {
   try {
     console.log(`Bulk deleting SIRs-Releases: ${data.sirReleaseIds}`);
-    
+
     // Delete multiple SIRs-Releases from sheet
     const deleteResults = bulkDeleteSIRsReleases(sirsReleasesSheet, data.sirReleaseIds);
-    
+
     return createJsonResponse({
       success: true,
       message: 'Bulk delete completed',
@@ -684,7 +841,7 @@ function handleBulkDeleteSIRsReleases(sirsReleasesSheet, data) {
       not_found: deleteResults.notFound,
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     console.error('Error in handleBulkDeleteSIRsReleases:', error.message);
     return createErrorResponse(`Failed to bulk delete SIRs-Releases: ${error.message}`, 500);
@@ -701,10 +858,10 @@ function handleBulkDeleteSIRsReleases(sirsReleasesSheet, data) {
  */
 function createResponse(data, e) {
   const output = ContentService.createTextOutput('');
-  
+
   // Check for JSONP callback parameter
   const callback = e?.parameter?.callback || e?.parameter?.cb;
-  
+
   if (callback) {
     // JSONP response
     const jsonp = `${callback}(${JSON.stringify(data)})`;
@@ -715,7 +872,7 @@ function createResponse(data, e) {
     output.setContent(JSON.stringify(data));
     output.setMimeType(ContentService.MimeType.JSON);
   }
-  
+
   return output;
 }
 
@@ -738,7 +895,7 @@ function createErrorResponse(message, statusCode = 400) {
     statusCode: statusCode,
     timestamp: new Date().toISOString()
   });
-} 
+}
 
 /**
  * Create JSON response

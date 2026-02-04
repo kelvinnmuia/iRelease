@@ -141,7 +141,7 @@ export const dexieEvents = new DexieEventEmitter()
 // URL CONFIGURATION
 // ============================================
 
-const APPSCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbw798EB4A6zYfnVxfjhPJnYVyDOSUv05a2XILwZvVr7dX9WbyCG8fcr3HLPNxVxo0NK/exec";
+const APPSCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbyX2Hcoqhe-qZsgA6OsE0JzlnbSR1KdsH3JcKPqpAGI2c6EHtIWoqFEG8xkswdOcWBU/exec";
 
 const API_ENDPOINTS = {
   RELEASES: `${APPSCRIPT_BASE_URL}/api/releases`,

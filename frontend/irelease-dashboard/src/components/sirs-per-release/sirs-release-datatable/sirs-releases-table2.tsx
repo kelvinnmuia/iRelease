@@ -243,6 +243,7 @@ export const SirsReleasesTable = ({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => onEditSIR(row)}
+                        disabled={true}
                       >
                         Edit
                       </DropdownMenuItem>

@@ -47,24 +47,23 @@ export function ReleasesDataTable() {
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage());
-    const [isDeleting, setIsDeleting] = useState(false);
 
     // Load data from Dexie on component mount
     useEffect(() => {
         const loadData = async () => {
             try {
                 setLoading(true);
-
+                
                 // Initialize the database (will fetch from AppScript if empty)
                 await initializeReleasesDatabase();
-
+                
                 // Fetch all releases from Dexie
                 const releases = await getAllReleases();
-
+                
                 // Transform the data to match your Release type
                 const transformedData = transformReleasesData(releases);
                 setData(transformedData);
-
+                
             } catch (err) {
                 console.error("Error loading data from Dexie:", err);
                 toast.error("Failed to load releases data");
@@ -253,31 +252,13 @@ export function ReleasesDataTable() {
         toast.success(`Successfully deleted ${selectedRows.size} release(s)`);
     }, [selectedRows]);
 
-    // handleSingleDelete function
-
-    const handleSingleDelete = useCallback(async () => {
-        if (!releaseToDelete) return;
-
-        setIsDeleting(true);
-
-        try {
-            // Call the backend API to delete the release
-            const result = await deleteReleaseFromFrontendData(releaseToDelete);
-
-            // Only remove from local state if backend delete was successful
+    const handleSingleDelete = useCallback(() => {
+        if (releaseToDelete) {
             setData(prev => prev.filter(item => item.id !== releaseToDelete.id));
             setDeleteDialogOpen(false);
             setReleaseToDelete(null);
             setCurrentPage(1);
-
-            // Note: Success toast is already shown in deleteReleaseFromFrontendData
-
-        } catch (error) {
-            // Error toast is already shown in deleteReleaseFromFrontendData
-            console.error("Failed to delete release from backend:", error);
-            // Keep dialog open so user can try again
-        } finally {
-            setIsDeleting(false);
+           // toast.success(`Successfully deleted release ${releaseToDelete.releaseVersion}`);
         }
     }, [releaseToDelete]);
 
@@ -339,40 +320,40 @@ export function ReleasesDataTable() {
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-shrink-0 bg-white">
-                <ReleasesHeader
-                    selectedRowsCount={selectedRows.size}
-                    totalFilteredCount={sortedAndFilteredData.length}
-                    globalFilter={globalFilter}
-                    dateRange={dateRange}
-                />
+             <div className="flex-shrink-0 bg-white">
+            <ReleasesHeader
+                selectedRowsCount={selectedRows.size}
+                totalFilteredCount={sortedAndFilteredData.length}
+                globalFilter={globalFilter}
+                dateRange={dateRange}
+            />
 
-                <ReleasesFilters
-                    globalFilter={globalFilter}
-                    setGlobalFilter={setGlobalFilter}
-                    dateRange={dateRange}
-                    setDateRange={setDateRange}
-                    startDate={startDate}
-                    setStartDate={setStartDate}
-                    endDate={endDate}
-                    setEndDate={setEndDate}
-                    sortOrder={sortOrder}
-                    setSortOrder={setSortOrder}
-                    columnVisibility={columnVisibility}
-                    toggleColumnVisibility={toggleColumnVisibility}
-                    resetColumnVisibility={resetColumnVisibility}
-                    itemsPerPage={itemsPerPage}
-                    setItemsPerPage={setItemsPerPage}
-                    onAddRelease={() => setAddDialogOpen(true)}
-                    onBulkDelete={openBulkDeleteDialog}
-                    selectedRowsCount={selectedRows.size}
-                    totalFilteredCount={sortedAndFilteredData.length}
-                    exportToCSV={handleExportCSV}
-                    exportToExcel={handleExportExcel}
-                    exportToJSON={handleExportJSON}
-                    onApplyDateRange={applyDateRange}
-                    onClearDateRange={clearDateRange}
-                />
+            <ReleasesFilters
+                globalFilter={globalFilter}
+                setGlobalFilter={setGlobalFilter}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                columnVisibility={columnVisibility}
+                toggleColumnVisibility={toggleColumnVisibility}
+                resetColumnVisibility={resetColumnVisibility}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+                onAddRelease={() => setAddDialogOpen(true)}
+                onBulkDelete={openBulkDeleteDialog}
+                selectedRowsCount={selectedRows.size}
+                totalFilteredCount={sortedAndFilteredData.length}
+                exportToCSV={handleExportCSV}
+                exportToExcel={handleExportExcel}
+                exportToJSON={handleExportJSON}
+                onApplyDateRange={applyDateRange}
+                onClearDateRange={clearDateRange}
+            />
             </div>
 
             {/* Scrollable container ONLY for the table and pagination */}
@@ -425,7 +406,6 @@ export function ReleasesDataTable() {
                 selectedRowsCount={selectedRows.size}
                 onBulkDelete={handleBulkDelete}
                 onSingleDelete={handleSingleDelete}
-                isDeleting={isDeleting}
             />
         </div>
     );

@@ -191,6 +191,7 @@ export const ReleasesFilters = ({
                                 size="sm"
                                 className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32 lg:w-26"
                                 onClick={onBulkDelete}
+                                disabled={true}
                             >
                                 - Delete
                             </Button>

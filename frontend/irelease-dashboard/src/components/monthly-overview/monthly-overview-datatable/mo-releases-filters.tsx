@@ -184,6 +184,7 @@ export const ReleasesFilters = ({
                                 size="sm"
                                 className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 lg:w-28"
                                 onClick={onAddRelease}
+                                disabled={true}
                             >
                                 + Add New
                             </Button>
@@ -191,6 +192,7 @@ export const ReleasesFilters = ({
                                 size="sm"
                                 className="bg-red-500 text-white hover:bg-red-600 flex-1 md:flex-none md:w-32 lg:w-28"
                                 onClick={onBulkDelete}
+                                disabled={true}
                             >
                                 - Delete
                             </Button>

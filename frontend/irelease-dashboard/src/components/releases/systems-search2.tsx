@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown } from "lucide-react";
-import { getAllSystems } from "@/db/ireleasedb";
 
 interface SystemsSearchProps {
   value: string;
@@ -12,13 +11,24 @@ interface SystemsSearchProps {
   disabled?: boolean;
 }
 
-interface System {
-  System_id: string;
-  System_name: string;
-}
+// Static mapping for system names to system IDs
+// This will eventually be replaced with API data
+export const systemMapping: Record<string, string> = {
+  "iCMS": "SYS-TDF6N",
+  "TLIP": "SYS-7H9K2",
+  "eCustoms": "SYS-3M4P8",
+  "WIMS": "SYS-1R5T9",
+  "iBID": "SYS-6V2W3",
+  "iSCAN": "SYS-8X5Y7",
+  "iTax": "SYS-TDF67",
+  "LMS": "SYS-7H9K6",
+  "RTS": "SYS-3M4P7",
+  "RECTS": "SYS-1R5T2",
+  "CMSB": "SYS-6V2W4",
+  "DFG": "SYS-8X5Y1"
+};
 
-// This will be populated from Dexie
-let systemMapping: Record<string, string> = {};
+const systemNameOptions = Object.keys(systemMapping);
 
 export const SystemsSearch = ({
   value,
@@ -29,57 +39,21 @@ export const SystemsSearch = ({
 }: SystemsSearchProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [systemNames, setSystemNames] = useState<string[]>([]);
-  const [filteredSystems, setFilteredSystems] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [filteredSystems, setFilteredSystems] = useState(systemNameOptions);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Load systems from Dexie on component mount
-  useEffect(() => {
-    const loadSystems = async () => {
-      try {
-        setLoading(true);
-        const systemsData = await getAllSystems();
-        
-        // Create mapping and extract system names
-        const mapping: Record<string, string> = {};
-        const names: string[] = [];
-        
-        systemsData.forEach((system: System) => {
-          if (system.System_name && system.System_id) {
-            mapping[system.System_name] = system.System_id;
-            names.push(system.System_name);
-          }
-        });
-        
-        systemMapping = mapping; // Update the exported mapping
-        setSystemNames(names);
-        setFilteredSystems(names);
-        
-      } catch (error) {
-        console.error("Error loading systems from Dexie:", error);
-        setSystemNames([]);
-        setFilteredSystems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSystems();
-  }, []);
 
   // Filter systems based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredSystems(systemNames);
+      setFilteredSystems(systemNameOptions);
     } else {
-      const filtered = systemNames.filter(name =>
-        name.toLowerCase().includes(searchQuery.toLowerCase())
+      const filtered = systemNameOptions.filter(system =>
+        system.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredSystems(filtered);
     }
-  }, [searchQuery, systemNames]);
+  }, [searchQuery]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -92,6 +66,7 @@ export const SystemsSearch = ({
 
     if (isDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Focus search input when dropdown opens
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 100);
@@ -126,11 +101,10 @@ export const SystemsSearch = ({
       <div className="relative">
         <button
           type="button"
-          onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
-          disabled={disabled}
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className={`w-full flex items-center justify-between px-3 py-2 text-left border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:border-red-400 ${
             validationError ? 'border-red-500' : 'border-gray-300'
-          } ${value ? 'text-gray-900' : 'text-gray-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${value ? 'text-gray-900' : 'text-gray-500'}`}
         >
           <span className="text-sm">{value || placeholder}</span>
           <ChevronDown className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -164,11 +138,7 @@ export const SystemsSearch = ({
             
             {/* Scrollable List with Search Results */}
             <div className="max-h-60 overflow-y-auto">
-              {loading ? (
-                <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                  Loading systems...
-                </div>
-              ) : filteredSystems.length > 0 ? (
+              {filteredSystems.length > 0 ? (
                 filteredSystems.map((name) => (
                   <button
                     key={name}
@@ -183,7 +153,7 @@ export const SystemsSearch = ({
                 ))
               ) : (
                 <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                  No systems found
+                  No systems found matching "{searchQuery}"
                 </div>
               )}
             </div>
@@ -197,6 +167,3 @@ export const SystemsSearch = ({
     </div>
   );
 };
-
-// Export systemMapping for use in other components
-export { systemMapping };

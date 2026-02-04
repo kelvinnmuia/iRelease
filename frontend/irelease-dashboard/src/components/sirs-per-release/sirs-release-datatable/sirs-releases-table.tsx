@@ -322,6 +322,7 @@ export const SirsReleasesTable = ({
                         <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={() => onEditSIR(row)}
+                          disabled={true}
                         >
                           Edit
                         </DropdownMenuItem>
@@ -334,6 +335,7 @@ export const SirsReleasesTable = ({
                         <DropdownMenuItem
                           className="cursor-pointer text-red-600"
                           onClick={() => onDeleteSIR(row)}
+                          disabled={true}
                         >
                           Delete
                         </DropdownMenuItem>

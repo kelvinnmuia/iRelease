@@ -128,6 +128,7 @@ export const SirsReleaseFilters = ({
                             variant="outline"
                             onClick={onMapSirs}
                             className="border-red-400 bg-white text-red-600 hover:bg-red-50 flex-1 md:flex-none md:w-32 gap-2 h-9"
+                            disabled={true}
                         >
                             <Map className="w-4 h-4" />
                             <span>Map SIRs</span>

@@ -15,7 +15,6 @@ import {
   financialYearOptions 
 } from "./constants/releases-constants";
 import { Search, ChevronDown } from "lucide-react";
-import { updateReleaseFromForm } from "@/db/update-release";
 
 interface EditReleaseDialogProps {
   open: boolean;
@@ -34,7 +33,6 @@ export const EditReleaseDialog = ({
   const [isFinancialYearOpen, setIsFinancialYearOpen] = useState(false);
   const [financialYearSearch, setFinancialYearSearch] = useState("");
   const [filteredFinancialYears, setFilteredFinancialYears] = useState(financialYearOptions);
-  const [isSubmitting, setIsSubmitting] = useState(false); // ADD SAVING STATE
   const financialYearDropdownRef = useRef<HTMLDivElement>(null);
   const financialYearSearchRef = useRef<HTMLInputElement>(null);
 
@@ -98,50 +96,9 @@ export const EditReleaseDialog = ({
     financialYearSearchRef.current?.focus();
   };
 
-  // Update the handleSave function with saving state
-  const handleSave = async () => {
-    if (!release) return;
-
-    setIsSubmitting(true); // START SAVING STATE
-    
-    try {
-      // Use a different variable name to avoid conflict with state variable
-      const updateData = {
-        systemName: formData.systemName || release.systemName,
-        systemId: formData.systemId || release.systemId,
-        releaseVersion: formData.releaseVersion || release.releaseVersion,
-        iteration: formData.iteration || release.iteration,
-        releaseType: formData.releaseType || release.releaseType,
-        financialYear: formData.financialYear || release.financialYear,
-        testStatus: formData.testStatus || release.testStatus,
-        deploymentStatus: formData.deploymentStatus || release.deploymentStatus,
-        deliveredDate: formData.deliveredDate || release.deliveredDate,
-        tdNoticeDate: formData.tdNoticeDate || release.tdNoticeDate,
-        testDeployDate: formData.testDeployDate || release.testDeployDate,
-        testStartDate: formData.testStartDate || release.testStartDate,
-        testEndDate: formData.testEndDate || release.testEndDate,
-        prodDeployDate: formData.prodDeployDate || release.prodDeployDate,
-        month: formData.month || release.month,
-        releaseDescription: formData.releaseDescription || release.releaseDescription,
-        functionalityDelivered: formData.functionalityDelivered || release.functionalityDelivered,
-        outstandingIssues: formData.outstandingIssues || release.outstandingIssues,
-        comments: formData.comments || release.comments
-      };
-
-      // Call the update API
-      const updatedRelease = await updateReleaseFromForm(release.releaseId, updateData);
-      
-      // Call the parent's onSave callback with the updated release
-      onSave(updatedRelease);
-      
-      // Close dialog
-      onOpenChange(false);
-      
-    } catch (error) {
-      console.error("Failed to update release:", error);
-      // Error toast is already shown in updateReleaseFromForm function
-    } finally {
-      setIsSubmitting(false); // END SAVING STATE
+  const handleSave = () => {
+    if (release) {
+      onSave({ ...release, ...formData } as Release);
     }
   };
 
@@ -155,7 +112,7 @@ export const EditReleaseDialog = ({
   if (!release) return null;
 
   return (
-    <Dialog open={open} onOpenChange={!isSubmitting ? onOpenChange : undefined}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-clip mx-auto p-4 sm:p-6">
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="text-xl font-semibold text-gray-900">
@@ -193,7 +150,6 @@ export const EditReleaseDialog = ({
                   onChange={(e) => handleInputChange('releaseVersion', e.target.value)}
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
                   placeholder="Enter release version"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -237,7 +193,6 @@ export const EditReleaseDialog = ({
                   onChange={(e) => handleInputChange('iteration', e.target.value)}
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400"
                   placeholder="Enter iteration"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -248,7 +203,6 @@ export const EditReleaseDialog = ({
                 <Select
                   value={formData.releaseType || ''}
                   onValueChange={(value) => handleInputChange('releaseType', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
                     <SelectValue placeholder="Select release type" />
@@ -275,7 +229,6 @@ export const EditReleaseDialog = ({
                 <Select
                   value={formData.testStatus || ''}
                   onValueChange={(value) => handleInputChange('testStatus', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
                     <SelectValue placeholder="Select test status" />
@@ -297,7 +250,6 @@ export const EditReleaseDialog = ({
                 <Select
                   value={formData.deploymentStatus || ''}
                   onValueChange={(value) => handleInputChange('deploymentStatus', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
                     <SelectValue placeholder="Select deployment status" />
@@ -325,7 +277,6 @@ export const EditReleaseDialog = ({
                   value={formData.deliveredDate || ''}
                   onChange={(value) => handleInputChange('deliveredDate', value)}
                   placeholder="Select delivery date"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -337,7 +288,6 @@ export const EditReleaseDialog = ({
                   value={formData.tdNoticeDate || ''}
                   onChange={(value) => handleInputChange('tdNoticeDate', value)}
                   placeholder="Select TD notice date"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -351,7 +301,6 @@ export const EditReleaseDialog = ({
                   value={formData.testDeployDate || ''}
                   onChange={(value) => handleInputChange('testDeployDate', value)}
                   placeholder="Select test deploy date"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -363,7 +312,6 @@ export const EditReleaseDialog = ({
                   value={formData.testStartDate || ''}
                   onChange={(value) => handleInputChange('testStartDate', value)}
                   placeholder="Select test start date"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -377,7 +325,6 @@ export const EditReleaseDialog = ({
                   value={formData.testEndDate || ''}
                   onChange={(value) => handleInputChange('testEndDate', value)}
                   placeholder="Select test end date"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -389,7 +336,6 @@ export const EditReleaseDialog = ({
                   value={formData.prodDeployDate || ''}
                   onChange={(value) => handleInputChange('prodDeployDate', value)}
                   placeholder="Select production deploy date"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -405,7 +351,6 @@ export const EditReleaseDialog = ({
                 <Select
                   value={formData.month || ''}
                   onValueChange={(value) => handleInputChange('month', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
                     <SelectValue placeholder="Select month" />
@@ -428,9 +373,8 @@ export const EditReleaseDialog = ({
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => !isSubmitting && setIsFinancialYearOpen(!isFinancialYearOpen)}
-                    disabled={isSubmitting}
-                    className="w-full flex items-center justify-between px-3 py-2 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setIsFinancialYearOpen(!isFinancialYearOpen)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:border-red-400"
                   >
                     <span className={`text-sm ${formData.financialYear ? 'text-gray-900' : 'text-gray-500'}`}>
                       {formData.financialYear || "Select financial year"}
@@ -451,9 +395,8 @@ export const EditReleaseDialog = ({
                             value={financialYearSearch}
                             onChange={(e) => setFinancialYearSearch(e.target.value)}
                             className="pl-10 pr-10 w-full text-sm"
-                            disabled={isSubmitting}
                           />
-                          {financialYearSearch && !isSubmitting && (
+                          {financialYearSearch && (
                             <button
                               type="button"
                               onClick={clearFinancialYearSearch}
@@ -472,9 +415,8 @@ export const EditReleaseDialog = ({
                             <button
                               key={year}
                               type="button"
-                              onClick={() => !isSubmitting && handleFinancialYearSelect(year)}
-                              disabled={isSubmitting}
-                              className={`w-full px-3 py-2 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100 text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+                              onClick={() => handleFinancialYearSelect(year)}
+                              className={`w-full px-3 py-2 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100 text-sm ${
                                 formData.financialYear === year ? 'bg-red-50 text-red-600' : 'text-gray-900'
                               }`}
                             >
@@ -507,7 +449,6 @@ export const EditReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter release description"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -523,7 +464,6 @@ export const EditReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter functionality delivered"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -539,7 +479,6 @@ export const EditReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Describe outstanding issues, bugs, or pending tasks..."
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -555,7 +494,6 @@ export const EditReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter comments"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -566,22 +504,13 @@ export const EditReleaseDialog = ({
           <Button
             variant="outline"
             onClick={handleSave}
-            disabled={isSubmitting}
-            className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 w-full"
           >
-            {isSubmitting ? (
-              <>
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></span>
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
+            Save Changes
           </Button>
           <Button
             onClick={handleCancel}
-            disabled={isSubmitting}
-            className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 w-full"
           >
             Discard
           </Button>

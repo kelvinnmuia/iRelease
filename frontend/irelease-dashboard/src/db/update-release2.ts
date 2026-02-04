@@ -1,7 +1,7 @@
-// db/create-release.ts
+// db/update-release.ts
 import { toast } from "sonner";
 
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyX2Hcoqhe-qZsgA6OsE0JzlnbSR1KdsH3JcKPqpAGI2c6EHtIWoqFEG8xkswdOcWBU/exec";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwDppwc_Ly1PEy0XmIy_SRcUe-bvxCKBvXHJTB4k7hPoWLHQFrJRGftIS6akCS9t1gK/exec";
 
 // =====================================
 // TYPE DEFINITIONS
@@ -12,7 +12,7 @@ interface JsonpResponse {
   error?: string;
   release?: any;
   message?: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: any;
 }
 
 // =====================================
@@ -32,27 +32,27 @@ function generateCallbackName(): string {
 }
 
 /**
- * Make JSONP POST request
+ * Make JSONP PUT request (simulated via GET with _method=PUT)
  */
-function makeJsonpPostRequest<T = JsonpResponse>(endpoint: string, data: any): Promise<T> {
+function makeJsonpPutRequest<T = JsonpResponse>(endpoint: string, releaseId: string, data: any): Promise<T> {
   return new Promise((resolve, reject) => {
     const callbackName = generateCallbackName();
-    console.log(`Using callback name: ${callbackName}`);
-
+    console.log(`Using callback name: ${callbackName} for updating release ${releaseId}`);
+    
     // Create URL with parameters
     const params = new URLSearchParams();
     params.append('callback', callbackName);
-    params.append('_method', 'POST');
+    params.append('_method', 'PUT');
     params.append('_data', encodeURIComponent(JSON.stringify(data)));
-
-    const url = `${BACKEND_URL}${endpoint}?${params.toString()}`;
-
+    
+    const url = `${BACKEND_URL}${endpoint}/${releaseId}?${params.toString()}`;
+    
     // Set up timeout
     const timeoutId = setTimeout(() => {
       cleanup();
       reject(new Error('Request timed out'));
     }, 300000);
-
+    
     // Cleanup function
     const cleanup = () => {
       clearTimeout(timeoutId);
@@ -63,12 +63,11 @@ function makeJsonpPostRequest<T = JsonpResponse>(endpoint: string, data: any): P
         script.parentNode.removeChild(script);
       }
     };
-
+    
     // Define callback with proper typing
     (window as any)[callbackName] = (response: T) => {
       cleanup();
-
-      // Type guard to check if response has success property
+      
       const jsonpResponse = response as JsonpResponse;
       if (jsonpResponse && jsonpResponse.success === false) {
         reject(new Error(jsonpResponse.error || 'Request failed'));
@@ -76,16 +75,16 @@ function makeJsonpPostRequest<T = JsonpResponse>(endpoint: string, data: any): P
         resolve(response);
       }
     };
-
+    
     // Create and append script
     const script = document.createElement('script');
     script.src = url;
-
+    
     script.onerror = () => {
       cleanup();
       reject(new Error('Failed to load script'));
     };
-
+    
     document.body.appendChild(script);
   });
 }
@@ -95,41 +94,38 @@ function makeJsonpPostRequest<T = JsonpResponse>(endpoint: string, data: any): P
 // =====================================
 
 /**
- * Create a new release
+ * Update an existing release
  */
-export async function createRelease(releaseData: any): Promise<any> {
+export async function updateRelease(releaseId: string, releaseData: any): Promise<any> {
   try {
-    console.log("Creating release:", releaseData);
-
-    // Type the result as JsonpResponse
-    const result = await makeJsonpPostRequest<JsonpResponse>('/api/releases', releaseData);
-
-    // Now TypeScript knows result has a success property
+    console.log(`Updating release ${releaseId}:`, releaseData);
+    
+    const result = await makeJsonpPutRequest<JsonpResponse>('/api/releases', releaseId, releaseData);
+    
     if (!result.success) {
-      throw new Error(result.error || 'Failed to create release');
+      throw new Error(result.error || 'Failed to update release');
     }
-
-    // FIXED: Only show ONE toast message - the one from backend
-    // No fallback toast, just show backend message if it exists
+    
+    // Show backend message if exists
     if (result.message) {
       toast.success(result.message);
     }
-
+    
     return result.release || result;
 
   } catch (error) {
-    console.error("Error creating release:", error);
+    console.error("Error updating release:", error);
     toast.error(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     throw error;
   }
 }
 
 /**
- * Transform form data to backend format
+ * Transform form data to backend format for updates
  */
-export function transformToBackendFormat(formData: any): any {
+export function transformToBackendFormatForUpdate(formData: any): any {
   const transformed: any = {};
-
+  
   const fieldMappings: Record<string, any> = {
     'System_name': formData.systemName || '',
     'System_id': formData.systemId || '',
@@ -151,18 +147,18 @@ export function transformToBackendFormat(formData: any): any {
     'Comments': formData.comments || '',
     'Month': formData.month || ''
   };
-
+  
   Object.entries(fieldMappings).forEach(([backendField, value]) => {
     transformed[backendField] = value;
   });
-
+  
   return transformed;
 }
 
 /**
- * Create release from form data
+ * Update release from form data
  */
-export async function createReleaseFromForm(formData: any): Promise<any> {
+export async function updateReleaseFromForm(releaseId: string, formData: any): Promise<any> {
   // Validate required fields
   const requiredFields = ['systemName', 'systemId', 'releaseVersion', 'releaseType',
     'financialYear', 'testStatus', 'deploymentStatus',
@@ -176,6 +172,6 @@ export async function createReleaseFromForm(formData: any): Promise<any> {
     throw error;
   }
 
-  const backendData = transformToBackendFormat(formData);
-  return await createRelease(backendData);
+  const backendData = transformToBackendFormatForUpdate(formData);
+  return await updateRelease(releaseId, backendData);
 }

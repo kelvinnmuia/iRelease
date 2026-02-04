@@ -222,6 +222,7 @@ export const ReleasesTable = ({
                         <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={() => onEditRelease(row)}
+                          disabled={true}
                         >
                           Edit
                         </DropdownMenuItem>
@@ -234,6 +235,7 @@ export const ReleasesTable = ({
                         <DropdownMenuItem
                           className="cursor-pointer text-red-600"
                           onClick={() => onDeleteRelease(row)}
+                          disabled={true}
                         >
                           Delete
                         </DropdownMenuItem>
