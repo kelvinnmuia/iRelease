@@ -61,6 +61,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.7.0",
+    "baseline-browser-mapping": "^2.9.19",
     "postcss": "^8.5",
     "postcss-import": "^16.1.1",
     "tailwindcss": "^4.1.16",
