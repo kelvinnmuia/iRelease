@@ -1,4 +1,4 @@
-// test-dexie.js
+// test-dexie.js file
 const fetch = require('node-fetch'); // First install: npm install node-fetch
 
 async function testBackend() {
