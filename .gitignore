@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# build output
+dist/
+**/dist/
+
+# Vite / caches
+**/.vite/
+**/.cache/
+
+# env files
+.env
+.env.local
+
+# OS files
+.DS_Store
