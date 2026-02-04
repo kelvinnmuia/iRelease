@@ -7,22 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./date-picker-input";
-import { Release } from "./types/releases";
+import { DatePickerInput } from "../releases/date-picker-input";
+import { Release } from "../releases/types/releases";
+import { generateReleaseId } from "../releases/utils/releaseid-utils";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/releases-constants";
-import { SystemsSearch, systemMapping } from "./systems-search";
-import { createReleaseFromForm } from "@/db/create-release";
+} from "../releases/constants/releases-constants";
+import { SystemsSearch, systemMapping } from "../releases/systems-search";
 
 interface AddReleaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (release: any) => void; // Changed from Release to any to match backend format
+  onSave: (release: Release) => void;
   existingData: Release[];
 }
 
@@ -30,7 +30,7 @@ const initialFormData = {
   releaseVersion: "",
   systemName: "",
   systemId: "",
-  iteration: "1",
+  iteration: "",
   releaseType: "",
   testStatus: "",
   deploymentStatus: "",
@@ -56,7 +56,6 @@ export const AddReleaseDialog = ({
 }: AddReleaseDialogProps) => {
   const [formData, setFormData] = useState(initialFormData);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -101,46 +100,25 @@ export const AddReleaseDialog = ({
       }
     });
 
-    // Validate iteration is a number
-    if (formData.iteration && isNaN(Number(formData.iteration))) {
-      errors.iteration = "Iteration must be a number";
-    }
-
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!validateForm()) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    setIsSubmitting(true);
-    
-    try {
-      // Call the createRelease API with form data
-      const createdRelease = await createReleaseFromForm(formData);
-      
-      // Call the parent's onSave callback with the created release
-      onSave(createdRelease);
-      
-      // Reset form
-      setFormData(initialFormData);
-      setValidationErrors({});
-      
-      // Close dialog
-      onOpenChange(false);
-      
-      // Success toast is already shown in createReleaseFromForm
-      
-    } catch (error) {
-      // Error is already handled in createReleaseFromForm function
-      console.error("Failed to save release:", error);
-      // Don't close dialog on error - let user fix and try again
-    } finally {
-      setIsSubmitting(false);
-    }
+    const newRelease: Release = {
+      id: Math.max(...existingData.map(item => item.id), 0) + 1,
+      releaseId: generateReleaseId(existingData),
+      ...formData
+    } as Release;
+
+    onSave(newRelease);
+    setFormData(initialFormData);
+    setValidationErrors({});
   };
 
   const handleCancel = () => {
@@ -150,7 +128,7 @@ export const AddReleaseDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={!isSubmitting ? onOpenChange : undefined}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-clip mx-auto p-4 sm:p-6">
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="text-xl font-semibold text-gray-900">
@@ -176,8 +154,7 @@ export const AddReleaseDialog = ({
                   className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
                     validationErrors.releaseVersion ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter release version (e.g., 1.5.8)"
-                  disabled={isSubmitting}
+                  placeholder="Enter release version"
                 />
                 {validationErrors.releaseVersion && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.releaseVersion}</p>
@@ -193,7 +170,6 @@ export const AddReleaseDialog = ({
                   onChange={handleSystemNameChange}
                   validationError={validationErrors.systemName}
                   placeholder="Select system name"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -211,7 +187,6 @@ export const AddReleaseDialog = ({
                     validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="System ID"
-                  disabled={isSubmitting}
                 />
                 {validationErrors.systemId && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>
@@ -229,8 +204,7 @@ export const AddReleaseDialog = ({
                   className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
                     validationErrors.iteration ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter iteration number"
-                  disabled={isSubmitting}
+                  placeholder="Enter iteration"
                 />
                 {validationErrors.iteration && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.iteration}</p>
@@ -246,7 +220,6 @@ export const AddReleaseDialog = ({
                 <Select
                   value={formData.releaseType}
                   onValueChange={(value) => handleInputChange('releaseType', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
                     validationErrors.releaseType ? 'border-red-500' : 'border-gray-300'
@@ -278,7 +251,6 @@ export const AddReleaseDialog = ({
                     validationErrors.financialYear ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter financial year (e.g., FY2024)"
-                  disabled={isSubmitting}
                 />
                 {validationErrors.financialYear && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.financialYear}</p>
@@ -297,7 +269,6 @@ export const AddReleaseDialog = ({
                 <Select
                   value={formData.testStatus}
                   onValueChange={(value) => handleInputChange('testStatus', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
                     validationErrors.testStatus ? 'border-red-500' : 'border-gray-300'
@@ -324,7 +295,6 @@ export const AddReleaseDialog = ({
                 <Select
                   value={formData.deploymentStatus}
                   onValueChange={(value) => handleInputChange('deploymentStatus', value)}
-                  disabled={isSubmitting}
                 >
                   <SelectTrigger className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
                     validationErrors.deploymentStatus ? 'border-red-500' : 'border-gray-300'
@@ -357,7 +327,6 @@ export const AddReleaseDialog = ({
                   value={formData.deliveredDate}
                   onChange={(value) => handleInputChange('deliveredDate', value)}
                   placeholder="Select delivery date"
-                  disabled={isSubmitting}
                 />
                 {validationErrors.deliveredDate && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.deliveredDate}</p>
@@ -372,7 +341,6 @@ export const AddReleaseDialog = ({
                   value={formData.tdNoticeDate}
                   onChange={(value) => handleInputChange('tdNoticeDate', value)}
                   placeholder="Select TD notice date"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -386,7 +354,6 @@ export const AddReleaseDialog = ({
                   value={formData.testDeployDate}
                   onChange={(value) => handleInputChange('testDeployDate', value)}
                   placeholder="Select test deploy date"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -398,7 +365,6 @@ export const AddReleaseDialog = ({
                   value={formData.testStartDate}
                   onChange={(value) => handleInputChange('testStartDate', value)}
                   placeholder="Select test start date"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -412,7 +378,6 @@ export const AddReleaseDialog = ({
                   value={formData.testEndDate}
                   onChange={(value) => handleInputChange('testEndDate', value)}
                   placeholder="Select test end date"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -424,7 +389,6 @@ export const AddReleaseDialog = ({
                   value={formData.prodDeployDate}
                   onChange={(value) => handleInputChange('prodDeployDate', value)}
                   placeholder="Select production deploy date"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -439,7 +403,6 @@ export const AddReleaseDialog = ({
               <Select
                 value={formData.month}
                 onValueChange={(value) => handleInputChange('month', value)}
-                disabled={isSubmitting}
               >
                 <SelectTrigger className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400">
                   <SelectValue placeholder="Select month" />
@@ -470,7 +433,6 @@ export const AddReleaseDialog = ({
                   }`}
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter release description"
-                  disabled={isSubmitting}
                 />
                 {validationErrors.releaseDescription && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.releaseDescription}</p>
@@ -489,7 +451,6 @@ export const AddReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter functionality delivered"
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -505,7 +466,6 @@ export const AddReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Describe outstanding issues, bugs, or pending tasks..."
-                  disabled={isSubmitting}
                 />
               </div>
 
@@ -521,7 +481,6 @@ export const AddReleaseDialog = ({
                   className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
                   style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter comments"
-                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -532,23 +491,13 @@ export const AddReleaseDialog = ({
           <Button
             variant="outline"
             onClick={handleSave}
-            disabled={isSubmitting}
-            className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 border-red-400 bg-white text-red-600 hover:bg-red-50 lg:mr-2"
           >
-            {isSubmitting ? (
-              <>
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></span>
-                Creating...
-              </>
-            ) : (
-              "Create Release"
-            )}
+            Create Release
           </Button>
           <Button
             onClick={handleCancel}
-            disabled={isSubmitting}
-            variant="destructive"
-            className="flex-1 bg-red-500 text-white hover:bg-red-600 lg:ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-red-500 text-white hover:bg-red-600 border-red-500 lg:ml-2"
           >
             Discard
           </Button>

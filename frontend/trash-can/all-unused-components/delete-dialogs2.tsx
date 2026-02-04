@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Release } from "./types/releases";
+import { Release } from "../releases/types/releases";
 
 interface DeleteDialogsProps {
   bulkDeleteOpen: boolean;

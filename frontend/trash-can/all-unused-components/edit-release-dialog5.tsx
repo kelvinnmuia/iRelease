@@ -5,17 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./date-picker-input";
-import { Release } from "./types/releases";
+import { DatePickerInput } from "../releases/date-picker-input";
+import { Release } from "../releases/types/releases";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/releases-constants";
+} from "../releases/constants/releases-constants";
 import { Search, ChevronDown } from "lucide-react";
-import { updateReleaseFromForm } from "@/db/update-release";
 
 interface EditReleaseDialogProps {
   open: boolean;
@@ -97,48 +96,12 @@ export const EditReleaseDialog = ({
     financialYearSearchRef.current?.focus();
   };
 
-  // Update the handleSave function
-const handleSave = async () => {
-  if (release) {
-    try {
-      // Use a different variable name to avoid conflict with state variable
-      const updateData = {
-        systemName: formData.systemName || release.systemName,
-        systemId: formData.systemId || release.systemId,
-        releaseVersion: formData.releaseVersion || release.releaseVersion,
-        iteration: formData.iteration || release.iteration,
-        releaseType: formData.releaseType || release.releaseType,
-        financialYear: formData.financialYear || release.financialYear,
-        testStatus: formData.testStatus || release.testStatus,
-        deploymentStatus: formData.deploymentStatus || release.deploymentStatus,
-        deliveredDate: formData.deliveredDate || release.deliveredDate,
-        tdNoticeDate: formData.tdNoticeDate || release.tdNoticeDate,
-        testDeployDate: formData.testDeployDate || release.testDeployDate,
-        testStartDate: formData.testStartDate || release.testStartDate,
-        testEndDate: formData.testEndDate || release.testEndDate,
-        prodDeployDate: formData.prodDeployDate || release.prodDeployDate,
-        month: formData.month || release.month,
-        releaseDescription: formData.releaseDescription || release.releaseDescription,
-        functionalityDelivered: formData.functionalityDelivered || release.functionalityDelivered,
-        outstandingIssues: formData.outstandingIssues || release.outstandingIssues,
-        comments: formData.comments || release.comments
-      };
-
-      // Call the update API
-      const updatedRelease = await updateReleaseFromForm(release.releaseId, updateData);
-      
-      // Call the parent's onSave callback with the updated release
-      onSave(updatedRelease);
-      
-      // Close dialog
-      onOpenChange(false);
-      
-    } catch (error) {
-      console.error("Failed to update release:", error);
-      // Error toast is already shown in updateReleaseFromForm function
+  const handleSave = () => {
+    if (release) {
+      onSave({ ...release, ...formData } as Release);
     }
-  }
-};
+  };
+
   const handleCancel = () => {
     onOpenChange(false);
     setFormData({});

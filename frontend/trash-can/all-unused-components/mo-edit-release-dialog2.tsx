@@ -5,15 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./date-picker-input";
-import { Release } from "./types/releases";
+import { DatePickerInput } from "../monthly-overview/monthly-overview-datatable/mo-date-picker-input";
+import { Release } from "../monthly-overview/monthly-overview-datatable/types/mo-releases";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/releases-constants";
+} from "../monthly-overview/monthly-overview-datatable/constants/mo-releases-constants";
 
 interface EditReleaseDialogProps {
   open: boolean;
@@ -22,14 +22,6 @@ interface EditReleaseDialogProps {
   onSave: (release: Release) => void;
 }
 
-/**
- * A dialog component for editing a Release object.
- *
- * @param {object} open - Whether the dialog is open or not.
- * @param {function} onOpenChange - A function to call when the dialog's open state changes.
- * @param {Release | null} release - The Release object to edit, or null if there is no Release to edit.
- * @param {function} onSave - A function to call when the user saves the edited Release object.
- */
 export const EditReleaseDialog = ({
   open,
   onOpenChange,
@@ -44,29 +36,15 @@ export const EditReleaseDialog = ({
     }
   }, [release]);
 
-/**
- * Handles a change to a form input and updates the form data accordingly.
- * @param {string} field - The name of the form input that has changed.
- * @param {string} value - The new value of the form input.
- */
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-/**
- * Handles a change to a textarea input and updates the form data accordingly.
- * This function is a wrapper around `handleInputChange` to handle textarea inputs.
- * @param {ChangeEvent<HTMLTextAreaElement>} e - The change event.
- */
   const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     handleInputChange(id, value);
   };
 
-/**
- * Handles the save button click by calling the onSave function with the edited Release object.
- * If no Release object is provided, the function does nothing.
- */
   const handleSave = () => {
     if (release) {
       onSave({ ...release, ...formData } as Release);

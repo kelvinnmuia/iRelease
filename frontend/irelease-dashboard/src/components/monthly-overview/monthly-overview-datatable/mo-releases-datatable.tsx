@@ -23,21 +23,20 @@ import { AddReleaseDialog } from "./mo-add-release-dialog";
 import { EditReleaseDialog } from "./mo-edit-release-dialog";
 import { DeleteDialogs } from "./mo-delete-dialogs";
 import { transformMoReleasesData } from "./utils/mo-data-transform";
-import releasesData from "./data/mo-releases-data.json";
+
+// DB API imports
+import { getAllReleases, initializeReleasesDatabase } from "@/db/ireleasedb";
+import { deleteReleaseFromFrontendData } from "@/db/delete-release";
 
 // Add interface for component props
 interface MoReleasesDataTableProps {
     filteredData?: Release[];
 }
 
-// Add type assertion for the JSON import
-const typedMoReleasesData = transformMoReleasesData(releasesData as any[]);
-
 export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) {
-    // State management - use filteredData if provided, otherwise use all data
-    const [data, setData] = useState<Release[]>(() => {
-        return filteredData || typedMoReleasesData;
-    });
+    // State management - start with empty array instead of static data
+    const [data, setData] = useState<Release[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
     const [globalFilter, setGlobalFilter] = useState("");
@@ -55,6 +54,40 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(() => loadItemsPerPage());
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Load data from Dexie on component mount
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+
+                // Initialize the database (will fetch from API if empty)
+                await initializeReleasesDatabase();
+
+                // Fetch all releases from Dexie
+                const releases = await getAllReleases();
+
+                // Transform the data to match your Release type
+                const transformedData = transformMoReleasesData(releases);
+                
+                // If filteredData prop is provided, use it, otherwise use API data
+                if (filteredData) {
+                    setData(filteredData);
+                } else {
+                    setData(transformedData);
+                }
+
+            } catch (err) {
+                console.error("Error loading data from Dexie:", err);
+                toast.error("Failed to load releases data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []); // Empty dependency array means this runs once on mount
 
     // Update data when filteredData prop changes
     useEffect(() => {
@@ -64,9 +97,6 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
             setCurrentPage(1);
             // Clear selected rows when data changes
             setSelectedRows(new Set());
-        } else {
-            // If no filteredData provided, use all data
-            setData(typedMoReleasesData);
         }
     }, [filteredData]);
 
@@ -79,7 +109,7 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
     useEffect(() => saveItemsPerPage(itemsPerPage), [itemsPerPage]);
     useEffect(() => setCurrentPage(1), [itemsPerPage]);
 
-    // Filter and sort data
+    // Filter and sort data (same logic as before)
     const filteredDataInternal = data.filter(item => {
         // Global text search
         const matchesGlobalSearch = !globalFilter ||
@@ -247,13 +277,30 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
         toast.success(`Successfully deleted ${selectedRows.size} release(s)`);
     }, [selectedRows]);
 
-    const handleSingleDelete = useCallback(() => {
-        if (releaseToDelete) {
+    // Updated handleSingleDelete to match releases-datatable pattern
+    const handleSingleDelete = useCallback(async () => {
+        if (!releaseToDelete) return;
+
+        setIsDeleting(true);
+
+        try {
+            // Call the backend API to delete the release
+            const result = await deleteReleaseFromFrontendData(releaseToDelete);
+
+            // Only remove from local state if backend delete was successful
             setData(prev => prev.filter(item => item.id !== releaseToDelete.id));
             setDeleteDialogOpen(false);
             setReleaseToDelete(null);
             setCurrentPage(1);
-            toast.success(`Successfully deleted release ${releaseToDelete.releaseVersion}`);
+
+            // Note: Success toast is already shown in deleteReleaseFromFrontendData
+
+        } catch (error) {
+            // Error toast is already shown in deleteReleaseFromFrontendData
+            console.error("Failed to delete release from backend:", error);
+            // Keep dialog open so user can try again
+        } finally {
+            setIsDeleting(false);
         }
     }, [releaseToDelete]);
 
@@ -300,6 +347,18 @@ export function MoReleasesDataTable({ filteredData }: MoReleasesDataTableProps) 
         setReleaseToEdit(release);
         setEditDialogOpen(true);
     }, []);
+
+    // Show loading state (similar to releases-datatable.tsx)
+    if (loading) {
+        return (
+            <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading releases from database...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">

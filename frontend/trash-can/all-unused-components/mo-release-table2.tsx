@@ -2,9 +2,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
-import { Release, ColumnConfig } from "./types/mo-releases";
-import { statusConfig, deploymentStatusConfig } from "./constants/mo-releases-constants";
-import { TruncatedText } from "./mo-truncated-text";
+import { Release, ColumnConfig } from "../monthly-overview/monthly-overview-datatable/types/mo-releases";
+import { statusConfig, deploymentStatusConfig } from "../monthly-overview/monthly-overview-datatable/constants/mo-releases-constants";
+import { TruncatedText } from "../monthly-overview/monthly-overview-datatable/mo-truncated-text";
 
 interface ReleasesTableProps {
   data: Release[];

@@ -1,3 +1,4 @@
+// add-release-dialog.tsx
 import { toast } from "sonner";
 import { useState, ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,16 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./mo-date-picker-input";
-import { Release } from "./types/mo-releases";
-import { generateReleaseId } from "./utils/mo-releaseid-utils";
+import { DatePickerInput } from "../releases/date-picker-input";
+import { Release } from "../releases/types/releases";
+import { generateReleaseId } from "../releases/utils/releaseid-utils";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/mo-releases-constants";
+} from "../releases/constants/releases-constants";
+import { SystemsSearch, systemMapping } from "../releases/systems-search";
 
 interface AddReleaseDialogProps {
   open: boolean;
@@ -65,6 +67,22 @@ export const AddReleaseDialog = ({
   const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     handleInputChange(id, value);
+  };
+
+  // Handle system name change - auto-populates system ID
+  const handleSystemNameChange = (systemName: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      systemName,
+      systemId: systemMapping[systemName] || ""
+    }));
+    
+    if (validationErrors.systemName) {
+      setValidationErrors(prev => ({ ...prev, systemName: "" }));
+    }
+    if (validationErrors.systemId) {
+      setValidationErrors(prev => ({ ...prev, systemId: "" }));
+    }
   };
 
   const validateForm = () => {
@@ -147,18 +165,12 @@ export const AddReleaseDialog = ({
                 <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
                   System Name <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="systemName"
+                <SystemsSearch
                   value={formData.systemName}
-                  onChange={(e) => handleInputChange('systemName', e.target.value)}
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
-                    validationErrors.systemName ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter system name"
+                  onChange={handleSystemNameChange}
+                  validationError={validationErrors.systemName}
+                  placeholder="Select system name"
                 />
-                {validationErrors.systemName && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.systemName}</p>
-                )}
               </div>
             </div>
 
@@ -170,11 +182,11 @@ export const AddReleaseDialog = ({
                 <Input
                   id="systemId"
                   value={formData.systemId}
-                  onChange={(e) => handleInputChange('systemId', e.target.value)}
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                  readOnly
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 bg-gray-50 ${
                     validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter system ID"
+                  placeholder="System ID"
                 />
                 {validationErrors.systemId && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>

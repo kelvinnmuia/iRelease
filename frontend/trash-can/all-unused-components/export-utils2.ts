@@ -1,7 +1,7 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import { Release } from '../types/mo-releases';
-import { ColumnConfig } from '../types/mo-releases';
+import { Release } from '../releases/types/releases';
+import { ColumnConfig } from '../releases/types/releases';
 
 // Helper function to transform Release data for export
 const transformReleaseForExport = (release: Release, visibleColumns: ColumnConfig[]) => {

@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { SirsReleaseFilters } from './sir-release-filters'
-import { SirReleaseHeader } from './sirs-releases-header'
-import { MapSirsDialog } from './map-sirs-dialog'
-import { SirsStatCards } from './sirs-stats-cards'
-import { SirReleasesChart } from './sirs-releases-chart'
-import { SirReleaseDataTable } from './sirs-release-datatable/sirs-releases-datatable'
+import { SirsReleaseFilters } from '../sirs-per-release/sir-release-filters'
+import { SirReleaseHeader } from '../sirs-per-release/sirs-releases-header'
+import { MapSirsDialog } from '../sirs-per-release/map-sirs-dialog'
+import { SirsStatCards } from '../sirs-per-release/sirs-stats-cards'
+import { SirReleasesChart } from '../sirs-per-release/sirs-releases-chart'
+import { SirReleaseDataTable } from '../sirs-per-release/sirs-release-datatable/sirs-releases-datatable'
 import sirReleaseData from './sir-release-data.json'
-import { SirReleaseData, ColumnConfig } from './sirs-release-datatable/types/sirs-releases-types'
-import { exportToCSV, exportToExcel, exportToJSON } from './sirs-release-datatable/utils/sirs-release-export-utils'
-import { useColumnVisibility } from './sirs-releases-column-visibility'
-import { parseDate, formatDate, dateMatchesSearch } from './sirs-release-datatable/utils/sirs-release-date-utils'
+import { SirReleaseData, ColumnConfig } from '../sirs-per-release/sirs-release-datatable/types/sirs-releases-types'
+import { exportToCSV, exportToExcel, exportToJSON } from '../sirs-per-release/sirs-release-datatable/utils/sirs-release-export-utils'
+import { useColumnVisibility } from '../sirs-per-release/sirs-releases-column-visibility'
+import { parseDate, formatDate, dateMatchesSearch } from '../sirs-per-release/sirs-release-datatable/utils/sirs-release-date-utils'
 import { toast } from "sonner"
-import { transformSirsReleaseData } from './sirs-release-datatable/utils/sirs-release-data-transform'
+import { transformSirsReleaseData } from '../sirs-per-release/sirs-release-datatable/utils/sirs-release-data-transform'
 
 export function SirsRelease() {
     // State for filters

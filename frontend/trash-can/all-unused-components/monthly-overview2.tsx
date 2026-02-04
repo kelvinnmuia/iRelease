@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from "sonner"
-import { SearchableDropdown } from './searchable-dropdown'
-import { MonthlyOverviewAnalytics } from './monthly-overview-analytics'
-import releasesData from './monthly-overview-datatable/data/mo-releases-data.json'
-import { transformMoReleasesData } from './monthly-overview-datatable/utils/mo-data-transform'
+import { SearchableDropdown } from '../monthly-overview/searchable-dropdown'
+import { MonthlyOverviewAnalytics } from '../monthly-overview/monthly-overview-analytics'
+import releasesData from '../monthly-overview/monthly-overview-datatable/data/mo-releases-data.json'
+import { transformMoReleasesData } from '../monthly-overview/monthly-overview-datatable/utils/mo-data-transform'
 
 export function MonthlyOverview() {
     // State for filters - load from localStorage if available

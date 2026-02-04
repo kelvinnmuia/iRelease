@@ -5,15 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./date-picker-input";
-import { Release } from "./types/releases";
+import { DatePickerInput } from "../releases/date-picker-input";
+import { Release } from "../releases/types/releases";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/releases-constants";
+} from "../releases/constants/releases-constants";
 import { Search, ChevronDown } from "lucide-react";
 
 interface EditReleaseDialogProps {

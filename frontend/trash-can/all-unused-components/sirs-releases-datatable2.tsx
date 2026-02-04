@@ -13,8 +13,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { allColumns, ColumnConfig } from '../sirs-releases-column-visibility';
-import { SirsReleasesTruncatedText } from "./sirs-releases-truncated-text";
+import { allColumns, ColumnConfig } from '../sirs-per-release/sirs-releases-column-visibility';
+import { SirsReleasesTruncatedText } from "../sirs-per-release/sirs-release-datatable/sirs-releases-truncated-text";
 
 interface SirReleaseDataTableProps {
   filteredData?: Array<{

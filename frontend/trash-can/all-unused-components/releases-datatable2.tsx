@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Release, SortOrder } from "./types/releases";
-import { allColumns } from "./constants/releases-constants";
+import { Release, SortOrder } from "../releases/types/releases";
+import { allColumns } from "../releases/constants/releases-constants";
 import {
     loadColumnVisibility,
     saveColumnVisibility,
@@ -12,18 +12,19 @@ import {
     clearDateRangeDetails,
     loadItemsPerPage,
     saveItemsPerPage
-} from "./utils/storage-utils";
-import { parseDate, getLatestDate, getEarliestDate, formatDate } from "./utils/date-utils";
-import { exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "./utils/export-utils";
-import { ReleasesHeader } from "./release-header";
-import { ReleasesFilters } from "./releases-filters";
-import { ReleasesTable } from "./releases-table";
-import { ReleasesPagination } from "./releases-pagination";
-import { AddReleaseDialog } from "./add-release-dialog";
-import { EditReleaseDialog } from "./edit-release-dialog";
-import { DeleteDialogs } from "./delete-dialogs";
-import { transformReleasesData } from "./utils/data-transform";
-import releasesData from "./data/releases-data.json";
+} from "../releases/utils/storage-utils";
+import { parseDate, getLatestDate, getEarliestDate, formatDate } from "../releases/utils/date-utils";
+import { exportToCSV, exportToExcel, exportToJSON, exportSingleRelease } from "../releases/utils/export-utils";
+import { ReleasesHeader } from "../releases/release-header";
+import { ReleasesFilters } from "../releases/releases-filters";
+import { ReleasesTable } from "../releases/releases-table";
+import { ReleasesPagination } from "../releases/releases-pagination";
+import { AddReleaseDialog } from "../releases/add-release-dialog";
+import { EditReleaseDialog } from "../releases/edit-release-dialog";
+import { DeleteDialogs } from "../releases/delete-dialogs";
+import { transformReleasesData } from "../releases/utils/data-transform";
+import releasesData from "../releases/data/releases-data.json";
+
 
 // Add type assertion for the JSON import
 const typedReleasesData = transformReleasesData(releasesData as any[]);
@@ -281,7 +282,6 @@ export function ReleasesDataTable() {
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-             <div className="flex-shrink-0 bg-white">
             <ReleasesHeader
                 selectedRowsCount={selectedRows.size}
                 totalFilteredCount={sortedAndFilteredData.length}
@@ -315,35 +315,27 @@ export function ReleasesDataTable() {
                 onApplyDateRange={applyDateRange}
                 onClearDateRange={clearDateRange}
             />
-            </div>
 
-            {/* Scrollable container ONLY for the table and pagination */}
-            <div className="flex-1 flex flex-col min-h-0 isolate"> {/* Added isolate */}
-                {/* Table with vertical scrolling - NO sticky headers interfering with filters */}
-                <div className="flex-1 overflow-hidden relative">
+            <ReleasesTable
+                data={paginatedData}
+                visibleColumns={visibleColumns}
+                selectedRows={selectedRows}
+                onToggleRowSelection={toggleRowSelection}
+                onToggleSelectAll={toggleSelectAllOnPage} // Add this line
+                onEditRelease={openEditDialog}
+                onDeleteRelease={openDeleteDialog}
+                onExportSingleRelease={handleExportSingleRelease}
+            />
 
-                    <ReleasesTable
-                        data={paginatedData}
-                        visibleColumns={visibleColumns}
-                        selectedRows={selectedRows}
-                        onToggleRowSelection={toggleRowSelection}
-                        onToggleSelectAll={toggleSelectAllOnPage} // Add this line
-                        onEditRelease={openEditDialog}
-                        onDeleteRelease={openDeleteDialog}
-                        onExportSingleRelease={handleExportSingleRelease}
-                    />
-                </div>
-
-                <ReleasesPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={sortedAndFilteredData.length}
-                    startIndex={startIndex}
-                    onPageChange={setCurrentPage}
-                    visibleColumnsCount={visibleColumns.length}
-                />
-            </div>
+            <ReleasesPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={sortedAndFilteredData.length}
+                startIndex={startIndex}
+                onPageChange={setCurrentPage}
+                visibleColumnsCount={visibleColumns.length}
+            />
 
             <AddReleaseDialog
                 open={addDialogOpen}

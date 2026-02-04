@@ -1,4 +1,4 @@
-import { Release } from "../types/mo-releases";
+import { Release } from "../monthly-overview/monthly-overview-datatable/types/mo-releases";
 
 export function transformMoReleasesData(jsonData: any[]): Release[] {
   return jsonData.map((item, index) => ({

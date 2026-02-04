@@ -1,4 +1,3 @@
-// add-release-dialog.tsx
 import { toast } from "sonner";
 import { useState, ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,17 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePickerInput } from "./date-picker-input";
-import { Release } from "./types/releases";
-import { generateReleaseId } from "./utils/releaseid-utils";
+import { DatePickerInput } from "../monthly-overview/monthly-overview-datatable/mo-date-picker-input";
+import { Release } from "../monthly-overview/monthly-overview-datatable/types/mo-releases";
+import { generateReleaseId } from "../monthly-overview/monthly-overview-datatable/utils/mo-releaseid-utils";
 import { 
   releaseTypeOptions, 
   testStatusOptions, 
   deploymentStatusOptions, 
   monthOptions, 
   financialYearOptions 
-} from "./constants/releases-constants";
-import { SystemsSearch, systemMapping } from "./systems-search";
+} from "../monthly-overview/monthly-overview-datatable/constants/mo-releases-constants";
 
 interface AddReleaseDialogProps {
   open: boolean;
@@ -67,22 +65,6 @@ export const AddReleaseDialog = ({
   const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     handleInputChange(id, value);
-  };
-
-  // Handle system name change - auto-populates system ID
-  const handleSystemNameChange = (systemName: string) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      systemName,
-      systemId: systemMapping[systemName] || ""
-    }));
-    
-    if (validationErrors.systemName) {
-      setValidationErrors(prev => ({ ...prev, systemName: "" }));
-    }
-    if (validationErrors.systemId) {
-      setValidationErrors(prev => ({ ...prev, systemId: "" }));
-    }
   };
 
   const validateForm = () => {
@@ -165,12 +147,18 @@ export const AddReleaseDialog = ({
                 <Label htmlFor="systemName" className="text-sm font-medium text-gray-700">
                   System Name <span className="text-red-500">*</span>
                 </Label>
-                <SystemsSearch
+                <Input
+                  id="systemName"
                   value={formData.systemName}
-                  onChange={handleSystemNameChange}
-                  validationError={validationErrors.systemName}
-                  placeholder="Select system name"
+                  onChange={(e) => handleInputChange('systemName', e.target.value)}
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
+                    validationErrors.systemName ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter system name"
                 />
+                {validationErrors.systemName && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.systemName}</p>
+                )}
               </div>
             </div>
 
@@ -182,11 +170,11 @@ export const AddReleaseDialog = ({
                 <Input
                   id="systemId"
                   value={formData.systemId}
-                  readOnly
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 bg-gray-50 ${
+                  onChange={(e) => handleInputChange('systemId', e.target.value)}
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 ${
                     validationErrors.systemId ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="System ID"
+                  placeholder="Enter system ID"
                 />
                 {validationErrors.systemId && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.systemId}</p>
@@ -428,10 +416,9 @@ export const AddReleaseDialog = ({
                   value={formData.releaseDescription}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto ${
+                  className={`w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none break-words break-all ${
                     validationErrors.releaseDescription ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
                   placeholder="Enter release description"
                 />
                 {validationErrors.releaseDescription && (
@@ -448,8 +435,7 @@ export const AddReleaseDialog = ({
                   value={formData.functionalityDelivered}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Enter functionality delivered"
                 />
               </div>
@@ -463,8 +449,7 @@ export const AddReleaseDialog = ({
                   value={formData.outstandingIssues}
                   onChange={handleTextareaChange}
                   rows={4}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Describe outstanding issues, bugs, or pending tasks..."
                 />
               </div>
@@ -478,8 +463,7 @@ export const AddReleaseDialog = ({
                   value={formData.comments}
                   onChange={handleTextareaChange}
                   rows={3}
-                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-y break-all overflow-x-auto"
-                  style={{ wordBreak: "break-all", whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+                  className="w-full focus:ring-2 focus:ring-red-400 focus:ring-offset-0 focus:outline-none focus:border-red-400 resize-none"
                   placeholder="Enter comments"
                 />
               </div>
