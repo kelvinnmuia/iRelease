@@ -1,5 +1,6 @@
 {
   "name": "irelease-dashboard",
+  "homepage": "https://kelvinnmuia.github.io/iRelease",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -8,7 +9,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
