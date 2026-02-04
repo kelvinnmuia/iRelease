@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Download, FileText, FileSpreadsheet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+export const ExportMenu = ({ onExportCSV, onExportExcel, onExportJSON, selectedRowsCount }) => {
+    return (_jsxs(DropdownMenu, { children: [_jsx(DropdownMenuTrigger, { asChild: true, children: _jsxs(Button, { variant: "outline", size: "sm", className: "gap-2 border-red-400 text-red-600 bg-white hover:bg-red-50 flex-1 md:flex-none md:w-auto min-w-[100px]", children: [_jsx(Download, { className: "w-4 h-4" }), _jsx("span", { children: "Export" })] }) }), _jsxs(DropdownMenuContent, { align: "start", className: "min-w-[140px]", children: [_jsxs(DropdownMenuItem, { onClick: onExportCSV, children: [_jsx(FileText, { className: "mr-2 h-4 w-4" }), "Export as CSV"] }), _jsxs(DropdownMenuItem, { onClick: onExportExcel, children: [_jsx(FileSpreadsheet, { className: "mr-2 h-4 w-4" }), "Export as Excel"] }), _jsx(DropdownMenuSeparator, {}), _jsxs(DropdownMenuItem, { onClick: onExportJSON, children: [_jsx(FileText, { className: "mr-2 h-4 w-4" }), "Export as JSON"] })] })] }));
+};
