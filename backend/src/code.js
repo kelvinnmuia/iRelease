@@ -1,0 +1,919 @@
+/**
+ * MAIN ROUTER FOR BACKEND APIs
+ * Initializes spreadsheet and routes API requests to corresponding endpoints
+ */
+
+// =====================================
+// CONFIGURATION SECTION
+// =====================================
+
+const SPREADSHEET_ID = '1MdDgCq9ArqsGTp4tx51_JEhI6VSU_u9k0D0DwCCGQ7w';
+const SHEET_NAMES = {
+  SYSTEMS_METADATA: 'Systems_Metadata',
+  RELEASE_DETAILS: 'Releases_Details',
+  SIRS: 'SIRs',
+  SIRS_RELEASES: 'SIRs_Releases',
+};
+
+/**
+ * Initialize spreadsheet connection
+ */
+function initSpreadsheet() {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    const sheets = {
+      systemsMetadata: spreadsheet.getSheetByName(SHEET_NAMES.SYSTEMS_METADATA),
+      releaseDetails: spreadsheet.getSheetByName(SHEET_NAMES.RELEASE_DETAILS),
+      sirs: spreadsheet.getSheetByName(SHEET_NAMES.SIRS),
+      sirsReleases: spreadsheet.getSheetByName(SHEET_NAMES.SIRS_RELEASES),
+    };
+
+    // Validate required sheet exists
+    if (!sheets.releaseDetails) {
+      throw new Error('Releases_Details sheet not found - 404');
+    }
+
+    console.log(`Connected to sheet: ${sheets.releaseDetails.getName()}`);
+    console.log(`Total rows: ${sheets.releaseDetails.getLastRow()}, Total columns: ${sheets.releaseDetails.getLastColumn()}`);
+
+    return { spreadsheet: spreadsheet, sheets: sheets };
+
+  } catch (error) {
+    console.error('Error initializing spreadsheet:', error.message);
+    throw error;
+  }
+}
+
+// =====================================
+//  READ (GET) ROUTES ENDPOINTS
+// =====================================
+
+
+/**
+ * Main entry point for READ (GET) requests
+ */
+function doGet(e) {
+  try {
+    // Initialize spreadsheet
+    const { sheets } = initSpreadsheet();
+
+    // Get path from URL
+    const path = e.pathInfo || '';
+
+    // ============================================
+    // POST HANDLER: Handle JSONP "POST" as GET
+    // ============================================
+    // Check if this is a JSONP POST request for releases
+    if ((path === 'releases' || path === 'api/releases') &&
+      e.parameter._method === 'POST') {
+
+      console.log('JSONP POST (simulated) request for releases');
+
+      // Parse data from _data URL parameter
+      const encodedData = e.parameter._data;
+      if (!encodedData) {
+        return createResponse({
+          success: false,
+          error: 'Missing data',
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+
+      try {
+        const releaseData = JSON.parse(decodeURIComponent(encodedData));
+        console.log('Release data:', releaseData);
+
+        // Create the release (calls your existing createNewRelease function)
+        const createdRelease = createNewRelease(sheets.releaseDetails, releaseData);
+
+        // FIX: Get the release ID properly to avoid "undefined" in message
+        const releaseId = createdRelease.Release_id ||
+          createdRelease.Release_ID ||
+          createdRelease.release_id ||
+          createdRelease.releaseId ||
+          createdRelease.id;
+
+        // FIX: Create proper message with release ID or generic message
+        let successMessage;
+        if (releaseId) {
+          successMessage = `Release ${releaseId} created successfully`;
+        } else {
+          successMessage = 'Release created successfully';
+        }
+
+        // Return success response
+        return createResponse({
+          success: true,
+          message: successMessage,
+          release: createdRelease,
+          timestamp: new Date().toISOString()
+        }, e);
+
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        return createResponse({
+          success: false,
+          error: 'Invalid JSON data: ' + parseError.message,
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+    }
+    // ============================================
+    // END JSONP POST HANDLER
+    // ============================================
+
+    // ============================================
+    // PUT HANDLER: Handle JSONP "PUT" as GET (for updates)
+    // ============================================
+    // Check if this is a JSONP PUT request for updating releases
+    // Pattern: /api/releases/REL-XXXXX?_method=PUT
+    if ((path.startsWith('releases/') || path.startsWith('api/releases/')) &&
+      e.parameter._method === 'PUT') {
+
+      console.log('JSONP PUT (simulated) request for updating release');
+
+      // Extract release ID from path
+      const pathParts = path.split('/');
+      const releaseId = pathParts[pathParts.length - 1];
+
+      console.log(`Updating release: ${releaseId}`);
+
+      // Parse data from _data URL parameter
+      const encodedData = e.parameter._data;
+      if (!encodedData) {
+        return createResponse({
+          success: false,
+          error: 'Missing data',
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+
+      try {
+        const releaseData = JSON.parse(decodeURIComponent(encodedData));
+        console.log('Update data:', releaseData);
+
+        // Update the release (calls your existing updateRelease function)
+        const updatedRelease = updateRelease(sheets.releaseDetails, releaseId, releaseData);
+
+        // Return success response
+        return createResponse({
+          success: true,
+          message: `Release ${releaseId} updated successfully`,
+          release: updatedRelease,
+          timestamp: new Date().toISOString()
+        }, e);
+
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        return createResponse({
+          success: false,
+          error: 'Invalid JSON data: ' + parseError.message,
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+    }
+    // ============================================
+    // END JSONP PUT HANDLER
+    // ============================================
+
+    // ============================================
+    // DELETE HANDLER: Handle JSONP "DELETE" as GET
+    // ============================================
+    // Check if this is a JSONP DELETE request for deleting releases
+    // Pattern: /api/releases/REL-XXXXX?_method=DELETE
+    if ((path.startsWith('releases/') || path.startsWith('api/releases/')) &&
+      e.parameter._method === 'DELETE') {
+
+      console.log('JSONP DELETE (simulated) request for deleting release');
+
+      // Extract release ID from path
+      const pathParts = path.split('/');
+      const releaseId = pathParts[pathParts.length - 1];
+
+      console.log(`Deleting release: ${releaseId}`);
+
+      try {
+        // Delete the release (calls your existing deleteRelease function)
+        const deletedRelease = deleteRelease(sheets.releaseDetails, releaseId);
+
+        // Return success response
+        return createResponse({
+          success: true,
+          message: `Release ${releaseId} deleted successfully`,
+          release: deletedRelease,
+          timestamp: new Date().toISOString()
+        }, e);
+
+      } catch (error) {
+        console.error('Delete error:', error);
+        return createResponse({
+          success: false,
+          error: 'Failed to delete release: ' + error.message,
+          timestamp: new Date().toISOString()
+        }, e);
+      }
+    }
+    // ============================================
+    // END JSONP DELETE HANDLER
+    // ============================================
+
+    // Route for systems API
+    if (path === 'systems' || path === 'api/systems') {
+      return handleGetSystems(sheets.systemsMetadata, e);
+    }
+
+    // Route for releases API requests
+    if (path === 'releases' || path === 'api/releases') {
+      return handleGetReleases(sheets.releaseDetails, e);
+    }
+
+    // Route for SIRs API
+    if (path === 'sirs' || path === 'api/sirs') {
+      return handleGetSIRs(sheets.sirs, e);
+    }
+
+    // Route for SIRs-Releases API
+    if (path === 'sirs-releases' || path === 'api/sirs-releases') {
+      return handleGetSIRsReleases(sheets.sirsReleases, e);
+    }
+
+    // Default response for root
+    const defaultData = {
+      status: 'ok',
+      message: 'API Server is running',
+      endpoints: {
+        systems: '/api/systems',
+        releases: '/api/releases',
+        sirs: '/api/sirs',
+        sirsReleases: '/api/sirs-releases'
+      },
+    };
+
+    return createResponse(defaultData, e);
+
+  } catch (error) {
+
+    console.error('Router Error:', error.message);
+    const errorData = {
+      success: false,
+      error: error.message,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+    return createResponse(errorData, e);
+  }
+
+  /*console.error('Router Error:', error.message);
+  return createErrorResponse(error.message, 500);
+}*/
+}
+
+// =====================================
+//  CREATE (POST) ROUTES ENDPOINTS
+// =====================================
+
+/**
+ * Main entry point for CREATE (POST) requests
+ */
+function doPost(e) {
+  try {
+    // Initialize spreadsheet
+    const { sheets } = initSpreadsheet();
+
+    // Get path from URL
+    const path = e.pathInfo || '';
+
+    // Route for releases API requests
+    if (path === 'releases' || path === 'api/releases') {
+      return handlePostReleases(sheets.releaseDetails, e.postData);
+    }
+
+    // Route for map-sirs API requests
+    if (path === 'map-sirs' || path === 'api/map-sirs') {
+      // Need both SIRs sheet (source) and SIRs_Releases sheet (target)
+      if (!sheets.sirs || !sheets.sirsReleases) {
+        return createErrorResponse('Required sheets not found', 500);
+      }
+      return handleMapSIRs(sheets.sirs, sheets.sirsReleases, e.postData);
+    }
+
+    // Default response for unsupported POST paths
+    return createErrorResponse('Endpoint not found for POST request', 404);
+
+  } catch (error) {
+    console.error('Router POST Error:', error.message);
+    return createErrorResponse(error.message, 500);
+  }
+}
+
+// =====================================
+//  UPDATE (PUT) ROUTES ENDPOINTS
+// =====================================
+
+/**
+ * Main entry point for UPDATE (PUT) requests
+ */
+function doPut(e) {
+  try {
+    // Initialize spreadsheet
+    const { sheets } = initSpreadsheet();
+
+    // Get path from URL
+    const path = e.pathInfo || '';
+
+    // Route for releases API PUT requests
+    // Check if path matches /api/releases/REL-XXXXX pattern
+    if (path.startsWith('releases/') || path.startsWith('api/releases/')) {
+      // Extract the Release_id from the path
+      // Example: "api/releases/REL-BXZ8V" -> "REL-BXZ8V"
+      const pathParts = path.split('/');
+      const releaseId = pathParts[pathParts.length - 1];
+
+      return handlePutRelease(sheets.releaseDetails, releaseId, e.postData);
+    }
+
+    // Route for SIRs-Releases API PUT requests
+    // Check if path matches /api/sirs-releases/SIRREL-XXXXX pattern
+    if (path.startsWith('sirs-releases/') || path.startsWith('api/sirs-releases/')) {
+      // Extract the SIR_Release_id from the path
+      // Example: "api/sirs-releases/SIRREL-XXXXX" -> "SIRREL-XXXXX"
+      const pathParts = path.split('/');
+      const sirReleaseId = pathParts[pathParts.length - 1];
+
+      return handlePutSIRsRelease(sheets.sirsReleases, sirReleaseId, e.postData);
+    }
+
+    // Default response for unsupported PUT paths
+    return createErrorResponse('Endpoint not found for PUT request', 404);
+
+  } catch (error) {
+    console.error('Router PUT Error:', error.message);
+    return createErrorResponse(error.message, 500);
+  }
+}
+
+// =====================================
+//  DELETE ROUTES ENDPOINTS
+// =====================================
+
+/**
+ * Main entry point for DELETE requests
+ */
+function doDelete(e) {
+  try {
+    // Initialize spreadsheet
+    const { sheets } = initSpreadsheet();
+
+    // Get path from URL
+    const path = e.pathInfo || '';
+
+    // Route for bulk releases DELETE (with JSON payload)
+    if (path === 'releases' || path === 'api/releases') {
+      // Check if there's POST data for bulk delete
+      if (e.postData && e.postData.contents) {
+        const data = JSON.parse(e.postData.contents);
+        return handleBulkDeleteReleases(sheets.releaseDetails, data);
+      } else {
+        return createErrorResponse('No data provided for bulk delete', 400);
+      }
+    }
+
+    // Route for single release DELETE requests
+    // Check if path matches /api/releases/REL-XXXXX pattern
+    if (path.startsWith('releases/') || path.startsWith('api/releases/')) {
+      // Extract the Release_id from the path
+      // Example: "api/releases/REL-BXZ8V" -> "REL-BXZ8V"
+      const pathParts = path.split('/');
+      const releaseId = pathParts[pathParts.length - 1];
+
+      return handleDeleteRelease(sheets.releaseDetails, releaseId);
+    }
+
+    // Route for single SIRs-Release DELETE requests
+    // Check if path matches /api/sirs-releases/SIRREL-XXXXX pattern
+    if (path.startsWith('sirs-releases/') || path.startsWith('api/sirs-releases/')) {
+      // Extract the SIR_Release_id from the path
+      // Example: "api/sirs-releases/SIRREL-XXXXX" -> "SIRREL-XXXXX"
+      const pathParts = path.split('/');
+      const sirReleaseId = pathParts[pathParts.length - 1];
+
+      return handleDeleteSIRsRelease(sheets.sirsReleases, sirReleaseId);
+    }
+
+    // Route for bulk SIRs-Releases DELETE (with JSON payload)
+    if (path === 'sirs-releases' || path === 'api/sirs-releases') {
+      // Check if there's POST data for bulk delete
+      if (e.postData && e.postData.contents) {
+        const data = JSON.parse(e.postData.contents);
+        return handleBulkDeleteSIRsReleases(sheets.sirsReleases, data);
+      } else {
+        return createErrorResponse('No data provided for bulk delete', 400);
+      }
+    }
+
+    // Default response for unsupported DELETE paths
+    return createErrorResponse('Endpoint not found for DELETE request', 404);
+
+  } catch (error) {
+    console.error('Router DELETE Error:', error.message);
+    return createErrorResponse(error.message, 500);
+  }
+}
+
+
+// =====================================
+// GET REQUEST HANDLERS
+// =====================================
+
+/**
+ * Handle GET requests for all systems
+ */
+function handleGetSystems(systemsSheet, e) {
+  try {
+    const systems = getAllSystems(systemsSheet);
+
+    /*return createJsonResponse({
+      success: true,
+      count: systems.length,
+      systems: systems,  // represents the entire systems array
+      metadata: {
+        header_row: 3,
+        data_start_row: 4,
+        sheet_name: systemsSheet.getName(),
+        last_data_row: systemsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    });*/
+
+    const data = {
+      success: true,
+      count: systems.length,
+      systems: systems,  // represents the entire systems array
+      metadata: {
+        header_row: 3,
+        data_start_row: 4,
+        sheet_name: systemsSheet.getName(),
+        last_data_row: systemsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    }
+
+    return createResponse(data, e);
+
+  } catch (error) {
+    /*console.error('Error in handleGetSystems:', error.message);
+    return createErrorResponse(`Failed to retrieve systems: ${error.message}`, 500);*/
+
+    console.error('Error in handleGetSystems:', error.message);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve systems: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(errorData, e);
+  }
+}
+
+/**
+ * Handle GET requests for all releases
+ */
+/*function handleGetReleases(releaseSheet) {
+  try {
+    const releases = getAllReleases(releaseSheet);
+
+    return createJsonResponse({
+      success: true,
+      count: releases.length,
+      releases: releases,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: releaseSheet.getName(),
+        last_data_row: releaseSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handleGetReleases:', error.message);
+    return createErrorResponse(`Failed to retrieve releases: ${error.message}`, 500);
+  }
+}*/
+
+function handleGetReleases(releaseSheet, e) {
+  try {
+    const releases = getAllReleases(releaseSheet);
+
+    const data = {
+      success: true,
+      count: releases.length,
+      releases: releases,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: releaseSheet.getName(),
+        last_data_row: releaseSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(data, e);
+
+  } catch (error) {
+    console.error('Error in handleGetReleases:', error.message);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve releases: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+    return createResponse(errorData, e);
+  }
+}
+
+/**
+ * Handle GET requests for all SIRs
+ */
+function handleGetSIRs(sirsSheet, e) {
+  try {
+    const sirs = getAllSIRs(sirsSheet);
+
+    /*return createJsonResponse({
+      success: true,
+      count: sirs.length,
+      sirs: sirs,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsSheet.getName(),
+        last_data_row: sirsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    });*/
+
+    const data = {
+      success: true,
+      count: sirs.length,
+      sirs: sirs,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsSheet.getName(),
+        last_data_row: sirsSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(data, e);
+
+  } catch (error) {
+    /*console.error('Error in handleGetSIRs:', error.message);
+    return createErrorResponse(`Failed to retrieve SIRs: ${error.message}`, 500);*/
+
+    console.error('Error in handleGetSIRs:', error.message);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve SIRs: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(errorData, e);
+
+  }
+}
+
+/**
+ * Handle GET requests for all SIRs-Releases
+ */
+function handleGetSIRsReleases(sirsReleasesSheet, e) {
+  try {
+    const sirsReleases = getAllSIRsReleases(sirsReleasesSheet);
+
+    /*return createJsonResponse({
+      success: true,
+      count: sirsReleases.length,
+      sirs_releases: sirsReleases,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsReleasesSheet.getName(),
+        last_data_row: sirsReleasesSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    });*/
+
+    const data = {
+      success: true,
+      count: sirsReleases.length,
+      sirs_releases: sirsReleases,
+      metadata: {
+        header_row: 4,
+        data_start_row: 5,
+        sheet_name: sirsReleasesSheet.getName(),
+        last_data_row: sirsReleasesSheet.getLastRow()
+      },
+      timestamp: new Date().toISOString()
+    }
+
+    return createResponse(data, e);
+
+  } catch (error) {
+    /*console.error('Error in handleGetSIRsReleases:', error.message);
+    return createErrorResponse(`Failed to retrieve SIRs-Releases: ${error.message}`, 500);*/
+
+    console.error('Error in handleGetSIRsReleases:', error.message);
+    const errorData = {
+      success: false,
+      error: `Failed to retrieve SIRs-Releases: ${error.message}`,
+      statusCode: 500,
+      timestamp: new Date().toISOString()
+    };
+
+    return createResponse(errorData, e);
+
+  }
+}
+
+// =====================================
+// POST REQUEST HANDLERS
+// =====================================
+
+/**
+ * Handle POST requests to create new releases
+ */
+function handlePostReleases(releaseSheet, postData) {
+  try {
+    // Parse the POST data
+    const data = JSON.parse(postData.contents);
+
+    // Create new release
+    const createdRelease = createNewRelease(releaseSheet, data);
+
+    return createJsonResponse({
+      success: true,
+      message: 'Release created successfully',
+      release: createdRelease,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handlePostReleases:', error.message);
+    return createErrorResponse(`Failed to create release: ${error.message}`, 500);
+  }
+}
+
+/**
+ * Handle POST requests to map SIRs to releases
+ */
+function handleMapSIRs(sirsSheet, sirsReleasesSheet, postData) {
+  try {
+    // Parse the POST data
+    const data = JSON.parse(postData.contents);
+
+    // Validate required fields
+    if (!data.releaseVersion || !data.iteration || !data.sirIds) {
+      throw new Error('Missing required fields: releaseVersion, iteration, and sirIds are required');
+    }
+
+    // Call the helper function to map SIRs
+    const result = mapSIRsForRelease(sirsSheet, sirsReleasesSheet, data.releaseVersion, data.iteration, data.sirIds);
+
+    return createJsonResponse({
+      success: true,
+      message: 'SIRs mapped successfully',
+      result: result,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handleMapSIRs:', error.message);
+    return createErrorResponse(`Failed to map SIRs: ${error.message}`, 500);
+  }
+}
+
+// =====================================
+// PUT REQUEST HANDLERS
+// =====================================
+
+/**
+ * Handle PUT requests to update existing releases
+ */
+function handlePutRelease(releaseSheet, releaseId, postData) {
+  try {
+    // Parse the PUT data
+    const data = JSON.parse(postData.contents);
+
+    // Update the release
+    const updatedRelease = updateRelease(releaseSheet, releaseId, data);
+
+    return createJsonResponse({
+      success: true,
+      message: 'Release updated successfully',
+      release: updatedRelease,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handlePutRelease:', error.message);
+    return createErrorResponse(`Failed to update release: ${error.message}`, 500);
+  }
+}
+
+/**
+ * Handle PUT requests to update existing SIRs-Releases
+ */
+function handlePutSIRsRelease(sirsReleasesSheet, sirReleaseId, postData) {
+  try {
+    // Parse the PUT data
+    const data = JSON.parse(postData.contents);
+
+    // Update the SIRs-Release
+    const updatedSIRsRelease = updateSIRsRelease(sirsReleasesSheet, sirReleaseId, data);
+
+    return createJsonResponse({
+      success: true,
+      message: 'SIRs-Release updated successfully',
+      sir_release: updatedSIRsRelease,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handlePutSIRsRelease:', error.message);
+    return createErrorResponse(`Failed to update SIRs-Release: ${error.message}`, 500);
+  }
+}
+
+
+// =====================================
+// DELETE REQUEST HANDLERS
+// =====================================
+
+/**
+ * Handle DELETE requests to remove a single release
+ */
+function handleDeleteRelease(releaseSheet, releaseId) {
+  try {
+    console.log(`Deleting release: ${releaseId}`);
+
+    // Delete the release from sheet
+    const deletedRelease = deleteRelease(releaseSheet, releaseId);
+
+    return createJsonResponse({
+      success: true,
+      message: 'Release deleted successfully',
+      release: deletedRelease,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handleDeleteRelease:', error.message);
+    return createErrorResponse(`Failed to delete release: ${error.message}`, 500);
+  }
+}
+
+/**
+ * Handle DELETE requests to remove multiple releases
+ */
+function handleBulkDeleteReleases(releaseSheet, data) {
+  try {
+    console.log(`Bulk deleting releases: ${data.releaseIds}`);
+
+    // Delete multiple releases from sheet
+    const deleteResults = bulkDeleteReleases(releaseSheet, data.releaseIds);
+
+    return createJsonResponse({
+      success: true,
+      message: 'Bulk delete completed',
+      deleted_count: deleteResults.deletedCount,
+      deleted_releases: deleteResults.deletedReleases,
+      not_found: deleteResults.notFound,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handleBulkDeleteReleases:', error.message);
+    return createErrorResponse(`Failed to bulk delete releases: ${error.message}`, 500);
+  }
+}
+
+/**
+ * Handle DELETE requests to remove a single SIRs-Release
+ */
+function handleDeleteSIRsRelease(sirsReleasesSheet, sirReleaseId) {
+  try {
+    console.log(`Deleting SIRs-Release: ${sirReleaseId}`);
+
+    // Delete the SIRs-Release from sheet
+    const deletedSIRsRelease = deleteSIRsRelease(sirsReleasesSheet, sirReleaseId);
+
+    return createJsonResponse({
+      success: true,
+      message: 'SIRs-Release deleted successfully',
+      sir_release: deletedSIRsRelease,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handleDeleteSIRsRelease:', error.message);
+    return createErrorResponse(`Failed to delete SIRs-Release: ${error.message}`, 500);
+  }
+}
+
+/**
+ * Handle DELETE requests to remove multiple SIRs-Releases
+ */
+function handleBulkDeleteSIRsReleases(sirsReleasesSheet, data) {
+  try {
+    console.log(`Bulk deleting SIRs-Releases: ${data.sirReleaseIds}`);
+
+    // Delete multiple SIRs-Releases from sheet
+    const deleteResults = bulkDeleteSIRsReleases(sirsReleasesSheet, data.sirReleaseIds);
+
+    return createJsonResponse({
+      success: true,
+      message: 'Bulk delete completed',
+      deleted_count: deleteResults.deletedCount,
+      deleted_sir_releases: deleteResults.deletedSIRsReleases,
+      not_found: deleteResults.notFound,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in handleBulkDeleteSIRsReleases:', error.message);
+    return createErrorResponse(`Failed to bulk delete SIRs-Releases: ${error.message}`, 500);
+  }
+}
+
+// ========================================
+// JSONOP / JSON RESPONSE HELPER FUNCTIONS
+// ========================================
+
+/**
+ * Create JSONP response if callback parameter is present
+ * Otherwise returns regular JSON response
+ */
+function createResponse(data, e) {
+  const output = ContentService.createTextOutput('');
+
+  // Check for JSONP callback parameter
+  const callback = e?.parameter?.callback || e?.parameter?.cb;
+
+  if (callback) {
+    // JSONP response
+    const jsonp = `${callback}(${JSON.stringify(data)})`;
+    output.setContent(jsonp);
+    output.setMimeType(ContentService.MimeType.JAVASCRIPT); // Important for JSONP
+  } else {
+    // Regular JSON response
+    output.setContent(JSON.stringify(data));
+    output.setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return output;
+}
+
+/**
+ * Create JSON response (kept for backward compatibility)
+ */
+function createJsonResponse(data) {
+  const output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+  return output;
+}
+
+/**
+ * Create error response (kept for backward compatibility)
+ */
+function createErrorResponse(message, statusCode = 400) {
+  return createJsonResponse({
+    success: false,
+    error: message,
+    statusCode: statusCode,
+    timestamp: new Date().toISOString()
+  });
+}
+
+/**
+ * Create JSON response
+ */
+/*function createJsonResponse(data) {
+  const output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+  return output;
+}*/
+
+/**
+ * Create error response
+ */
+/*function createErrorResponse(message, statusCode = 400) {
+  return createJsonResponse({
+    success: false,
+    error: message,
+    statusCode: statusCode,
+    timestamp: new Date().toISOString()
+  });
+}*/

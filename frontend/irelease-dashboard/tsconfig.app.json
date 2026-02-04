@@ -4,6 +4,9 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "src/**/*.json"
+, "../../container-bound/ireleasedb"],
   "exclude": ["node_modules"]
 }
