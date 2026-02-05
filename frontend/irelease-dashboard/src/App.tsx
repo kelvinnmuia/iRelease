@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { DashboardLayout } from "@/dashboard-layout"
 import DashboardPage from "@/pages/dashboard-page"
 import ReleasesPage from "@/pages/releases-page"
@@ -9,8 +9,7 @@ import ReportsPage from "@/pages/reports-page"
 import SettingsPage from "@/pages/settings-page"
 export default function App() {
   return (
-
-    <BrowserRouter basename="/iRelease">
+    <Router>
       <Routes>
 
         {/* Redirect root "/" to dashboard */}
@@ -28,7 +27,7 @@ export default function App() {
         </Route>
 
       </Routes>
-     </BrowserRouter>
+    </Router>
   )
 }
 
